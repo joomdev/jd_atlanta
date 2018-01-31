@@ -1,0 +1,46 @@
+.gdropdown {
+	background-color: #fff;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	border-radius: 2px;
+	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.176);
+	font-size: 13px;
+	margin: 1px 0 0;
+	min-width: 160px;
+	padding: 5px 0;
+}
+.gdropdown > li > a {
+	display: block;
+	padding: 3px 20px;
+	clear: both;
+	font-weight: normal;
+	line-height: 1.428571429;
+	color: #333;
+	white-space: nowrap;
+}
+.gdropdown > li > a:hover,
+.gdropdown > li > a:focus {
+	color: #262626;
+	text-decoration: none;
+	background-color: #f5f5f5;
+}
+.gdropdown > .active > a,
+.gdropdown > .active > a:hover,
+.gdropdown > .active > a:focus {
+	color: #fff;
+	text-decoration: none;
+	background-color: #428bca;
+	outline: 0;
+}
+.gdropdown > .disabled > a,
+.gdropdown > .disabled > a:hover,
+.gdropdown > .disabled > a:focus {
+	color: #999999;
+}
+.gdropdown > .disabled > a:hover,
+.gdropdown > .disabled > a:focus {
+	text-decoration: none;
+	cursor: not-allowed;
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}

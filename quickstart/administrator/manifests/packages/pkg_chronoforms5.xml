@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<extension type="package" version="1.6" method="upgrade">
+	<name>ChronoForms5 Package</name>
+	<author>ChronoEngine.com Team</author>
+	<creationDate>2016</creationDate>
+	<packagename>chronoforms5</packagename>
+	<version>V5.0</version>
+	<url>http://www.chronoengine.com/</url>
+	<packager>ChronoEngine.com Team</packager>
+	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+	<packagerurl>http://www.www.chronoengine.com.com/</packagerurl>
+	<description>ChronoForms5 extension package (Component + CEGCore library)</description>
+	<scriptfile>install.pkg_chronoforms5.php</scriptfile>
+	<files folder="packages">
+		<file type="library" id="cegcore">cegcore.zip</file>
+		<file type="component" id="chronoforms5" >com_chronoforms5.zip</file>
+	</files>
+</extension>

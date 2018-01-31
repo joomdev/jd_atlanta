@@ -1,0 +1,76 @@
+ul.gcompleter-list {
+	background-color: #fff;
+	font-size: 13px;
+	margin: 1px 0 0;
+	min-width: 160px;
+	padding: 5px 0;
+}
+ul.gcompleter-list > li > a {
+	display: block;
+	padding: 3px 20px;
+	clear: both;
+	font-weight: normal;
+	line-height: 1.428571429;
+	color: #333;
+	white-space: nowrap;
+}
+ul.gcompleter-list > li > a:hover,
+ul.gcompleter-list > li > a:focus {
+	color: #262626;
+	text-decoration: none;
+	background-color: #f5f5f5;
+}
+ul.gcompleter-list > .active > a,
+ul.gcompleter-list > .active > a:hover,
+ul.gcompleter-list > .active > a:focus {
+	color: #fff;
+	text-decoration: none;
+	background-color: #428bca;
+	outline: 0;
+}
+ul.gcompleter-list > .disabled > a,
+ul.gcompleter-list > .disabled > a:hover,
+ul.gcompleter-list > .disabled > a:focus {
+	color: #999999;
+}
+ul.gcompleter-list > .disabled > a:hover,
+ul.gcompleter-list > .disabled > a:focus {
+	text-decoration: none;
+	cursor: not-allowed;
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}
+
+.gcompleter-ajax-loading{background:url('loading.gif') no-repeat scroll 0 0; display:block !important; height:11px !important;}
+.gcompleter-list {
+	overflow:auto;
+	margin-bottom:0;
+}
+.gcompleter{
+	border:1px solid #ccc;
+	position:relative;
+}
+.gcompleter-text{
+	display:table-cell;
+	vertical-align:middle;
+	white-space:nowrap;
+	overflow:hidden;
+	cursor:pointer;
+}
+.gcompleter-fields{
+	display:none;
+}
+.gcompleter-input{
+	display:table-cell;
+	vertical-align:middle;
+}
+.gcompleter-arrow{
+	display:table-cell;
+	border:1px solid #555;
+	text-align: center;
+	border-radius: 2px;
+	background-color: #eee;
+	vertical-align:middle;
+	cursor:pointer;
+}

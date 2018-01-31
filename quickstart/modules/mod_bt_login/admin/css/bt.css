@@ -1,0 +1,166 @@
+.pane-sliders > .panel { 
+	border: none !important; 
+	font-family:arial;	
+}
+.pane-sliders >.panel > h3 {
+	background:url(../images/header-bg.gif) repeat-x!important;
+	height:37px;
+	line-height:37px;
+	padding:0;
+}
+.pane-sliders >.panel h3 span{
+	text-transform:uppercase;
+	color:#c16306;
+}
+
+.pane-toggler-down {
+	border-bottom:none!important;
+}
+.pane-toggler-down span {
+    background: url("../images/arrow-down.gif") no-repeat scroll 8px 50% transparent!important;
+    padding-left: 26px!important;
+}
+.pane-toggler span {
+    background: url("../images/arrow-up.gif") no-repeat scroll 10px 50% transparent!important;
+    padding-left: 26px!important;
+}
+.pane-sliders > .panel{
+	border:1px solid #cacaca!important;
+	border-top:1px solid #da710a!important;
+	border-radius:5px 5px 5px 5px;
+	padding:0 1px;
+}
+fieldset.panelform{
+	padding:10px!important;
+}
+fieldset.panelform li > label, fieldset.panelform div.paramrow label, fieldset.panelform span.faux-label {
+    max-width: 30% !important;
+    min-width: 30% !important;
+}
+#module-sliders .spacer h3{
+	padding-top:3px;
+	margin:0px;
+	background:#fff!important;
+}
+#module-sliders .adminform{
+	padding:0;
+}
+#module-sliders fieldset > ul > li > label {
+    color: #505050;
+    font-size: 11px;
+	line-height:18px;
+    font-weight: bold;
+    max-width: 30% !important;
+    min-width: 30% !important;
+    text-align: left;
+}
+#module-sliders fieldset > ul.adminformlist > li {
+    border-bottom: 1px dotted  #c4c4c4;
+	min-height:35px;
+	padding:0px;
+	margin:5px;
+}
+
+/* Fix chosen*/
+#module-sliders .chzn-container  ul.chzn-results{
+	min-width:95%;
+}
+#module-sliders .chzn-container-single .chzn-single div{
+	height:100%!important;
+}
+fieldset.adminform fieldset.radio, fieldset.panelform fieldset.radio, fieldset.adminform-legacy fieldset.radio {
+    border: 0 none;
+    float: left;
+    margin: 0 0 5px;
+	max-width: 68% !important;
+    min-width: 68% !important;
+    padding: 0;
+}
+#module-sliders input[type=text],#module-sliders textarea {
+    background:-moz-linear-gradient(center bottom , white 85%, #EEEEEE 99%) repeat scroll 0 0 transparent;
+    border: 1px solid #AAAAAA;
+    font-family: sans-serif;
+	font-size:11px;
+    margin: 1px 0;
+    outline: 0 none;
+    padding: 6px 20px 6px 5px;
+	border-radius: 4px 4px 4px 4px;
+}
+
+.bt-desc{
+	line-height:200%;	
+}
+.bt-desc img{
+	margin-right:10px;
+}
+.bt-license{
+	border-top: 1px dotted  #c4c4c4;
+	padding:10px 0px;
+}
+.bt-desc p a{
+	display: inline-block;
+    height: 28px;
+    margin-right: 7px;
+    text-indent: -999px;
+    width: 28px;
+	text-decoration:none;
+	margin-top:10px;
+}
+.social-f {
+    background: url("../images/icon_f.png") no-repeat scroll left top transparent;
+}
+.social-f:hover {
+    background: url("../images/icon_f_hover.png") no-repeat scroll left top transparent;
+}
+.social-t {
+    background: url("../images/icon_t.png") no-repeat scroll left top transparent;
+}
+.social-t:hover {
+    background: url("../images/icon_t_hover.png") no-repeat scroll left top transparent;
+}
+.social-rss {
+    background: url("../images/icon_rss.png") no-repeat scroll left top transparent;
+}
+.social-rss:hover {
+    background: url("../images/icon_rss_hover.png") no-repeat scroll left top transparent;
+}
+.social-g {
+    background: url("../images/icon_group.png") no-repeat scroll left top transparent;
+}
+.social-g:hover {
+    background: url("../images/icon_group_hover.png") no-repeat scroll left top transparent;
+}
+
+.switcher-yes,.switcher-no  {
+    background: url("../images/switcher-yesno.png") no-repeat scroll 0 0 transparent;
+    cursor: pointer;
+    float: left;
+    height: 20px;
+    margin-top: 4px;
+    width: 64px;
+}
+.switcher-no {
+    background-position: 0 -20px;
+}
+.switcher-on,.switcher-off  {
+    background: url("../images/switcher-onoff.png") no-repeat scroll 0 0 transparent;
+    cursor: pointer;
+    float: left;
+    height: 20px;
+    margin-top: 4px;
+    width: 64px;
+}
+.switcher-off {
+    background-position: 0 -20px;
+}
+div.colorpicker{
+	z-index:999;
+}
+div.colorpicker input[type="text"] {
+	height: auto!important;
+	width: auto!important;
+	padding:0;
+	margin:0;
+	background:none;
+	border:none;
+}

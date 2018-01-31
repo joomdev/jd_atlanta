@@ -1,0 +1,7 @@
+.geditor-btn{padding:4px; border:1px solid transparent; cursor:pointer; min-width:25px; min-height:25px; text-align:center; vertical-align:middle; color:#888;}
+.geditor-btn:hover{border:1px solid #ccc; color:#000;}
+.geditor-btn.active{background-color:#ddd;}
+
+.geditor-header{background-color:#eee;}
+
+.geditor-dropdown{}

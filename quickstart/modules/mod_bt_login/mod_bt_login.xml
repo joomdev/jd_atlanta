@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension 
+	type="module" 
+	version="2.5"
+	client="site"
+	 method="upgrade">
+	<name>BT Login</name>
+    <author>BowThemes</author>
+	<creationDate>April 2012</creationDate>
+   <copyright>Copyright (C) 2012 Bowthemes. All rights reserved.</copyright>
+   <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+   <authorEmail>support@bowthemes.com</authorEmail>
+   <authorUrl>http://www.bowthemes.com</authorUrl>
+	<version>2.6.4</version>
+	<description>MOD_BT_LOGIN_XML_DESCRIPTION</description>
+	<files>
+		<filename module="mod_bt_login">mod_bt_login.php</filename>
+		<filename module="mod_bt_login">helper.php</filename>
+		<filename module="mod_bt_login">index.html</filename>
+		<folder module="mod_bt_login">tmpl</folder>
+		<folder module="mod_bt_login">admin</folder>
+	</files>
+	<languages folder="language">
+		<language tag="en-GB">en-GB/en-GB.mod_bt_login.ini</language>
+		<language tag="fr-FR">fr-FR/fr-FR.mod_bt_login.ini</language>
+		<language tag="de-DE">de-DE/de-DE.mod_bt_login.ini</language>
+		<language tag="pt-BR">pt-BR/pt-BR.mod_bt_login.ini</language>
+		<language tag="es-ES">es-ES/es-ES.mod_bt_login.ini</language>
+	</languages>
+	<config>
+		<fields name="params">			
+			<fieldset name="basic">				
+				<field
+					name="align_option"
+					type="list"
+					default="right"
+					label="ALIGN_OPTION_LABEL"
+					description="ALIGN_OPTION_DESC">
+				<option value="right">JGLOBAL_RIGHT</option>
+				<option value="center">JGLOBAL_CENTER</option>
+				<option value="left">JGLOBAL_LEFT</option>
+				</field>
+				<field 
+					name="display_type" 
+					type="list" 
+					default="0" 					
+					label="DISPLAY_TYPE_LABEL" description="DISPLAY_TYPE_DESC">
+					<option value="0">MOD_BT_LOGIN_MODAL</option>
+					<option value="1">MOD_BT_LOGIN_DROPDOWN</option>
+				</field>
+				<field 
+					name="mouse_event" 
+					type="list" 
+					default="click" 					
+					label="BT_LOGIN_MOUSE_EVENT" description="BT_LOGIN_MOUSE_EVENT_DESC">
+					<option value="click">MOD_BT_LOGIN_CLICK</option>
+					<option value="hover">MOD_BT_LOGIN_HOVER</option>
+				</field>
+				<field 
+					name="login" 
+					type="menuitem" 
+					default="" 
+					disable="separator" 
+					label="LOGIN_REDIRECTION_URL" 
+					description="PARAMLOGINREDIRECTURL" > 
+					<option value="">JDEFAULT</option>
+				</field>
+				<field 
+					name="logout" 
+					type="menuitem" 
+					default="" 
+					disable="separator" 
+					label="LOGOUT_REDIRECTION_URL" 
+					description="PARAMLOGOUTREDIRECTURL" >
+					<option value="">JDEFAULT</option>
+				</field>				
+				<field 
+					name="name" 
+					type="list" 
+					default="0" 
+					label="NAME_USERNAME" description="NAME_USERNAME_DESC">
+					<option value="0">MOD_BT_LOGIN_USERNAME</option>
+					<option value="1">MOD_BT_LOGIN_NAME</option>
+				</field>
+				<field 
+					name="logout_button" 
+					type="radio" 
+					class="btn-group"
+					default="1" 
+					label="LOG_OUT_BUTTON_LABEL" 
+					description="LOG_OUT_BUTTON_DESC">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="enabled_registration" type="radio" class="btn-group" default="1" label="ENABLED_REGISTRATION" desciption="ENABLED_REGISTRATION_DESC">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field 
+					name="enabled_registration_tab" 
+					type="radio" 
+					class="btn-group"
+					default="1" 
+					label="REGISTRATION_TAB" 
+					description="REGISTRATION_TAB_DESC">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="enabled_login_tab" type="radio" class="btn-group" default="1" label="LOGIN_TAB" description="LOGIN_TAB_DESC">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field
+					name="tag_login_modal"
+					type="text"
+					default=""
+					label="TAB_LOGON_MODAL_LABEL"
+					description="TAB_LOGON_MODAL_DESC"
+				/>
+				<field name="tag_register_modal" type="text" default="" label="TAB_REGISTER_MODAL_LABEL" description="TAB_REGISTER_MODAL_DESC"/>	
+				<field name="bg_button_color" type="text" class="bt_color" label="BG_BUTTON_COLOR_LABEL" description="BG_BUTTON_COLOR_DESC" />							
+				<field name="text_button_color" type="text" class="bt_color" label="TEXT_BUTTON_COLOR_LABEL" description="TEXT_BUTTON_COLOR_DESC" />
+				<field 
+					name="module_id" 
+					id="bt_module_id" 
+					type="sql" 
+					default="19" 
+					multiple="multiple" 
+					size="10" 
+					label="MODULEID_LABEL" 
+					description="MODULEID_DESC" 
+					query="SELECT id, module, title FROM #__modules WHERE  `client_id`=0 AND ( `published` !=-2 AND `published` !=0 ) ORDER BY position ASC" key_field="id" value_field="title" 
+					/>
+					
+				<field 
+					name="module_position" 
+					id="bt_module_position" 
+					type="sql" 
+					default="0" 
+					multiple="multiple" 
+					size="10" 
+					label="MODULEPOSITION_LABEL" 
+					description="MODULEPOSITION_DESC" 
+					query="SELECT DISTINCT position FROM #__modules ORDER BY position ASC" key_field="position" value_field="position" 
+					/>
+				<field name="use_captcha" type="list" default="1" label="USE_CAPTCHA" description="USE_CAPTCHA_DESC">
+					<option value="0">JNONE</option>
+					<option value="1">JGLOBAL_USE_GLOBAL</option>
+					<option value="2">BUILTIN_CAPTCHA</option>
+				</field>
+				<field 
+					name="integrated_component" class="bt_control"
+					type="list"
+					default=""
+					label="INTEGRATE_COMPONENT_LABEL"
+					description="INTEGRATE_COMPONENT_DESC"
+				>
+					<option value="">JNONE</option>
+					<option value="com_user">MOD_BT_LOGIN_USER_COMPONENT</option>
+					<option value="k2">MOD_BT_LOGIN_K2_COMPONENT</option>
+					<option value="jomsocial">MOD_BT_LOGIN_JOOMSOCIAL</option>
+					<option value="cb">MOD_BT_LOGIN_COMMUNITY_BUILDER</option>
+					<option value="joomshopping">Joomshopping</option>
+					<option value="option">JOPTIONS</option>
+				</field>
+				<field 
+					name="module_option" class="integrated_component_option"
+					id="bt_module_option" 
+					type="sql" 
+					default="0" 					
+					size="10" 
+					label="MODULE_OPTION_LABEL" 
+					description="MODULE_OPTION_DESC" 
+					query="SELECT id, module, title FROM #__modules WHERE  `client_id`=0 AND ( `published` !=-2 AND `published` !=0 ) ORDER BY position ASC" key_field="id" value_field="title" 
+				><option value="">JNOne</option>
+				</field>
+				<field name="link_option" class="integrated_component_option" type="text" default="" label="LINK_OPTION_LABEL" description="LINK_OPTION_DESC" />
+			</fieldset>
+			<fieldset name="advanced">
+				<field 
+					name="loadJquery" 
+					type="list" 
+					default="auto" 
+					label="BT_LOADJQUERY" 
+					description="BT_LOADJQUERY_DESC">
+					<option value="auto">JGLOBAL_AUTO</option>
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field
+					name="moduleclass_sfx"
+					type="text"
+					label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL"
+					description="COM_MODULES_FIELD_MODULECLASS_SFX_DESC" />
+					<field addfieldpath="/modules/mod_bt_login/admin/formfield" type="asset" name="asset" path="modules/mod_bt_login/admin/" />
+					<field name="cache" type="hidden" default="0" />
+			</fieldset>
+	
+		</fields>
+	</config>
+</extension>

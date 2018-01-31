@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="module" version="3.3.0" client="site" method="upgrade">
+	<name>News Show SP2</name>
+	<author>JoomShaper.com</author>
+	<creationDate>Feb 2012</creationDate>
+	<copyright>Copyright (C) 2010 - 2015 JoomShaper.com. All rights reserved.</copyright>
+	<license>GNU/GPL V2 or Later</license>
+	<authorEmail>support@joomshaper.com</authorEmail>
+	<authorUrl>www.joomshaper.com</authorUrl>
+	<version>2.9</version>
+	<description>JoomShaper News Display/Slider Module for 3</description>
+	<files>
+		<filename module="mod_news_show_sp2">mod_news_show_sp2.php</filename>
+			<folder>assets</folder>
+			<folder>elements</folder>
+			<folder>language</folder>
+			<folder>tmpl</folder>
+			<filename>common.php</filename>
+			<filename>image.php</filename>
+			<filename>helper.php</filename>
+			<filename>k2helper.php</filename>
+			<filename>vmhelper.php</filename>
+			<filename>social.php</filename>
+			<filename>index.html</filename>
+	</files>
+	<languages>
+		<language tag="en-GB">language/en-GB.mod_news_show_sp2.ini</language>
+	</languages>	
+	<config>
+		 <fields name="params" addfieldpath="/modules/mod_news_show_sp2/elements">
+			<fieldset name="DATASOURCE">
+				<field type="assets" name="asset" />
+				<field name="uniqid" type="text" default="" label="UNIQID" description="UNIQID_DESC"/>
+				<field name="content_source" type="list" default="joomla" label="CONTENT_SOURCE" description="CONTENT_SOURCE_DESC">
+				  <option value="joomla">JOOMLA</option>
+				  <option value="k2">MODK2</option>
+				  <option value="vm">MODVM</option>
+				</field>			
+				<field name="catids" type="category" extension="com_content" multiple="true" size="10" default="" label="CATEGORY" description="CATEGORY_DESC" />						
+				<field name="k2catids" type="k2category" default="all" label="K2CATEGORY" description="K2CATEGORY_DESC"/>
+				<field name="vmcat" type="vmcategories" default="all" label="VMCATEGORY" description="VMCATEGORY_DESC"/>
+				<field name="vmordering" class="vm" type="list" default="latest" label="ORDER" description="ORDER_DESC">
+					<option value="featured">FEATURED_PRODUCTS</option>
+					<option value="latest">LATEST_PRODUCTS</option>
+					<option value="topten">BEST_SALES</option>
+				</field>
+				<field name="ordering" type="list" default="a.created" label="ORDER" description="ORDER_DESC">
+					<option value="a.ordering">JOOMLA_ORDERING</option>
+					<option value="a.publish_up">PUBLISHED_UP</option>
+					<option value="a.hits">HITS</option>
+					<option value="a.title">TITLE</option>
+					<option value="a.id">ID</option>
+					<option value="a.alias">ALIAS</option>
+					<option value="a.created">CREATED</option>
+					<option value="a.modified">MODIFIED</option>
+				</field>
+				<field name="ordering_direction" type="list" default="ASC" label="ORDERING_FILTER" description="ORDERING_FILTER_DESC">
+					<option value="DESC">FILTER_DESC</option>
+					<option value="ASC">FILTER_ASC</option>
+				</field>
+				<field name="user_id" type="list" default="0" label="AUTHORS" description="AUTHORS_DESC">
+					<option value="0">ANYONE</option>
+					<option value="by_me">BYME</option>
+					<option value="not_me">NOTBYME</option>
+				</field>
+				<field name="show_featured" type="list" default="" label="FEATURED" description="FEATURED_DESC">
+					<option value="">JSHOW</option>
+					<option value="0">JHIDE</option>
+					<option value="1">ONLY_SHOW_FEATURED</option>
+				</field>
+			</fieldset>
+			
+			<fieldset name="ARTICLE_LAYOUT">			
+				<field name="article_column" type="text" default="1" label="ARTICLE_COLUMN" description="ARTICLE_COLUMN_DESC" />
+				<field name="article_row" type="text" default="1" label="ARTICLE_ROW" description="ARTICLE_ROW_DESC" />
+				<field name="article_col_padding" type="text" default="3px 3px 3px 3px" label="COLUMN_PADDING" description="COLUMN_PADDING_DESC" />
+				<field name="article_showtitle" type="radio" default="1" label="SHOW_TITLE" description="SHOW_TITLE_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="article_linkedtitle" type="radio" default="1" label="LINKED_TITLE" description="LINKED_TITLE_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>	
+				<field name="article_title_text_limit" type="radio" default="1" label="TITLE_TEXT_LIMIT" description="TITLE_TEXT_LIMIT_DESC" class="btn-group">
+					<option value="0">WORDS</option>
+					<option value="1">CHARS</option>
+				</field>
+				<field name="article_count_title_text" type="text" default="0" size="2" />
+				<field name="article_introtext" type="radio" default="1" label="SHOW_INTRO" description="SHOW_INTRO_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="article_intro_text_limit" type="radio" default="0" label="INTRO_TEXT_LIMIT" description="INTRO_TEXT_LIMIT_DESC" class="btn-group">
+					<option value="0">WORDS</option>
+					<option value="1">CHARS</option>
+				</field>
+				<field name="article_count_intro_text" type="text" default="30" size="2" />	
+				<field name="article_date_format" type="list" default="DATE_FORMAT_LC3" label="DATE_FORMAT" description="DATE_FORMAT_DESC">
+					<option value="0">JHIDE</option>
+					<option value="DATE_FORMAT_LC">DATE_FORMAT_LC</option>
+					<option value="DATE_FORMAT_LC1">DATE_FORMAT_LC1</option>
+					<option value="DATE_FORMAT_LC2">DATE_FORMAT_LC2</option>
+					<option value="DATE_FORMAT_LC3">DATE_FORMAT_LC3</option>
+					<option value="DATE_FORMAT_LC4">DATE_FORMAT_LC4</option>
+					<option value="blog">Blog</option>
+				</field>
+				<field name="article_show_author" type="radio" default="0" label="SHOW_AUTHOR" description="SHOW_AUTHOR_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>	
+				<field name="article_show_category" type="radio" default="0" label="SHOW_CAT" description="SHOW_CAT_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>	
+				<field name="article_linked_category" type="radio" default="1" label="LINKED_CAT" description="LINKED_CAT_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="article_show_ratings" type="radio" default="0" label="SHOW_RATINGS" description="SHOW_RATINGS_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>				
+				<field name="article_show_image" type="radio" default="1" label="SHOW_IMAGE" description="SHOW_IMAGE_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="article_linked_image" type="radio" default="1" label="LINKED_IMAGE" description="LINKED_IMAGE_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>				
+				<field name="article_image_pos" type="list" default="bottom" label="IMGPOS" description="IMGPOS_DESC">
+					<option value="top">BEFORE_TITLE</option>
+					<option value="bottom">AFTER_TITLE</option>
+				</field>
+				<field name="article_image_float" type="list" default="float:left">
+					<option value="float:left">float:left</option>
+					<option value="float:right">float:right</option>
+					<option value="float:none">float:none</option>
+				</field>
+				<field name="article_image_margin" type="text" default="0 0 0 0" label="IMG_MARGIN" description="IMG_MARGIN_DESC" />				
+				<field name="article_thumb_width" type="text" default="50" label="THUMBWIDTH" description="THUMBWIDTH_DESC" />	
+				<field name="article_thumb_height" type="text" default="50" label="THUMBHEIGHT" description="THUMBHEIGHT_DESC" />	
+				<!--K2 Specific-->
+				<field name="article_extra_fields" type="radio" default="0" label="SHOW_EXTRA_FIELDS" description="SHOW_EXTRA_FIELDS_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<!--End K2 Specific-->
+				<field name="article_show_more" type="radio" default="1" label="SHOW_READMORE" description="SHOW_READMORE_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>	
+				<field name="article_more_text" type="text" size="5" default="Read More..." />
+				<field name="article_comments" type="radio" default="1" label="SHOW_COMMENTS" description="SHOW_COMMENTS_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>	
+				<field name="article_hits" type="radio" default="1" label="SHOW_HITS" description="SHOW_HITS_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				
+				<!--Social Share-->
+				<field name="btn_like" type="radio" default="0" label="LIKE_BUTTON" description="" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				
+				<field name="btn_twitter" type="radio" default="0" label="TWITTER" description="" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>	
+				
+				<field name="btn_gplus" type="radio" default="0" label="GPLUS" description="" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<!--End Social Share-->
+				
+				<!--Virtuemart-->
+				<field name="art_show_price" type="radio" default="0" class="btn-group vm" label="SHOW_PRICE" description="SHOW_PRICE_DESC">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="art_show_cart_button" type="radio" default="0" class="btn-group vm" label="SHOW_CART_BUTTON" description="SHOW_CART_BUTTON_DESC">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>				
+				<!--End Virtuemart-->
+				
+				<!--Animation-->
+				<field name="article_animation" type="list" default="nssp2-slide" label="ANIMATION" description="ANIMATION_DESC">
+					<option value="disabled">DISABLED</option>
+					<option value="nssp2-slide">SLIDE</option>
+					<option value="nssp2-slide nssp2-fade">FADE</option>
+					<option value="nssp2-noeffect">NOEFFECT</option>
+				</field>				
+				<field name="article_slide_count" type="text" default="2" label="ARTICLE_SLIDE_COUNT" description="ARTICLE_SLIDE_COUNT_DESC" class="btn-group ani1" />	
+				<field name="article_controllers_style" type="list" default="nssp2-default" label="Controllers Style" description="Controllers Style" class="btn-group ani1">
+					<option value="nssp2-default">Default</option>
+					<option value=" ">Custom</option>
+				</field>				
+				<field name="article_pagination" type="radio" default="1" label="PAGINATION" description="PAGINATION_DESC" class="btn-group ani1">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="article_arrows" type="radio" default="0" label="SHOW_ARROWS" description="SHOW_ARROWS_DESC" class="btn-group ani1">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="article_autoplay" type="radio" default="1" label="AUTOPLAY" description="AUTOPLAY_DESC" class="btn-group ani1">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="article_animation_interval" type="text" default="5000" label="INTERVAL" description="INTERVAL_DESC" class="btn-group ani1" />
+			</fieldset>		
+			
+			<fieldset name="LINKS_LAYOUT">
+				<field name="links_block" type="radio" default="0" label="LINKS_BLOCK" description="LINKS_BLOCK_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="links_count" type="text" default="3" label="LINKS_COUNT" description="LINKS_COUNT_DESC" />		
+				<field name="links_col_padding" type="text" default="3px 3px 3px 3px" label="COLUMN_PADDING" description="COLUMN_PADDING_DESC" />				
+				<field name="links_position" type="list" default="bottom" label="LINKS_POSITION" description="LINKS_POSITION_DESC">
+					<option value="bottom">BOTTOM</option>
+					<option value="right">RIGHT</option>
+				</field>
+				<field name="links_more" type="radio" default="1" label="LINKS_MORE" description="LINKS_MORE_DESC" class="btn-group">
+					<option value="0">JHIDE</option>
+					<option value="1">JSHOW</option>
+				</field>	
+				<field name="links_more_text" type="text" default="MORE" size="10" />				
+				<field name="links_title_text_limit" type="radio" default="1" label="TITLE_TEXT_LIMIT" description="TITLE_TEXT_LIMIT_DESC" class="btn-group">
+					<option value="0">WORDS</option>
+					<option value="1">CHARS</option>
+				</field>				
+				<field name="links_title_count" type="text" default="0" size="2" />
+				<field name="links_show_intro" type="radio" default="0" label="SHOW_INTRO" description="SHOW_INTRO_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="links_intro_text_limit" type="radio" default="0" label="INTRO_TEXT_LIMIT" description="INTRO_TEXT_LIMIT_DESC" class="btn-group">
+					<option value="0">WORDS</option>
+					<option value="1">CHARS</option>
+				</field>
+				<field name="links_intro_count" type="text" default="20" size="2" />					
+				<field name="links_show_image" type="radio" default="0" label="SHOW_IMAGE" description="SHOW_IMAGE_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="links_linked_image" type="radio" default="1" label="LINKED_IMAGE" description="LINKED_IMAGE_DESC" class="btn-group">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>				
+				<field name="links_image_pos" type="list" default="bottom" label="IMGPOS" description="IMGPOS_DESC">
+					<option value="top">BEFORE_TITLE</option>
+					<option value="bottom">AFTER_TITLE</option>
+				</field>
+				<field name="links_image_float" type="list" default="float:left">
+					<option value="float:left">float:left</option>
+					<option value="float:right">float:right</option>
+					<option value="float:none">float:none</option>
+				</field>				
+				<field name="links_image_margin" type="text" default="0 0 0 0" label="IMG_MARGIN" description="IMG_MARGIN_DESC" />			
+				<field name="links_thumb_width" type="text" default="50" label="THUMBWIDTH" description="THUMBWIDTH_DESC" />	
+				<field name="links_thumb_height" type="text" default="50" label="THUMBHEIGHT" description="THUMBHEIGHT_DESC" />
+				<!--Virtuemart-->
+				<field name="links_show_price" type="radio" default="0" class="btn-group vm" label="SHOW_PRICE" description="SHOW_PRICE_DESC">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="links_show_cart_button" type="radio" default="0" class="btn-group vm" label="SHOW_CART_BUTTON" description="SHOW_CART_BUTTON_DESC">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>				
+				<!--End Virtuemart-->
+				
+				<!--Animation-->
+				<field name="links_animation" type="list" default="nssp2-slide" label="ANIMATION" description="ANIMATION_DESC">
+					<option value="disabled">DISABLED</option>
+					<option value="nssp2-slide">SLIDE</option>
+					<option value="nssp2-slide nssp2-fade">FADE</option>
+					<option value="nssp2-noeffect">NOEFFECT</option>
+				</field>
+				<field name="links_slide_count" type="text" default="2" label="ARTICLE_SLIDE_COUNT" description="ARTICLE_SLIDE_COUNT_DESC" class="btn-group ani2" />	
+				<field name="links_controllers_style" type="list" default="nssp2-default" label="Controllers Style" description="Controllers Style" class="btn-group ani2">
+					<option value="nssp2-default">Default</option>
+					<option value=" ">Custom</option>
+				</field>
+				<field name="links_pagination" type="radio" default="1" label="PAGINATION" description="PAGINATION_DESC" class="btn-group ani2">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="links_arrows" type="radio" default="0" label="SHOW_ARROWS" description="SHOW_ARROWS_DESC" class="btn-group ani2">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="links_autoplay" type="radio" default="1" label="AUTOPLAY" description="AUTOPLAY_DESC" class="btn-group ani2">
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+				<field name="links_animation_interval" type="text" default="5000" label="INTERVAL" description="INTERVAL_DESC" class="btn-group ani2" />		
+			</fieldset>	
+				
+			<fieldset name="advanced">
+				<field name="layout" type="modulelayout" label="JFIELD_ALT_LAYOUT_LABEL" description="JFIELD_ALT_MODULE_LAYOUT_DESC" />
+				<field name="moduleclass_sfx" type="text" default="" label="MODSFX" description="MODSFX_DESC" />
+				<field name="cache" type="list" default="1" label="COM_MODULES_FIELD_CACHING_LABEL" description="COM_MODULES_FIELD_CACHING_DESC">
+					<option value="1">JGLOBAL_USE_GLOBAL</option>
+					<option value="0">COM_MODULES_FIELD_VALUE_NOCACHING</option>
+				</field>
+				<field name="cache_time" type="text" default="900" label="COM_MODULES_FIELD_CACHE_TIME_LABEL" description="COM_MODULES_FIELD_CACHE_TIME_DESC" />
+				<field name="cachemode" type="hidden" default="itemid">
+					<option value="itemid"></option>
+				</field>
+			</fieldset>
+		</fields>
+	</config>
+</extension>

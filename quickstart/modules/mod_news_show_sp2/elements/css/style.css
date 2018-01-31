@@ -1,0 +1,12 @@
+/*
+# News Show SP2 - News display/Slider module by JoomShaper.com
+# Author    JoomShaper http://www.joomshaper.com
+# Copyright (C) 2010 - 2014 JoomShaper.com. All Rights Reserved.
+# @license - GNU/GPL V2 or later
+# Websites: http://www.joomshaper.com
+*/
+div.nssp2 {}
+	div.nssp2 fieldset {float:left}
+	div.nssp2 input[type=text] {float:left;width:100px;margin:0 0 0 10px}
+	div.nssp2 #jform_params_article_image_pos_chzn,
+	div.nssp2 #jform_params_links_image_pos_chzn{float:left;margin:0 10px 0 0}

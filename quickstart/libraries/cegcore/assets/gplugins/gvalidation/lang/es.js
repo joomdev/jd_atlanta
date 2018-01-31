@@ -1,0 +1,28 @@
+jQuery.gvalidation.errors = jQuery.extend(jQuery.gvalidation.errors, {
+	required: "Este campo es requerido.",
+	alpha: "Este campo s&oacute;lo acepta letras.",
+	alphanum: "Este campo s&oacute;lo acepta caracteres alfanum&eacute;ricos.",
+	nodigit: "No se aceptan d&iacute;gitos.",
+	digit: "Por favor, introduzca un entero v&aacute;lido.",
+	digitmin: "El n&uacute;mero debe ser por lo menos %1",
+	digitltd: "El valor debe estar entre %1 y %2",
+	number: "Por favor, introduzca un n&uacute;mero v&aacute;lido.",
+	email: "Por favor, introduzca un correo v&aacute;lido: <br /><span>Ej: sunom...@dominio.com</span>",
+	image: "Este campo debe contener una im&aacute;gen v&aacute;lida", 
+	phone: "Por favor, introduzca un tel&eacute;fono v&aacute;lido.", 
+	url: "Por favor, introduzca una URL v&aacute;lida: <br /><span>Ej: http://www.dominio.com</span>", 
+	
+	confirm: "Este campo difiere de %1", 
+	differs: "Este campo debe ser distinto de %1", 
+	length_str: "La longitud es incorrecta, debe estar entre %1 y %2", 
+	length_fix: "La longitud es incorrecta, debe ser de exactamente %1 caracteres", 
+	lengthmax: "La longitud es incorrecta, debe tener como m&aacute;ximo %1", 
+	lengthmin: "La longitud es incorrecta, debe contener como m&iacute;nimo %1",
+	words_min: "Este campo debe contener como m&iacute;nimo %1 palabras, actualmente contiene %2", 
+	words_max: "Este campo debe contener como m&aacute;ximo %1 palabras, actualmente contiene %2", 
+	words_range: "Este campo debe contener entre %1 y %2 palabras, actualmente contiene %3",
+	checkbox: "Por favor, marque una casilla",
+	group : 'Favor marcar al menos %1 casilla(s)',
+	custom: "Por favor, seleccione un valor", 
+	select: "Por favor, seleccione un valor"
+});
