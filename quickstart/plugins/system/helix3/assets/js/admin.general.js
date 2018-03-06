@@ -154,7 +154,8 @@ jQuery(function($){
     footerHtml += '<a href="https://www.joomshaper.com/joomla-templates" target="_blank">Premium Templates</a><span>|</span>';
     footerHtml += '<a href="https://www.joomshaper.com/joomla-extensions" target="_blank">Joomla Extensions</a>';
     footerHtml += '</div>';
-    footerHtml += '</div>'; 
+    footerHtml += '</div>';
+
     //$(footerHtml).insertAfter('.form-horizontal');
 	// Removing Helix Branding as mentioned by an online activist at https://www.joomshaper.com/forums/what-is-license-for-helix
 
