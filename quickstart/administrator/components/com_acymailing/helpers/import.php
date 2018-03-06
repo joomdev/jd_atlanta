@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -34,11 +35,10 @@ class acyimportHelper{
 
 	public function __construct(){
 		acymailing_increasePerf();
-
-		$this->db = JFactory::getDBO();
-
 		acymailing_importPlugin('acymailing');
-
+		
+		global $acymailingCmsUserVars;
+		$this->cmsUserVars = $acymailingCmsUserVars;
 	}
 
 	private function getImportedLists(){
@@ -68,7 +68,7 @@ class acyimportHelper{
 		$table = empty($this->tablename) ? trim(acymailing_getVar('string', 'tablename')) : $this->tablename;
 
 		if(empty($table)){
-			$listTables = $this->db->getTableList();
+			$listTables = acymailing_getTableList();
 			acymailing_enqueueMessage(acymailing_translation_sprintf('SPECIFYTABLE', implode(' | ', $listTables)), 'notice');
 			return false;
 		}
@@ -84,7 +84,7 @@ class acyimportHelper{
 
 		$fields = acymailing_getColumns($table);
 		if(empty($fields)){
-			$listTables = $this->db->getTableList();
+			$listTables = acymailing_getTableList();
 			acymailing_enqueueMessage(acymailing_translation_sprintf('SPECIFYTABLE', implode(' | ', $listTables)), 'notice');
 			return false;
 		}
@@ -118,17 +118,14 @@ class acyimportHelper{
 		$query = 'INSERT IGNORE INTO `#__acymailing_subscriber` ('.implode(' , ', array_keys($select)).') SELECT '.implode(' , ', $select).' FROM '.$table.' WHERE '.$select['`email`'].' LIKE \'%@%\'';
 		if(!empty($this->dbwhere)) $query .= ' AND ( '.implode(' ) AND (', $this->dbwhere).' )';
 
-		$this->db->setQuery($query);
-		$this->db->query();
-		$affectedRows = $this->db->getAffectedRows();
+		$affectedRows = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $affectedRows));
 
 		if($onlyimport) return true;
 
 		$query = 'SELECT b.subid FROM '.$table.' as a JOIN '.acymailing_table('subscriber').' as b on a.'.$select['`email`'].' = b.`email`';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
@@ -148,7 +145,7 @@ class acyimportHelper{
 	}
 
 	private function _createUploadFolder(){
-		$folderPath = acymailing_cleanPath(ACYMAILING_ROOT.trim(html_entity_decode('media'.DS.'com_acymailing'.DS.'import'))).DS;
+		$folderPath = acymailing_cleanPath(ACYMAILING_ROOT.trim(html_entity_decode(str_replace('/', DS, ACYMAILING_MEDIA_FOLDER).DS.'import'))).DS;
 		if(!is_dir($folderPath)){
 			acymailing_createDir($folderPath, true, true);
 		}
@@ -255,7 +252,6 @@ class acyimportHelper{
 			return false;
 		}
 		$columns = explode(',', $importColumns);
-		$db = JFactory::getDBO();
 		$acyColumns = acymailing_getColumns('#__acymailing_subscriber');
 		foreach($columns as $oneColumn){
 			if($oneColumn == 1 || $oneColumn == 'listids' || $oneColumn == 'listname' || isset($acyColumns[$oneColumn])) continue; // Ignored or existing column
@@ -275,12 +271,10 @@ class acyimportHelper{
 				$ordering = acymailing_loadResult('SELECT MAX(ordering) FROM #__acymailing_fields');
 			}
 			$ordering++;
-			$db->setQuery('ALTER TABLE `#__acymailing_subscriber` ADD `'.acymailing_secureField(strtolower($oneColumn)).'` VARCHAR ( 250 ) NOT NULL DEFAULT ""');
-			$db->query();
+			acymailing_query('ALTER TABLE `#__acymailing_subscriber` ADD `'.acymailing_secureField(strtolower($oneColumn)).'` TEXT NOT NULL DEFAULT ""');
 			$query = "INSERT INTO `#__acymailing_fields` (`fieldname`, `namekey`, `type`, `value`, `published`, `ordering`, `options`, `core`, `required`, `backend`, `frontcomp`, `default`, `listing`, `frontlisting`, `frontform`) VALUES
 			(".acymailing_escapeDB($oneColumn).", ".acymailing_escapeDB(strtolower($oneColumn)).", 'text', '', 1, ".intval($ordering).", '', 0, 0, 1, 0, '',0,0,1);";
-			$db->setQuery($query);
-			$db->query();
+			acymailing_query($query);
 		}
 
 		$contentFile = file_get_contents($uploadPath);
@@ -318,7 +312,7 @@ class acyimportHelper{
 	}
 
 	public function _cleanImportFolder(){
-
+		
 		$files = acymailing_getFiles(ACYMAILING_MEDIA.'import', '.', false, true, array());
 		foreach($files as $oneFile){
 			if(acymailing_fileGetExt($oneFile) != 'csv') continue;
@@ -494,7 +488,7 @@ class acyimportHelper{
 				if($field == 'listids'){
 					$liststosub = explode('-', trim($value, '\'" '));
 					foreach($liststosub as $onelistid){
-						$this->importUserInLists[intval(trim($onelistid))][] = $this->db->Quote($newUser->email);
+						$this->importUserInLists[intval(trim($onelistid))][] = acymailing_escapeDB($newUser->email);
 					}
 					continue;
 				}
@@ -514,7 +508,7 @@ class acyimportHelper{
 							$newList->listid = $listid;
 							$allLists[$onelistName] = $newList;
 						}
-						$this->importUserInLists[intval($allLists[$onelistName]->listid)][] = $this->db->Quote($newUser->email);
+						$this->importUserInLists[intval($allLists[$onelistName]->listid)][] = acymailing_escapeDB($newUser->email);
 					}
 					continue;
 				}
@@ -545,7 +539,7 @@ class acyimportHelper{
 				$filename = str_replace(array('.', ' '), '_', substr($filename, 0, strpos($filename, $extension))).$extension;
 				$errorFile = implode("\n", $errorLines);
 				acymailing_writeFile(ACYMAILING_MEDIA.'import'.DS.'error_'.$filename, $errorFile);
-				acymailing_enqueueMessage('<a target="_blank" href="index.php?option=com_acymailing&ctrl='.(acymailing_isAdmin() ? '' : 'front').'data&task=downloadimport&filename=error_'.preg_replace('#\.[^.]*$#', '', $filename).'" >'.acymailing_translation('ACY_DOWNLOAD_IMPORT_ERRORS').'</a>', 'notice');
+				acymailing_enqueueMessage('<a target="_blank" href="'.acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'data&task=downloadimport').'&filename=error_'.preg_replace('#\.[^.]*$#', '', $filename).'" >'.acymailing_translation('ACY_DOWNLOAD_IMPORT_ERRORS').'</a>', 'notice');
 			}
 		}
 		$this->_insertUsers($importUsers);
@@ -605,9 +599,8 @@ class acyimportHelper{
 							$query .= ' ON DUPLICATE KEY UPDATE status = -1';
 							$nbsubscribed = -acymailing_loadResult('SELECT COUNT(*) FROM #__acymailing_listsub WHERE listid = '.$listid.' AND status != -1 AND subid IN ('.implode(',', $currentSubids).')');
 						}
-						$this->db->setQuery($query);
-						$this->db->query();
-						$nbsubscribed += $this->db->getAffectedRows();
+						$affected = acymailing_query($query);
+						$nbsubscribed += intval($affected);
 						$b = 0;
 						$currentSubids = array();
 						$query = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (listid,subid,'.$dateColumn.',status) VALUES ';
@@ -622,9 +615,8 @@ class acyimportHelper{
 						$nbsubscribed = -acymailing_loadResult('SELECT COUNT(*) FROM #__acymailing_listsub WHERE listid = '.$listid.' AND status != -1 AND subid IN ('.implode(',', $currentSubids).')');
 					}
 				}
-				$this->db->setQuery($query);
-				$this->db->query();
-				$nbsubscribed += $this->db->getAffectedRows();
+				$affected = acymailing_query($query);
+				$nbsubscribed += intval($affected);
 
 				if(isset($this->subscribedUsers[$listid])){
 					$this->subscribedUsers[$listid]->nbusers += $nbsubscribed;
@@ -650,10 +642,9 @@ class acyimportHelper{
 				$query = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (listid,subid,subdate,status) ';
 				$query .= "SELECT $listid,`subid`,$subdate,1 FROM ".acymailing_table('subscriber')." WHERE `email` IN (";
 				$query .= implode(',', $arrayEmails).')';
-				$this->db->setQuery($query);
-				$this->db->query();
+				$nbsubscribed = acymailing_query($query);
+				$nbsubscribed = intval($nbsubscribed);
 
-				$nbsubscribed = $this->db->getAffectedRows();
 				if(isset($this->subscribedUsers[$listid])){
 					$this->subscribedUsers[$listid]->nbusers += $nbsubscribed;
 				}else{
@@ -703,12 +694,12 @@ class acyimportHelper{
 				if($map == 'enabled' && !empty($this->importblocked) && $this->importblocked == true){
 					$value[] = 0;
 				}elseif($map != 'subid'){
-					$value[] = $this->db->Quote($oneValue);
+					$value[] = acymailing_escapeDB($oneValue);
 				}else{
 					$value[] = $oneValue;
 				}
 				if($map == 'email'){
-					$allemails[] = $this->db->Quote($oneValue);
+					$allemails[] = acymailing_escapeDB($oneValue);
 				}
 			}
 			$values[] = implode(',', $value);
@@ -722,14 +713,11 @@ class acyimportHelper{
 			$query .= implode(',', $importedCols);
 		}
 
-		$this->db->setQuery($query);
-		$this->db->query();
+		acymailing_query($query);
 
 		acymailing_trigger('onAcyAfterUserImport', array(&$users));
 
-		$this->db->setQuery('SELECT subid FROM '.acymailing_table('subscriber').' WHERE email IN ('.implode(',', $allemails).')');
-
-		$this->allSubid = array_merge($this->allSubid, acymailing_loadResultArray($this->db));
+		$this->allSubid = array_merge($this->allSubid, acymailing_loadResultArray('SELECT subid FROM '.acymailing_table('subscriber').' WHERE email IN ('.implode(',', $allemails).')'));
 
 		return true;
 	}
@@ -802,25 +790,20 @@ class acyimportHelper{
 	}
 
 	function joomla(){
-		$query = 'UPDATE IGNORE '.acymailing_table('users', false).' as b, '.acymailing_table('subscriber').' as a SET a.email = b.email, a.name = b.name, a.enabled = 1 - b.block WHERE a.userid = b.id AND a.userid > 0';
-		$this->db->setQuery($query);
-		$this->db->query();
-		$nbUpdated = $this->db->getAffectedRows();
+		$query = 'UPDATE IGNORE '.acymailing_table($this->cmsUserVars->table, false).' as b, '.acymailing_table('subscriber').' as a SET a.email = b.'.$this->cmsUserVars->email.', a.name = b.'.$this->cmsUserVars->name.', a.enabled = 1 - b.block WHERE a.userid = b.'.$this->cmsUserVars->id.' AND a.userid > 0';
+		$nbUpdated = acymailing_query($query);
 
-		$query = 'UPDATE IGNORE '.acymailing_table('users', false).' as b, '.acymailing_table('subscriber').' as a SET a.userid = b.id WHERE a.email = b.email';
-		$this->db->setQuery($query);
-		$this->db->query();
-		$nbUpdated += $this->db->getAffectedRows();
+		$query = 'UPDATE IGNORE '.acymailing_table($this->cmsUserVars->table, false).' as b, '.acymailing_table('subscriber').' as a SET a.userid = b.'.$this->cmsUserVars->id.' WHERE a.email = b.'.$this->cmsUserVars->email;
+		$affected = acymailing_query($query);
+		$nbUpdated += intval($affected);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_UPDATE', $nbUpdated));
 
-		$query = 'SELECT subid FROM '.acymailing_table('subscriber').' as a LEFT JOIN '.acymailing_table('users', false).' as b on a.userid = b.id WHERE b.id IS NULL AND a.userid > 0';
-		$this->db->setQuery($query);
-		$deletedSubid = acymailing_loadResultArray($this->db);
+		$query = 'SELECT subid FROM '.acymailing_table('subscriber').' as a LEFT JOIN '.acymailing_table($this->cmsUserVars->table, false).' as b on a.userid = b.'.$this->cmsUserVars->id.' WHERE b.'.$this->cmsUserVars->id.' IS NULL AND a.userid > 0';
+		$deletedSubid = acymailing_loadResultArray($query);
 
-		$query = 'SELECT subid FROM '.acymailing_table('subscriber').' as a LEFT JOIN '.acymailing_table('users', false).' as b on a.email = b.email WHERE b.id IS NULL AND a.userid > 0';
-		$this->db->setQuery($query);
-		$deletedSubid = array_merge(acymailing_loadResultArray($this->db), $deletedSubid);
+		$query = 'SELECT subid FROM '.acymailing_table('subscriber').' as a LEFT JOIN '.acymailing_table($this->cmsUserVars->table, false).' as b on a.email = b.'.$this->cmsUserVars->email.' WHERE b.'.$this->cmsUserVars->id.' IS NULL AND a.userid > 0';
+		$deletedSubid = array_merge(acymailing_loadResultArray($query), $deletedSubid);
 
 		if(!empty($deletedSubid)){
 			$userClass = acymailing_get('class.subscriber');
@@ -829,10 +812,8 @@ class acyimportHelper{
 		}
 
 		$time = time();
-		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`,`name`,`confirmed`,`userid`,`created`,`enabled`,`accept`,`html`) SELECT `email`,`name`,1-`block`,`id`,UNIX_TIMESTAMP(`registerDate`),1-`block`,1,1 FROM '.acymailing_table('users', false);
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
+		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`,`name`,`confirmed`,`userid`,`created`,`enabled`,`accept`,`html`) SELECT `'.$this->cmsUserVars->email.'`,`'.$this->cmsUserVars->name.'`,1-`'.$this->cmsUserVars->blocked.'`,`'.$this->cmsUserVars->id.'`,UNIX_TIMESTAMP(`'.$this->cmsUserVars->registered.'`),1-`'.$this->cmsUserVars->blocked.'`,1,1 FROM '.acymailing_table($this->cmsUserVars->table, false);
+		$insertedUsers = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
@@ -851,8 +832,7 @@ class acyimportHelper{
 			foreach($lists as $listid => $val){
 				if($val == 2 && !empty($listCampaign[$listid])){
 					$query = 'SELECT sub.subid FROM #__acymailing_subscriber sub LEFT JOIN #__acymailing_listsub list ON sub.subid=list.subid AND list.listid='.intval($listid).' WHERE list.subid IS NULL AND sub.userid > 0 ';
-					$this->db->setQuery($query);
-					$listSubidNotInList = acymailing_loadResultArray($this->db);
+					$listSubidNotInList = acymailing_loadResultArray($query);
 					if(empty($listSubidNotInList)) continue;
 					foreach($listCampaign[$listid] as $campaignId){
 						$campaignClass->autoSubCampaign($listSubidNotInList, $campaignId);
@@ -863,9 +843,7 @@ class acyimportHelper{
 
 		$query = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (`listid`,`subid`,`subdate`,`status`) ';
 		$query .= 'SELECT a.`listid`, b.`subid` ,'.$time.',1 FROM '.acymailing_table('list').' as a, '.acymailing_table('subscriber').' as b  WHERE a.`listid` IN ('.implode(',', $listsSubscribe).') AND b.`userid` > 0';
-		$this->db->setQuery($query);
-		$this->db->query();
-		$nbsubscribed = $this->db->getAffectedRows();
+		$nbsubscribed = acymailing_query($query);
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIPTION', $nbsubscribed));
 
 		return true;
@@ -873,17 +851,14 @@ class acyimportHelper{
 
 	function acajoom(){
 		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (email,name,confirmed,created,enabled,accept,html) SELECT email,name,confirmed,UNIX_TIMESTAMP(`subscribe_date`),1-blacklist,1,receive_html FROM '.acymailing_table('acajoom_subscribers', false);
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
+		$insertedUsers = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		if(acymailing_getVar('int', 'acajoom_lists', 0) == 1) $this->_importAcajoomLists();
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('acajoom_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 
@@ -892,12 +867,10 @@ class acyimportHelper{
 
 	function _importYancLists(){
 		$query = 'SELECT `id`, `name`, `description`, `state` as `published` FROM `#__yanc_letters`';
-		$this->db->setQuery($query);
-		$yancLists = $this->db->loadObjectList('id');
+		$yancLists = acymailing_loadObjectList($query, 'id');
 
 		$query = 'SELECT `listid`, `alias` FROM '.acymailing_table('list').' WHERE `alias` IN (\'yanclist'.implode('\',\'yanclist', array_keys($yancLists)).'\')';
-		$this->db->setQuery($query);
-		$joomLists = $this->db->loadObjectList('alias');
+		$joomLists = acymailing_loadObjectList($query, 'alias');
 
 		$listClass = acymailing_get('class.list');
 		$time = time();
@@ -920,10 +893,9 @@ class acyimportHelper{
 			$querySelect .= 'WHERE a.lid = '.$yancListId.' AND a.state = 1 AND c.subid > 0';
 			$queryInsert = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (subid,listid,subdate,status) ';
 
-			$this->db->setQuery($queryInsert.$querySelect);
-			$this->db->query();
+			$affected = acymailing_query($queryInsert.$querySelect);
 
-			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $affected, '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -954,8 +926,7 @@ class acyimportHelper{
 		}
 		$query = rtrim($query, ',');
 		$query .= ' FROM #__ccnewsletter_newsletters WHERE `enabled` >= 0';
-		$this->db->setQuery($query);
-		$ccNewsletters = $this->db->loadObjectList();
+		$ccNewsletters = acymailing_loadObjectList($query);
 
 		if(empty($ccNewsletters)) return true;
 
@@ -974,8 +945,7 @@ class acyimportHelper{
 		acymailing_enqueueMessage(acymailing_translation_sprintf('NB_IMPORT_NEWSLETTER', '<b>'.count($lists).'</b>'));
 
 		$query = 'SELECT listid, alias FROM #__acymailing_list WHERE alias LIKE "ccnewsletterlist%"';
-		$this->db->setQuery($query);
-		$acylists = $this->db->loadObjectList('alias');
+		$acylists = acymailing_loadObjectList($query, 'alias');
 
 		$equ = array();
 		foreach($lists as $mailid => $cclist){
@@ -985,20 +955,17 @@ class acyimportHelper{
 
 		if(empty($equ)) return true;
 		$query = 'INSERT IGNORE INTO #__acymailing_listmail (`mailid`, `listid`) VALUES ('.implode('),(', $equ).')';
-		$this->db->setQuery($query);
-		$this->db->query();
+		acymailing_query($query);
 
 		return true;
 	}
 
 	private function _importccNewsletterLists(){
 		$query = 'SELECT `id`, `group_name` as `name`, `public` as `visible`, `enabled` as `published` FROM '.acymailing_table('ccnewsletter_groups', false).' ORDER BY `ordering` ASC';
-		$this->db->setQuery($query);
-		$compLists = $this->db->loadObjectList('id');
+		$compLists = acymailing_loadObjectList($query, 'id');
 
 		$query = 'SELECT `listid`, `alias` FROM '.acymailing_table('list').' WHERE `alias` IN (\'ccnewsletterlist'.implode('\',\'ccnewsletterlist', array_keys($compLists)).'\')';
-		$this->db->setQuery($query);
-		$joomLists = $this->db->loadObjectList('alias');
+		$joomLists = acymailing_loadObjectList($query, 'alias');
 
 		$listClass = acymailing_get('class.list');
 
@@ -1019,10 +986,9 @@ class acyimportHelper{
 			$querySelect .= 'WHERE a.group_id = '.$compListId.' AND c.subid > 0';
 			$queryInsert = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (subid,listid,subdate,status) ';
 
-			$this->db->setQuery($queryInsert.$querySelect);
-			$this->db->query();
+			$affected = acymailing_query($queryInsert.$querySelect);
 
-			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $affected, '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -1059,8 +1025,7 @@ class acyimportHelper{
 		}
 		$query = rtrim($query, ',');
 		$query .= ' FROM #__jnews_mailings WHERE `mailing_type` = 1';
-		$this->db->setQuery($query);
-		$jnewsNewsletters = $this->db->loadObjectList();
+		$jnewsNewsletters = acymailing_loadObjectList($query);
 
 		if(empty($jnewsNewsletters)) return true;
 
@@ -1079,12 +1044,10 @@ class acyimportHelper{
 		acymailing_enqueueMessage(acymailing_translation_sprintf('NB_IMPORT_NEWSLETTER', '<b>'.count($mailids).'</b>'));
 
 		$query = 'SELECT listid, alias FROM #__acymailing_list WHERE alias LIKE "jnewslist%"';
-		$this->db->setQuery($query);
-		$acylists = $this->db->loadObjectList('alias');
+		$acylists = acymailing_loadObjectList($query, 'alias');
 
 		$query = 'SELECT list_id,mailing_id FROM #__jnews_listmailings WHERE mailing_id IN ('.implode(',', array_keys($mailids)).')';
-		$this->db->setQuery($query);
-		$jnewslistmailings = $this->db->loadObjectList();
+		$jnewslistmailings = acymailing_loadObjectList($query);
 
 		$equ = array();
 		foreach($jnewslistmailings as $jnewsids){
@@ -1095,20 +1058,17 @@ class acyimportHelper{
 
 		if(empty($equ)) return true;
 		$query = 'INSERT IGNORE INTO #__acymailing_listmail (`mailid`, `listid`) VALUES ('.implode('),(', $equ).')';
-		$this->db->setQuery($query);
-		$this->db->query();
+		acymailing_query($query);
 
 		return true;
 	}
 
 	private function _importjnewsLists(){
 		$query = 'SELECT `id`, `list_name` as `name`, `hidden` as `visible`, `list_desc` as `description`, `published`, `owner` as `userid` FROM '.acymailing_table('jnews_lists', false);
-		$this->db->setQuery($query);
-		$jnewsLists = $this->db->loadObjectList('id');
+		$jnewsLists = acymailing_loadObjectList($query, 'id');
 
 		$query = 'SELECT `listid`, `alias` FROM '.acymailing_table('list').' WHERE `alias` IN (\'jnewslist'.implode('\',\'jnewslist', array_keys($jnewsLists)).'\')';
-		$this->db->setQuery($query);
-		$joomLists = $this->db->loadObjectList('alias');
+		$joomLists = acymailing_loadObjectList($query, 'alias');
 
 		$listClass = acymailing_get('class.list');
 
@@ -1129,10 +1089,9 @@ class acyimportHelper{
 			$querySelect .= 'WHERE a.list_id = '.$jnewsListId.' AND c.subid > 0';
 			$queryInsert = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (subid,listid,subdate,unsubdate,status) ';
 
-			$this->db->setQuery($queryInsert.$querySelect);
-			$this->db->query();
+			$affected = acymailing_query($queryInsert.$querySelect);
 
-			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $affected, '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -1140,12 +1099,10 @@ class acyimportHelper{
 
 	private function _importAcajoomLists(){
 		$query = 'SELECT `id`, `list_name` as `name`, `hidden` as `visible`, `list_desc` as `description`, `published`, `owner` as `userid` FROM '.acymailing_table('acajoom_lists', false);
-		$this->db->setQuery($query);
-		$acaLists = $this->db->loadObjectList('id');
+		$acaLists = acymailing_loadObjectList($query, 'id');
 
 		$query = 'SELECT `listid`, `alias` FROM '.acymailing_table('list').' WHERE `alias` IN (\'acajoomlist'.implode('\',\'acajoomlist', array_keys($acaLists)).'\')';
-		$this->db->setQuery($query);
-		$joomLists = $this->db->loadObjectList('alias');
+		$joomLists = acymailing_loadObjectList($query, 'alias');
 
 		$listClass = acymailing_get('class.list');
 		$time = time();
@@ -1167,10 +1124,9 @@ class acyimportHelper{
 			$querySelect .= 'WHERE a.list_id = '.$acaListId.' AND c.subid > 0';
 			$queryInsert = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (subid,listid,subdate,status) ';
 
-			$this->db->setQuery($queryInsert.$querySelect);
-			$this->db->query();
+			$affected = acymailing_query($queryInsert.$querySelect);
 
-			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $affected, '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -1179,25 +1135,19 @@ class acyimportHelper{
 	function letterman(){
 		$time = time();
 		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`,`name`,`confirmed`,`created`,`enabled`,`accept`,`html`) SELECT `subscriber_email`,`subscriber_name`,`confirmed`,UNIX_TIMESTAMP(`subscribe_date`),1,1,1 FROM '.acymailing_table('letterman_subscribers', false);
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
+		$insertedUsers = acymailing_query($query);
 
 		if($insertedUsers == -1){
 			$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`,`name`,`confirmed`,`created`,`enabled`,`accept`,`html`) SELECT `email`,`name`,`confirmed`,'.$time.',1,1,1 FROM '.acymailing_table('letterman_subscribers', false);
-			$this->db->setQuery($query);
-			$this->db->query();
-			$insertedUsers = $this->db->getAffectedRows();
+			$insertedUsers = acymailing_query($query);
 			$query = 'SELECT b.subid FROM '.acymailing_table('letterman_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
-			$this->db->setQuery($query);
 		}else{
 			$query = 'SELECT b.subid FROM '.acymailing_table('letterman_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.subscriber_email = b.email';
-			$this->db->setQuery($query);
 		}
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 
@@ -1205,25 +1155,20 @@ class acyimportHelper{
 	}
 
 	function yanc(){
-		$this->db->setQuery('SELECT * FROM #__yanc_subscribers LIMIT 1');
-		$oneSubscriber = $this->db->loadObject();
+		$oneSubscriber = acymailing_loadObject('SELECT * FROM #__yanc_subscribers LIMIT 1');
 		if(!isset($oneSubscriber->state)){
-			$this->db->setQuery("ALTER IGNORE TABLE `#__yanc_subscribers` ADD `state` INT NOT NULL DEFAULT '1'");
-			$this->db->query();
+			acymailing_query("ALTER IGNORE TABLE `#__yanc_subscribers` ADD `state` INT NOT NULL DEFAULT '1'");
 		}
 
 		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`,`name`,`confirmed`,`created`,`enabled`,`accept`,`html`, `ip`) SELECT `email`,`name`,`confirmed`,UNIX_TIMESTAMP(`date`),`state`,1,`html`,`ip` FROM '.acymailing_table('yanc_subscribers', false)." WHERE email LIKE '%@%'";
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
+		$insertedUsers = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		if(acymailing_getVar('int', 'yanc_lists', 0) == 1) $this->_importYancLists();
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('yanc_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 
@@ -1234,15 +1179,12 @@ class acyimportHelper{
 	function vemod(){
 		$time = time();
 		$query = "INSERT IGNORE INTO ".acymailing_table('subscriber')." (`email`,`name`,`confirmed`,`created`,`enabled`,`accept`,`html`) SELECT `email`,`name`,1,'.$time.',1,1,`mailformat` FROM `#__vemod_news_mailer_users` WHERE `email` LIKE '%@%' ";
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
+		$insertedUsers = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$query = 'SELECT b.subid FROM `#__vemod_news_mailer_users` as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 
@@ -1252,15 +1194,12 @@ class acyimportHelper{
 	function contact(){
 		$time = time();
 		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber')." (`email`,`name`,`confirmed`,`created`,`enabled`,`accept`,`html`) SELECT `email_to`,`name`,1,'.$time.',1,1,1 FROM `#__contact_details` WHERE email_to LIKE '%@%'";
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
+		$insertedUsers = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$query = 'SELECT b.subid FROM `#__contact_details` as a JOIN '.acymailing_table('subscriber').' as b on a.email_to = b.email';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 
@@ -1280,10 +1219,7 @@ class acyimportHelper{
 		$fields['html'] = isset($ccfields['plainText']) ? '1-`plainText`' : 1;
 
 		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`'.implode('`,`', array_keys($fields)).'`) SELECT '.implode(',', $fields).' FROM '.acymailing_table('ccnewsletter_subscribers', false);
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
-
+		$insertedUsers = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
@@ -1292,8 +1228,7 @@ class acyimportHelper{
 
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('ccnewsletter_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email WHERE b.subid > 0';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 
@@ -1301,11 +1236,8 @@ class acyimportHelper{
 	}
 
 	function jnews(){
-		$time = time();
 		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`,`name`,`confirmed`,`created`,`enabled`,`accept`,`html`) SELECT `email`,`name`,`confirmed`,`subscribe_date`, 1-`blacklist`,1,`receive_html` FROM '.acymailing_table('jnews_subscribers', false);
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
+		$insertedUsers = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
@@ -1313,8 +1245,7 @@ class acyimportHelper{
 		if(acymailing_getVar('int', 'jnews_news', 0) == 1) $this->_importjnewsNews();
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('jnews_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 
@@ -1324,17 +1255,14 @@ class acyimportHelper{
 	function nspro(){
 		$time = time();
 		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`,`name`,`confirmed`,`created`,`enabled`,`accept`,`html`) SELECT `email`,`name`,`confirmed`,UNIX_TIMESTAMP(`datetime`), 1,1,1 FROM '.acymailing_table('nspro_subs', false);
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
+		$insertedUsers = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		if(acymailing_getVar('int', 'nspro_lists', 0) == 1) $this->_importnsproLists();
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('nspro_subs', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.email = b.email';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 
@@ -1344,12 +1272,10 @@ class acyimportHelper{
 	private function _importnsproLists(){
 
 		$query = 'SELECT `id`, `lname` as `name`, 1 as `visible`, `notes` as `description`, `published`, '.intval(acymailing_currentUserId()).' as `userid` FROM '.acymailing_table('nspro_lists', false);
-		$this->db->setQuery($query);
-		$nsprolists = $this->db->loadObjectList('id');
+		$nsprolists = acymailing_loadObjectList($query, 'id');
 
 		$query = 'SELECT `listid`, `alias` FROM '.acymailing_table('list').' WHERE `alias` IN (\'nsprolist'.implode('\',\'nsprolist', array_keys($nsprolists)).'\')';
-		$this->db->setQuery($query);
-		$joomLists = $this->db->loadObjectList('alias');
+		$joomLists = acymailing_loadObjectList($query, 'alias');
 
 		$listClass = acymailing_get('class.list');
 
@@ -1369,10 +1295,9 @@ class acyimportHelper{
 			$querySelect .= 'WHERE a.mailing_lists LIKE "'.$nsproListId.'" OR a.mailing_lists LIKE "%,'.$nsproListId.',%" OR a.mailing_lists LIKE "'.$nsproListId.',%"  OR a.mailing_lists LIKE "%,'.$nsproListId.'"';
 			$queryInsert = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (subid,listid,subdate,status) ';
 
-			$this->db->setQuery($queryInsert.$querySelect);
-			$this->db->query();
+			$affected = acymailing_query($queryInsert.$querySelect);
 
-			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $this->db->getAffectedRows(), '<b><i>'.$oneList->name.'</i></b>'));
+			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_SUBSCRIBE_CONFIRMATION', $affected, '<b><i>'.$oneList->name.'</i></b>'));
 		}
 
 		return true;
@@ -1381,15 +1306,12 @@ class acyimportHelper{
 	function communicator(){
 		$time = time();
 		$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`,`name`,`confirmed`,`created`,`enabled`,`accept`,`html`) SELECT `subscriber_email`,`subscriber_name`,`confirmed`,'.$time.',1,1,1 FROM '.acymailing_table('communicator_subscribers', false);
-		$this->db->setQuery($query);
-		$this->db->query();
-		$insertedUsers = $this->db->getAffectedRows();
+		$insertedUsers = acymailing_query($query);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$query = 'SELECT b.subid FROM '.acymailing_table('communicator_subscribers', false).' as a JOIN '.acymailing_table('subscriber').' as b on a.subscriber_email = b.email';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 
@@ -1402,9 +1324,8 @@ class acyimportHelper{
 		$query .= 'SELECT CONVERT(civiemail.email USING utf8),CONVERT(civicontact.`first_name` USING utf8),1,'.time().', 1-`do_not_email`,1 - civicontact.is_opt_out,1 ';
 		$query .= 'FROM '.$this->civiprefix.'email as civiemail JOIN '.$this->civiprefix.'contact as civicontact ON civicontact.id = civiemail.contact_id ';
 		$query .= 'WHERE civicontact.is_deleted = 0 AND civiemail.is_primary = 1 AND civiemail.email LIKE \'%@%\'';
-		$this->db->setQuery($query);
-		$this->db->query();
-		return $this->db->getAffectedRows();
+
+		return acymailing_query($query);
 	}
 
 	function setciviprefix(){
@@ -1426,8 +1347,7 @@ class acyimportHelper{
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $insertedUsers));
 
 		$query = 'SELECT b.subid FROM '.$this->civiprefix.'email as a JOIN '.acymailing_table('subscriber').' as b on CONVERT(a.email USING utf8) = b.email';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 	}
@@ -1435,9 +1355,7 @@ class acyimportHelper{
 	function ldap(){
 		$config = acymailing_config();
 
-		$db = JFactory::getDBO();
-		$db->setQuery("DELETE FROM #__acymailing_config WHERE namekey LIKE 'ldapfield_%'");
-		$db->query();
+		acymailing_query("DELETE FROM #__acymailing_config WHERE namekey LIKE 'ldapfield_%'");
 
 		if(!$this->ldap_init()) return false;
 
@@ -1457,11 +1375,9 @@ class acyimportHelper{
 		if($this->ldap_deletenotexists){
 			$subfields = array_keys(acymailing_getColumns('#__acymailing_subscriber'));
 			if(!in_array('ldapentry', $subfields)){
-				$db->setQuery("ALTER TABLE #__acymailing_subscriber ADD COLUMN ldapentry TINYINT UNSIGNED DEFAULT 0");
-				$db->query();
+				acymailing_query("ALTER TABLE #__acymailing_subscriber ADD COLUMN ldapentry TINYINT UNSIGNED DEFAULT 0");
 			}else{
-				$db->setQuery("UPDATE #__acymailing_subscriber SET ldapentry = 0");
-				$db->query();
+				acymailing_query("UPDATE #__acymailing_subscriber SET ldapentry = 0");
 			}
 
 			$this->overwrite = 1;
@@ -1485,8 +1401,7 @@ class acyimportHelper{
 				$newConfig->$vallist = $allLists[$i];
 			}
 
-			$db->setQuery("DELETE FROM #__acymailing_config WHERE namekey LIKE 'ldap_subcond%' OR namekey LIKE 'ldap_sublists%'");
-			$db->query();
+			acymailing_query("DELETE FROM #__acymailing_config WHERE namekey LIKE 'ldap_subcond%' OR namekey LIKE 'ldap_sublists%'");
 		}
 
 		$this->ldap_equivalent = array();
@@ -1521,13 +1436,11 @@ class acyimportHelper{
 		acymailing_enqueueMessage(acymailing_translation_sprintf('ACY_IMPORT_REPORT', $this->totalTry, $this->totalInserted, $this->totalTry - $this->totalValid, $this->totalValid - $this->totalInserted));
 
 		if($this->ldap_deletenotexists){
-			$db->setQuery("SELECT subid FROM #__acymailing_subscriber WHERE ldapentry = 0");
-			$allSubids = acymailing_loadResultArray($db);
+			$allSubids = acymailing_loadResultArray("SELECT subid FROM #__acymailing_subscriber WHERE ldapentry = 0");
 			$subscriberClass = acymailing_get('class.subscriber');
 			$nbAffected = $subscriberClass->delete($allSubids);
 			acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_DELETE', $nbAffected));
-			$db->setQuery("ALTER TABLE #__acymailing_subscriber DROP COLUMN ldapentry");
-			$db->query();
+			acymailing_query("ALTER TABLE #__acymailing_subscriber DROP COLUMN ldapentry");
 		}
 
 		$this->_displaySubscribedResult();
@@ -1687,23 +1600,19 @@ class acyimportHelper{
 	}
 
 	function zohocrm($action = ''){
-		$db = JFactory::getDBO();
 		$zohoHelper = acymailing_get('helper.zoho');
 		$subscriberClass = acymailing_get('class.subscriber');
 		$tableInfos = array_keys(acymailing_getColumns('#__acymailing_subscriber'));
 		$config = acymailing_config();
 		if(!in_array('zohoid', $tableInfos)){
 			$query = 'ALTER TABLE #__acymailing_subscriber ADD COLUMN zohoid VARCHAR(255)';
-			$db->setQuery($query);
-			$db->query();
+			acymailing_query($query);
 			$query = 'ALTER TABLE `#__acymailing_subscriber` ADD INDEX(`zohoid`)';
-			$db->setQuery($query);
-			$db->query();
+			acymailing_query($query);
 		}
 		if(!in_array('zoholist', $tableInfos)){
 			$query = 'ALTER TABLE #__acymailing_subscriber ADD COLUMN zoholist CHAR(1)';
-			$db->setQuery($query);
-			$db->query();
+			acymailing_query($query);
 		}
 
 		if($action == 'update'){
@@ -1762,19 +1671,17 @@ class acyimportHelper{
 			$zohoHelper->deleteAddress($this->allSubid, $list);
 		}else{
 			$query = 'SELECT DISTINCT b.subid FROM #__acymailing_subscriber AS a JOIN #__acymailing_subscriber AS b ON a.zohoid = b.zohoid WHERE a.zohoid IS NOT NULL AND b.subid < a.subid';
-			$db->setQuery($query);
-			$result = acymailing_loadResultArray($db);
+			$result = acymailing_loadResultArray($query);
 			$subscriberClass->delete($result);
 		}
 		if(!empty($zohoHelper->conn)) $zohoHelper->close();
 
 		$this->_displaySubscribedResult();
-		if(!empty($zohoHelper->error) && defined('JDEBUG') && JDEBUG) acymailing_enqueueMessage(acymailing_translation_sprintf($zohoHelper->error), 'notice');
+		if(!empty($zohoHelper->error) && acymailing_isDebug()) acymailing_enqueueMessage(acymailing_translation_sprintf($zohoHelper->error), 'notice');
 	}
 
 	function sobipro(){
 		$config = acymailing_config();
-		$db = JFactory::getDBO();
 
 		$sobiproImport = acymailing_getVar('array', 'config', array(), 'POST');
 		$newConfig = new stdClass();
@@ -1784,19 +1691,16 @@ class acyimportHelper{
 
 		foreach($sobiproImport as $oneImport => $oneValue){
 			$query = 'SELECT fid, nid FROM #__sobipro_field WHERE fid="'.$oneValue['sobiEmail'].'" OR fid="'.$oneValue['sobiName'].'"';
-			$db->setQuery($query);
-			$nidResult = $db->loadObjectList("fid");
+			$nidResult = acymailing_loadObjectList($query, "fid");
 			if(empty($nidResult[$oneValue['sobiEmail']]) OR empty($nidResult[$oneValue['sobiName']])) continue;
 			$time = time();
 			$query = 'INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`,`name`,`confirmed`,`created`,`enabled`,`accept`,`html`) SELECT b.baseData AS email, a.baseData AS name, 1 as confirmed, '.$time.' as created, 1 as enabled, 1 as accept, 1 as html FROM #__sobipro_field_data AS a LEFT JOIN #__sobipro_field_data AS b ON a.sid=b.sid WHERE a.`fid` = '.$nidResult[$oneValue["sobiName"]]->fid.' AND b.`fid` = '.$nidResult[$oneValue["sobiEmail"]]->fid.' AND b.baseData LIKE "%@%" AND b.baseData IS NOT NULL AND a.baseData IS NOT NULL ORDER by a.sid ';
-			$db->setQuery($query);
-			$db->query();
-			$affectedRows += $db->getAffectedRows();
+			$affected = acymailing_query($query);
+			$affectedRows += intval($affected);
 		}
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $affectedRows));
 		$query = 'SELECT b.subid FROM `#__sobipro_field_data` as a JOIN '.acymailing_table('subscriber').' as b on a.baseData = b.email';
-		$this->db->setQuery($query);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray($query);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 		return true;
@@ -1891,9 +1795,9 @@ class acyimportHelper{
 		}
 
 		curl_close($curl);
-
+		
 		$return = json_decode($return, true);
-
+		
 		if(!empty($return['error']['message'])){
 			acymailing_enqueueMessage($return['error']['message'], 'error');
 			return true;
@@ -1904,7 +1808,6 @@ class acyimportHelper{
 			return true;
 		}
 
-		$db = JFactory::getDBO();
 		$leads = '';
 		$time = time();
 		foreach($return['data'] as $oneLead){
@@ -1920,13 +1823,10 @@ class acyimportHelper{
 		}
 		$leads = rtrim($leads, ',');
 
-		$db->setQuery('INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`'.(empty($namefield) ? '' : ',`name`').',`created`) VALUES '.$leads);
-		$db->query();
-		$affectedRows = $db->getAffectedRows();
+		$affectedRows = acymailing_query('INSERT IGNORE INTO '.acymailing_table('subscriber').' (`email`'.(empty($namefield) ? '' : ',`name`').',`created`) VALUES '.$leads);
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('IMPORT_NEW', $affectedRows));
-		$this->db->setQuery('SELECT subid FROM '.acymailing_table('subscriber').' WHERE `created` = '.$time);
-		$this->allSubid = acymailing_loadResultArray($this->db);
+		$this->allSubid = acymailing_loadResultArray('SELECT subid FROM '.acymailing_table('subscriber').' WHERE `created` = '.$time);
 		$this->_subscribeUsers();
 		$this->_displaySubscribedResult();
 		return true;

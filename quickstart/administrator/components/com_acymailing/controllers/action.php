@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -18,19 +19,13 @@ class ActionController extends acymailingController{
 	function listing(){
 		$actionColumns = acymailing_getColumns('#__acymailing_action');
 		if(empty($actionColumns['senderfrom'])){
-			$db = JFactory::getDBO();
-			$db->setQuery("ALTER TABLE #__acymailing_action ADD `senderfrom` tinyint NOT NULL DEFAULT 0");
-			$db->query();
+			acymailing_query("ALTER TABLE #__acymailing_action ADD `senderfrom` tinyint NOT NULL DEFAULT 0");
 		}
 		if(empty($actionColumns['senderto'])){
-			$db = JFactory::getDBO();
-			$db->setQuery("ALTER TABLE #__acymailing_action ADD `senderto` tinyint NOT NULL DEFAULT 0");
-			$db->query();
+			acymailing_query("ALTER TABLE #__acymailing_action ADD `senderto` tinyint NOT NULL DEFAULT 0");
 		}
 		if(empty($actionColumns['delete_wrong_emails'])){
-			$db = JFactory::getDBO();
-			$db->setQuery("ALTER TABLE #__acymailing_action ADD `delete_wrong_emails` tinyint NOT NULL DEFAULT 0");
-			$db->query();
+			acymailing_query("ALTER TABLE #__acymailing_action ADD `delete_wrong_emails` tinyint NOT NULL DEFAULT 0");
 		}
 
 		if(!acymailing_level(3)){

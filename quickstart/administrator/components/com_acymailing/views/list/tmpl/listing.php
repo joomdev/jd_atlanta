@@ -1,16 +1,17 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content" class="acylistlisting">
 	<div id="iframedoc"></div>
 	<?php $saveOrder = $this->pageInfo->filter->order->value == 'a.ordering' && strtolower($this->pageInfo->filter->order->dir) == 'asc'; ?>
-	<form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl='.acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_completeLink(acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm">
 		<table class="acymailing_table_options">
 			<?php if(acymailing_isAdmin()){ ?>
 				<tr>
@@ -86,8 +87,7 @@ defined('_JEXEC') or die('Restricted access');
 			<tr>
 				<td colspan="12">
 					<?php echo $this->pagination->getListFooter();
-					echo $this->pagination->getResultsCounter();
-					if(ACYMAILING_J30) echo '<br />'.$this->pagination->getLimitBox(); ?>
+					echo $this->pagination->getResultsCounter(); ?>
 				</td>
 			</tr>
 			</tfoot>
@@ -102,7 +102,7 @@ defined('_JEXEC') or die('Restricted access');
 					$publishedid = 'published_'.$row->listid;
 					$visibleid = 'visible_'.$row->listid;
 					?>
-					<tr class="<?php echo "row$k"; ?>" acyorder-id="<?php echo $row->listid; ?>">
+					<tr class="<?php echo "row$k"; ?>" acyorderid="<?php echo $row->listid; ?>">
 						<td align="center" style="text-align:center">
 							<?php echo $this->pagination->getRowOffset($i); ?>
 						</td>
@@ -144,7 +144,7 @@ defined('_JEXEC') or die('Restricted access');
 								$text .= '<br /><b>'.acymailing_translation('ACY_USERNAME').' : </b>'.$row->username;
 								$text .= '<br /><b>'.acymailing_translation('JOOMEXT_EMAIL').' : </b>'.$row->email;
 								$text .= '<br /><b>'.acymailing_translation('ACY_ID').' : </b>'.$row->userid;
-								echo acymailing_tooltip($text, $row->creatorname, 'tooltip.png', $row->creatorname, acymailing_isAdmin() ? 'index.php?option=com_users&task=edit&eid[]='.$row->userid : '');
+								echo acymailing_tooltip($text, $row->creatorname, 'tooltip.png', $row->creatorname, acymailing_isAdmin() ? acymailing_userEditLink().$row->userid : '');
 							}
 							?>
 						</td>

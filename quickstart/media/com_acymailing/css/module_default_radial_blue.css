@@ -1,14 +1,12 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 @import url("module_default_radial_black.css");
-
-
 
 
 .acymailing_module .inputbox:hover{
@@ -19,9 +17,8 @@
 
 .acymailing_module .inputbox:focus{
 	border:1px solid  #6A9195 !important;}
-
-
-
+	
+	
 
 .acysubbuttons .button, .acysubbuttons button.validate, .acymailing_mootoolsbutton a:link, .acymailing_mootoolsbutton a:visited {
 	color:#fff !important;
@@ -35,10 +32,8 @@ background-image: -moz-radial-gradient(top, #dae9ee 21%, #6A9195 58%) !important
 background-image: -webkit-radial-gradient(top, #dae9ee 21%, #6A9195 58%) !important;
 background-image: -ms-radial-gradient(top, #dae9ee 21%, #6A9195 58%) !important;
 
-  background: -ms-radial-gradient(top, ellipse cover, #dae9ee 0%,#6A9195 100%); 
-  background: radial-gradient(top, ellipse cover, #dae9ee 0%,#6A9195 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dae9ee', endColorstr='#6A9195',GradientType=1 ) !important; 
-}
+  background: -ms-radial-gradient(top, ellipse cover, #dae9ee 0%,#6A9195 100%);   background: radial-gradient(top, ellipse cover, #dae9ee 0%,#6A9195 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dae9ee', endColorstr='#6A9195',GradientType=1 ) !important; }
 
 .acysubbuttons .button:hover, .acysubbuttons button.validate:hover, .acymailing_mootoolsbutton a:hover, .acymailing_mootoolsbutton a:active {
 	color:#fff !important;
@@ -52,11 +47,8 @@ background-image: -moz-radial-gradient(top, #dae9ee 21%, #68a2b2 58%) !important
 background-image: -webkit-radial-gradient(top, #dae9ee 21%, #68a2b2 58%) !important;
 background-image: -ms-radial-gradient(top, #dae9ee 21%, #68a2b2 58%) !important;
 
-  background: -ms-radial-gradient(top, ellipse cover, #dae9ee 0%,#68a2b2 100%); 
-  background: radial-gradient(top, ellipse cover, #dae9ee 0%,#68a2b2 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dae9ee', endColorstr='#68a2b2',GradientType=1 ) !important; 
-}
-
+  background: -ms-radial-gradient(top, ellipse cover, #dae9ee 0%,#68a2b2 100%);   background: radial-gradient(top, ellipse cover, #dae9ee 0%,#68a2b2 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dae9ee', endColorstr='#68a2b2',GradientType=1 ) !important; }
 
 
 

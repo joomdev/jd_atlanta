@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -183,7 +184,7 @@ class subscriberClass extends acymailingClass{
 		$alias = "confirmation";
 		if(acymailing_getVar('cmd', 'acy_source')){
 			$sourceparams = explode('_', acymailing_getVar('cmd', 'acy_source'));
-			$alias = acymailing_loadResult('SELECT alias FROM #__acymailing_mail WHERE published = 1 AND alias IN ("confirmation",'.$this->database->Quote('confirmation-'.$sourceparams[0]).','.$this->database->Quote('confirmation-'.$sourceparams[0].'-'.@$sourceparams[1]).','.$this->database->Quote('confirmation-'.$sourceparams[0].'-'.@$sourceparams[1].'-'.@$sourceparams[2]).') ORDER BY alias DESC');
+			$alias = acymailing_loadResult('SELECT alias FROM #__acymailing_mail WHERE published = 1 AND alias IN ("confirmation",'.acymailing_escapeDB('confirmation-'.$sourceparams[0]).','.acymailing_escapeDB('confirmation-'.$sourceparams[0].'-'.@$sourceparams[1]).','.acymailing_escapeDB('confirmation-'.$sourceparams[0].'-'.@$sourceparams[1].'-'.@$sourceparams[2]).') ORDER BY alias DESC');
 		}
 
 		$this->confirmationSentSuccess = $mailClass->sendOne($alias, $myuser);
@@ -197,7 +198,7 @@ class subscriberClass extends acymailingClass{
 			$cond = ' userid = '.$email;
 		}else{
 			if(!empty($email)) $email = acymailing_punycode($email);
-			$cond = 'email = '.$this->database->Quote(trim($email));
+			$cond = 'email = '.acymailing_escapeDB(trim($email));
 		}
 		return acymailing_loadResult('SELECT subid FROM '.acymailing_table('subscriber').' WHERE '.$cond);
 	}
@@ -210,8 +211,7 @@ class subscriberClass extends acymailingClass{
 			$column = 'email';
 			if(!empty($subid)) $subid = acymailing_punycode($subid);
 		}
-		$this->database->setQuery('SELECT * FROM '.acymailing_table('subscriber').' WHERE '.$column.' = '.$this->database->Quote(trim($subid)).' LIMIT 1');
-		return $this->database->loadObject();
+		return acymailing_loadObject('SELECT * FROM '.acymailing_table('subscriber').' WHERE '.$column.' = '.acymailing_escapeDB(trim($subid)).' LIMIT 1');
 	}
 
 	function getFull($subid){
@@ -221,8 +221,7 @@ class subscriberClass extends acymailingClass{
 			$column = 'email';
 			if(!empty($subid)) $subid = acymailing_punycode($subid);
 		}
-		$this->database->setQuery('SELECT b.*, a.* FROM '.acymailing_table('subscriber').' as a LEFT JOIN '.acymailing_table('users', false).' as b on a.userid = b.id WHERE '.$column.' = '.$this->database->Quote(trim($subid)).' LIMIT 1');
-		return $this->database->loadObject();
+		return acymailing_loadObject('SELECT b.'.$this->cmsUserVars->username.' AS username, a.* FROM '.acymailing_table('subscriber').' as a LEFT JOIN '.acymailing_table($this->cmsUserVars->table, false).' as b on a.userid = b.'.$this->cmsUserVars->id.' WHERE '.$column.' = '.acymailing_escapeDB(trim($subid)).' LIMIT 1');
 	}
 
 	function getFrontendSubscription($subid, $index = ''){
@@ -249,18 +248,16 @@ class subscriberClass extends acymailingClass{
 		$query .= 'LEFT JOIN '.acymailing_table('listsub').' as a on a.listid = b.listid AND a.subid = '.intval($subid);
 		$query .= ' WHERE b.type = \'list\'';
 		$query .= ' ORDER BY b.ordering ASC';
-		$this->database->setQuery($query);
-		return $this->database->loadObjectList($index);
+		return acymailing_loadObjectList($query, $index);
 	}
 
 	function getSubscriptionStatus($subid, $listids = null){
 		$query = 'SELECT status,listid FROM '.acymailing_table('listsub').' WHERE subid = '.intval($subid);
 		if(!empty($listids)){
-			acymailing_arrayToInteger($listids, array(0));
+			acymailing_arrayToInteger($listids);
 			$query .= ' AND listid IN ('.implode(',', $listids).')';
 		}
-		$this->database->setQuery($query);
-		return $this->database->loadObjectList('listid');
+		return acymailing_loadObjectList($query, 'listid');
 	}
 
 	function checkFields(&$data, &$subscriber){
@@ -291,7 +288,7 @@ class subscriberClass extends acymailingClass{
 
 		if(!acymailing_level(3) || empty($_FILES)) return;
 
-
+		
 		$config = acymailing_config();
 		$uploadFolder = trim(acymailing_cleanPath(html_entity_decode(acymailing_getFilesFolder())), DS.' ').DS;
 		$uploadPath = acymailing_cleanPath(ACYMAILING_ROOT.$uploadFolder.'userfiles'.DS);
@@ -361,8 +358,7 @@ class subscriberClass extends acymailingClass{
 		}
 
 		if(!empty($subscriber->email)){
-			$this->database->setQuery('SELECT * FROM #__acymailing_subscriber WHERE email = '.$this->database->Quote($subscriber->email).' AND subid != '.intval(@$subscriber->subid));
-			$existSubscriber = $this->database->loadObject();
+			$existSubscriber = acymailing_loadObject('SELECT * FROM #__acymailing_subscriber WHERE email = '.acymailing_escapeDB($subscriber->email).' AND subid != '.intval(@$subscriber->subid));
 			if(!empty($existSubscriber->subid)){
 				$overwritenow = true;
 				if($this->allowModif){
@@ -439,7 +435,6 @@ class subscriberClass extends acymailingClass{
 			$this->requireId = true;
 			return false;
 		}
-
 		$subscriptionSaved = $this->saveSubscription($subid, $formData['listsub']);
 
 		$notifContact = $config->get('notification_contact_menu');
@@ -522,15 +517,13 @@ class subscriberClass extends acymailingClass{
 		$userHelper = acymailing_get('helper.user');
 		$ip = $userHelper->getIP();
 
-		$this->database->setQuery('UPDATE '.acymailing_table('subscriber').' SET `confirmed` = 1, `confirmed_date` = '.time().', `confirmed_ip` = '.$this->database->Quote($ip).' WHERE `subid` = '.intval($subid).' LIMIT 1');
-		if(!$this->database->query()){
-			acymailing_display('Please contact the admin of this website with the error message :<br />'.substr(strip_tags($this->database->getErrorMsg()), 0, 200).'...', 'error');
+		$res = acymailing_query('UPDATE '.acymailing_table('subscriber').' SET `confirmed` = 1, `confirmed_date` = '.time().', `confirmed_ip` = '.acymailing_escapeDB($ip).' WHERE `subid` = '.intval($subid).' LIMIT 1');
+		if($res === false){
+			acymailing_display('Please contact the admin of this website with the error message :<br />'.substr(strip_tags(acymailing_getDBError()), 0, 200).'...', 'error');
 			exit;
 		}
 
-		$this->database->setQuery('SELECT `listid` FROM '.acymailing_table('listsub').' WHERE `status` = 2 AND `subid` = '.intval($subid));
-
-		$listids = acymailing_loadResultArray($this->database);
+		$listids = acymailing_loadResultArray('SELECT `listid` FROM '.acymailing_table('listsub').' WHERE `status` = 2 AND `subid` = '.intval($subid));
 
 		acymailing_importPlugin('acymailing');
 		acymailing_trigger('onAcyConfirmUser', array($subid));
@@ -565,8 +558,7 @@ class subscriberClass extends acymailingClass{
 			return false;
 		}
 
-		$this->database->setQuery('SELECT * FROM '.acymailing_table('subscriber').' WHERE `subid` = '.$this->database->Quote($subid).' AND `key` = '.$this->database->Quote($key).' LIMIT 1');
-		$userIdentified = $this->database->loadObject();
+		$userIdentified = acymailing_loadObject('SELECT * FROM '.acymailing_table('subscriber').' WHERE `subid` = '.acymailing_escapeDB($subid).' AND `key` = '.acymailing_escapeDB($key).' LIMIT 1');
 		if(!empty($userIdentified->email)) $userIdentified->email = acymailing_punycode($userIdentified->email, 'emailToUTF8');
 
 		if(empty($userIdentified)){

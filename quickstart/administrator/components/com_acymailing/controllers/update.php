@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -34,28 +35,11 @@ class UpdateController extends acymailingController{
 			return;
 		}
 
-
-		$frontLanguages = acymailing_getFolders(ACYMAILING_ROOT.'language', '-');
-		$backLanguages = acymailing_getFolders(JPATH_ADMINISTRATOR.DS.'language', '-');
-		$installedLanguages = array_unique(array_merge($frontLanguages, $backLanguages));
-		if(($key = array_search('en-GB', $installedLanguages)) !== false) unset($installedLanguages[$key]);
-
-		if(!empty($installedLanguages)){
-			$js = '
-
-			var xhr = new XMLHttpRequest();
-			xhr.open("GET", "index.php?option=com_acymailing&ctrl=file&task=installLanguages&tmpl=component&languages='.implode(',', $installedLanguages).'");
-			xhr.onload = function(){
-				container = document.getElementById("acymailing_div");
-				container.innerHTML = xhr.responseText+container.innerHTML;
-			};
-			xhr.send();';
-			acymailing_addScript(true, $js);
-		}
-
+		$updateHelper->installLanguages();
 		$updateHelper->initList();
 		$updateHelper->installTemplates();
 		$updateHelper->installNotifications();
+		$updateHelper->installFields();
 		$updateHelper->installMenu();
 		$updateHelper->installExtensions();
 		$updateHelper->installBounceRules();
@@ -107,7 +91,7 @@ class UpdateController extends acymailingController{
 		$url = ACYMAILING_UPDATEURL.'loadUserInformation&component=acymailing&level='.strtolower($config->get('level', 'starter'));
 		$userInformation = acymailing_fileGetContent($url, 30);
 		$warnings = ob_get_clean();
-		$result = (!empty($warnings) && defined('JDEBUG') && JDEBUG) ? $warnings : '';
+		$result = (!empty($warnings) && acymailing_isDebug()) ? $warnings : '';
 
 		if(empty($userInformation) || $userInformation === false){
 			echo json_encode(array('content' => '<br/><span style="color:#C10000;">Could not load your information from our server</span><br/>'.$result));
@@ -117,6 +101,38 @@ class UpdateController extends acymailingController{
 		$decodedInformation = json_decode($userInformation, true);
 
 		$newConfig = new stdClass();
+
+		$listPluginNeedToUpDate = array();
+
+		if(!ACYMAILING_J16) {
+			$query = "SELECT element, id, folder
+					FROM `#__plugins` 
+					WHERE `folder` = 'acymailing' OR `element` LIKE '%acymailing%' OR `name` LIKE '%acymailing%'";
+		}else{
+			$query = "SELECT element, folder, manifest_cache AS mc, extension_id AS id 
+					FROM `#__extensions` 
+					WHERE `state` <> -1 AND `type`= 'plugin' AND (`folder` = 'acymailing' OR `element` LIKE '%acymailing%' OR `name` LIKE '%acymailing%')";
+		}
+
+		$plugins = acymailing_loadObjectList($query);
+		if(!empty($plugins)){
+			foreach($plugins as $plugin){
+				if(ACYMAILING_J16) {
+					$manifest = json_decode($plugin->mc);
+					if(empty($manifest->version)) $manifest = simplexml_load_file(JURI::root().'/plugins/'.$plugin->folder.'/'.$plugin->element.'/'.$plugin->element.'.xml');
+				}else{
+					$manifest = simplexml_load_file(JURI::root().'/plugins/'.$plugin->folder.'/'.$plugin->element.'.xml');
+				}
+				$actualVersion = (string)$manifest->version;
+
+				$pluginOnServer = @simplexml_load_file(ACYMAILING_PLUGINURL.$plugin->element.'.xml');
+				if(empty($pluginOnServer) || $actualVersion >= (string)$pluginOnServer->update[0]->version) continue;
+				$listPluginNeedToUpDate[] = $plugin->id;
+			}
+		}
+
+		$newConfig->pluginNeedUpdate = empty($listPluginNeedToUpDate) ? '' : json_encode($listPluginNeedToUpDate);
+
 		$newConfig->latestversion = $decodedInformation['latestversion'];
 		$newConfig->expirationdate = $decodedInformation['expiration'];
 		$newConfig->lastlicensecheck = time();
@@ -135,13 +151,11 @@ class UpdateController extends acymailingController{
 			acymailing_display(acymailing_translation('ACY_NOTALLOWED'), 'error');
 			return false;
 		}
-		if(file_exists(JPATH_SITE.DS.'components'.DS.'com_acysms')) {
+		if(file_exists(ACYMAILING_ROOT.'components'.DS.'com_acysms')) {
 			if(!JComponentHelper::isEnabled('com_acysms')){
-				$db = JFactory::getDBO();
-				$db->setQuery('UPDATE #__extensions SET `enabled` = 1 WHERE `element` = "com_acysms" AND `type` = "component"');
-				$db->query();
+				acymailing_query('UPDATE #__extensions SET `enabled` = 1 WHERE `element` = "com_acysms" AND `type` = "component"');
 			}
-			$this->setRedirect('index.php?option=com_acysms');
+			acymailing_redirect('index.php?option=com_acysms');
 		}else{
 			acymailing_setVar('layout', 'acysms');
 			return parent::display();

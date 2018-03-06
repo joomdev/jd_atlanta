@@ -1,8 +1,8 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -22,11 +22,9 @@
 	display: none !important;
 }
 
-
 #element-box > div.t, #element-box > div.b, #border-bottom{
 	display: none !important
 }
-
 
 #border-top, #toolbar-box, #header-box, #footer, #system-debug, body > p{
 	display: none !important
@@ -36,7 +34,6 @@
 	border: 0px !important;
 }
 
-
 #header, #nav, #module-status, .pagetitle, #system-message-container, .toolbar-box, #no-submenu{
 	display: none !important
 }
@@ -44,7 +41,6 @@
 #element-box{
 	border: 0px !important
 }
-
 
 #ap-header, #ap-submenu, #ap-sidebar, #ap-title{
 	display: none !important
@@ -58,11 +54,9 @@
 	height: auto !important
 }
 
-
 #mc-header, #mc-footer, #mc-message{
 	display: none !important
 }
-
 
 .navbar, .subhead-collapse, header{
 	display: none !important

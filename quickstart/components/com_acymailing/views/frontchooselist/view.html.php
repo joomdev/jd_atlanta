@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -49,5 +50,25 @@ class frontchooselistViewfrontchooselist extends acymailingView
 		$this->fieldName = $fieldName;
 		$this->controlName = $controlName;
 		$this->popup = $popup;
+	}
+
+	function customfields(){
+
+		$fieldsClass = acymailing_get('class.fields');
+		$fake = null;
+		$rows = $fieldsClass->getFields('module', $fake);
+
+		$selected = acymailing_getVar('string', 'values', '', '');
+		$selectedvalues = explode(',', $selected);
+		foreach($rows as $id => $oneRow){
+			if(in_array($oneRow->namekey,$selectedvalues)){
+				$rows[$id]->selected = true;
+			}
+		}
+
+		$this->fieldsClass = $fieldsClass;
+		$this->rows = $rows;
+		$controlName = acymailing_getVar('string', 'control', 'params');
+		$this->controlName = $controlName;
 	}
 }

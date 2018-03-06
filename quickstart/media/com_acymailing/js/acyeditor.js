@@ -1,8 +1,8 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -33,7 +33,7 @@ var templateShown = false;
 var urlAcyeditor;
 var boutonTags = "toolbar-tag";
 var boutonMediaBrowser = "toolbar-popup-Acymediabrowser";
-var acyVersion = "5.8.1";
+var acyVersion = "5.9.1";
 var pasteType = "plain";
 var acyEnterMode = "br";
 var urlSite = "";
@@ -227,7 +227,6 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 				iframe.contentWindow.document.write(markup);
 				iframe.contentWindow.document.close();
 			}
-
 				ChargementIframe(iframe, urlBase, code, width, height, id, texteSuppression, titleSuppression, titleEdition, urlAdminBase, realstylesheetpath);
 		};
 
@@ -1117,7 +1116,6 @@ function CreateZoneMore(zone, element, id, zoneBoutonSuppression){
 
 		zoneActionActive = btnPlus;
 
-
 			acyJquery(zoneBoutonSuppression).closest('acyeditor_delete').addClass('nepasediter');
 			elem = acyJquery(zoneBoutonSuppression).closest('.acyeditor_delete');
 			elemCopy = elem.clone();
@@ -1132,7 +1130,6 @@ function CreateZoneMore(zone, element, id, zoneBoutonSuppression){
 			InitContent(id, txtSup, titleSup, titleEd, urlSite);
 			Sauvegarde(id);
 			ResizeIframe(id);
-
 
 	});
 	zoneBoutonSuppression.appendChild(btnPlus);
@@ -1340,8 +1337,6 @@ function hideActionButtons(id, e, zoneClick, protectEditor){
 
 	if(zoneClick == 'outside' || zoneClick == 'noClick' || canHide){
 		if(acyJquery('#' + id + "_ifr")[0].tagName !== "IFRAME"){
-			console.log(acyJquery('#' + id + "_ifr")[0]);
-			console.log(acyJquery('#' + id + "_ifr")[0].tagName);
 			zoneBody = acyJquery('#' + id + "_ifr")[0].getElementsByTagName('IFRAME')[0].contentWindow.document.body;
 		}else{
 			zoneBody = acyJquery('#' + id + "_ifr")[0].contentWindow.document.body;
@@ -1844,7 +1839,6 @@ function ClickTemplateCKEditor(id, idElement, e){
 					editor.on('selectionChange', function(e){ IeCursorFix(); });
 					editor.on('change', function(e){ ResizeIframe(id); });
 					editor.focus();
-
 					editorOnScreen();
 
 					var iframe = acyJquery('#editor_body_ifr');
@@ -2266,4 +2260,7 @@ function AcyGetData(){
 	for(var myField in CKEDITOR.instances){
 		return CKEDITOR.instances[myField].getData();
 	}
+
+	var iframe = jQuery('#editor_body_ifr');
+	if(iframe) return iframe.contents().find("body").html();
 }

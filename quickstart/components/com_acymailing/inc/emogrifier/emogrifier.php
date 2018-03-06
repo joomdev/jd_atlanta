@@ -1,7 +1,6 @@
 <?php
 
-defined('_JEXEC') or die('Restricted access');
-
+acymailing_cmsLoaded();
 
 /*
 UPDATES

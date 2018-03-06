@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 include(ACYMAILING_BACK.'views'.DS.'newsletter'.DS.'view.html.php');
@@ -21,11 +22,10 @@ class NotificationViewNotification extends NewsletterViewNewsletter{
 
 
 	function listing(){
-		$db = JFactory::getDBO();
 		$config = acymailing_config();
 
 		if(!class_exists('plgSystemAcymailingClassMail')){
-			$warning_msg = acymailing_translation('ACY_WARNINGOVERRIDE_DISABLED_1').' <a href="index.php?option=com_acymailing&ctrl=cpanel">'.acymailing_translation_sprintf('ACY_WARNINGOVERRIDE_DISABLED_2', ' acymailingclassmail (Override Joomla mailing system plugin)').'</a>';
+			$warning_msg = acymailing_translation('ACY_WARNINGOVERRIDE_DISABLED_1').' <a href="'.acymailing_completeLink('cpanel').'">'.acymailing_translation_sprintf('ACY_WARNINGOVERRIDE_DISABLED_2', ' acymailingclassmail (Override Joomla mailing system plugin)').'</a>';
 			acymailing_enqueueMessage($warning_msg, 'notice');
 		}
 
@@ -62,7 +62,7 @@ class NotificationViewNotification extends NewsletterViewNewsletter{
 			$catvalues[] = acymailing_selectOption('joomla', 'Joomla!');
 			$catvalues[] = acymailing_selectOption('jomsocial', 'JomSocial');
 			$catvalues[] = acymailing_selectOption('seblod', 'SEBLOD');
-			$filters->category = acymailing_select($catvalues, 'category', 'size="1" style="width:150px" onchange="javascript:submitform();"', 'value', 'text', $pageInfo->category);
+			$filters->category = acymailing_select($catvalues, 'category', 'size="1" style="width:150px" onchange="acymailing.submitform();"', 'value', 'text', $pageInfo->category);
 		}
 
 		$query = 'SELECT mailid, subject, alias, fromname, published, fromname, fromemail, replyname, replyemail FROM #__acymailing_mail WHERE ('.implode(') AND (', $this->filters).')';
@@ -71,14 +71,12 @@ class NotificationViewNotification extends NewsletterViewNewsletter{
 			$query .= ' ORDER BY '.$pageInfo->filter->order->value.' '.$pageInfo->filter->order->dir;
 		}
 
-		$db->setQuery($query, $pageInfo->limit->start, $pageInfo->limit->value);
-		$rows = $db->loadObjectList();
+		$rows = acymailing_loadObjectList($query, '', $pageInfo->limit->start, $pageInfo->limit->value);
 
-		jimport('joomla.html.pagination');
 		$queryCount = 'SELECT count(mailid) FROM #__acymailing_mail WHERE ('.implode(') AND (', $this->filters).')';
 		$pageInfo->elements->total = acymailing_loadResult($queryCount);
 		$pageInfo->elements->page = count($rows);
-		$pagination = new JPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
+		$pagination = new acyPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
 
 		$acyToolbar = acymailing_get('helper.toolbar');
 		$acyToolbar->custom('preview', acymailing_translation('ACY_PREVIEW'), 'search', true);

@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
@@ -17,7 +18,7 @@ defined('_JEXEC') or die('Restricted access');
 	}
 		?>
 
-		<form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>&amp;ctrl=queue" method="post" name="adminForm" id="adminForm">
+		<form action="<?php echo acymailing_completeLink('queue'); ?>" method="post" name="adminForm" id="adminForm">
 			<table class="acymailing_table_options">
 				<tr>
 					<td width="100%">
@@ -62,8 +63,7 @@ defined('_JEXEC') or die('Restricted access');
 				<tr>
 					<td colspan="10">
 						<?php echo $this->pagination->getListFooter();
-						echo $this->pagination->getResultsCounter();
-						if(ACYMAILING_J30) echo '<br />'.$this->pagination->getLimitBox(); ?>
+						echo $this->pagination->getResultsCounter(); ?>
 					</td>
 				</tr>
 				</tfoot>
@@ -84,7 +84,7 @@ defined('_JEXEC') or die('Restricted access');
 						</td>
 						<td>
 							<?php
-							$row->subject = Emoji::Decode($row->subject);
+							$row->subject = acyEmoji::Decode($row->subject);
 							echo acymailing_popup(acymailing_completeLink('queue&task=preview&mailid='.$row->mailid.'&subid='.$row->subid, true), acymailing_dispSearch($row->subject, $this->pageInfo->search), '', 800, 590); ?>
 						</td>
 						<td>

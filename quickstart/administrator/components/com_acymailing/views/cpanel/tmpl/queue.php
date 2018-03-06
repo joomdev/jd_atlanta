@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="page-queue">
 	<div class="onelineblockoptions">
@@ -107,7 +108,7 @@ defined('_JEXEC') or die('Restricted access');
 			</table>
 		</div>
 	<?php }
-	if(acymailing_level(1)){ ?>
+	if(acymailing_level(1) && !empty($this->elements->cron_plugins)){ ?>
 		<div class="onelineblockoptions">
 			<span class="acyblocktitle"><?php echo acymailing_translation('PLUGINS'); ?></span>
 			<table class="acymailing_table" cellspacing="1">

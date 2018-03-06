@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -38,10 +39,10 @@ class TemplateController extends acymailingController{
 
 		$class->createTemplateFile($tempid);
 
-		acymailing_display(acymailing_translation('ACYEDITOR_ADDAREAS_DONE'));
+		acymailing_enqueueMessage(acymailing_translation('ACYEDITOR_ADDAREAS_DONE'));
 
-		if(acymailing_getVar('cmd', 'tmpl') == 'component'){
-			$js = "setTimeout('redirect()',2000); function redirect(){window.top.location.href = 'index.php?option=com_acymailing&ctrl=template'; }";
+		if(acymailing_isNoTemplate()){
+			$js = "setTimeout('redirect()',2000); function redirect(){window.top.location.href = '".acymailing_completeLink('template')."'; }";
 			acymailing_addScript(true, $js);
 		}else{
 			return $this->listing();
@@ -68,15 +69,13 @@ class TemplateController extends acymailingController{
 		acymailing_checkToken();
 
 		$cids = acymailing_getVar('array', 'cid', array(), '');
-		$db = JFactory::getDBO();
 		$time = time();
 
 		acymailing_arrayToInteger($cids);
 
 		$query = 'INSERT IGNORE INTO `#__acymailing_template` (`name`, `description`, `body`, `altbody`, `created`, `published`, `premium`, `ordering`, `namekey`, `styles`, `subject`,`stylesheet`,`fromname`,`fromemail`,`replyname`,`replyemail`,`thumb`,`readmore`,`category`)';
 		$query .= " SELECT CONCAT('copy_',`name`), `description`, `body`, `altbody`, $time, `published`, 0, `ordering`, CONCAT('$time',`tempid`,`namekey`), `styles`, `subject`,`stylesheet`,`fromname`,`fromemail`,`replyname`,`replyemail`,`thumb`,`readmore`,`category` FROM `#__acymailing_template` WHERE `tempid` IN (".implode(',', $cids).')';
-		$db->setQuery($query);
-		$db->query();
+		acymailing_query($query);
 
 		$orderClass = acymailing_get('helper.order');
 		$orderClass->pkey = 'tempid';
@@ -128,7 +127,8 @@ class TemplateController extends acymailingController{
 
 		if($statusUpload){
 			if(!$templateClass->proposedAreas){
-				$js = "setTimeout('redirect()',2000); function redirect(){window.top.location.href = 'index.php?option=com_acymailing&ctrl=template'; }";
+				acymailing_setNoTemplate(false);
+				$js = "setTimeout('redirect()',2000); function redirect(){window.top.location.href = '".acymailing_completeLink('template', false, true)."'; }";
 				acymailing_addScript(true, $js);
 			}
 			return;
@@ -179,11 +179,11 @@ class TemplateController extends acymailingController{
 		}else{
 			$gid = acymailing_getVar('int', 'test_group', '-1');
 			if($gid == -1) return false;
-			$db = JFactory::getDBO();
 			if(!ACYMAILING_J16){
-				$db->setQuery('SELECT email FROM '.acymailing_table('users', false).' WHERE gid = '.intval($gid));
-			}else $db->setQuery('SELECT u.email FROM '.acymailing_table('users', false).' AS u JOIN '.acymailing_table('user_usergroup_map', false).' AS ugm ON u.id = ugm.user_id WHERE ugm.group_id = '.intval($gid));
-			$receivers = acymailing_loadResultArray($db);
+				$receivers = acymailing_loadResultArray('SELECT '.$this->cmsUserVars->email.' AS email FROM '.acymailing_table($this->cmsUserVars->table, false).' WHERE gid = '.intval($gid));
+			}else{
+				$receivers = acymailing_loadResultArray('SELECT u.'.$this->cmsUserVars->email.' AS email FROM '.acymailing_table($this->cmsUserVars->table, false).' AS u JOIN '.acymailing_table('user_usergroup_map', false).' AS ugm ON u.'.$this->cmsUserVars->id.' = ugm.user_id WHERE ugm.group_id = '.intval($gid));
+			}
 		}
 
 		if(empty($receivers)){

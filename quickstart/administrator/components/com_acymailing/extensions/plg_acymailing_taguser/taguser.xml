@@ -2,8 +2,8 @@
 <!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/plugin-install.dtd">
 <install type="plugin" version="1.5" method="upgrade" group="acymailing">
 	<name>AcyMailing Tag : Joomla User Information</name>
-	<creationDate>septembre 2017</creationDate>
-	<version>5.8.1</version>
+	<creationDate>February 2018</creationDate>
+	<version>5.9.1</version>
 	<author>Acyba</author>
 	<authorEmail>dev@acyba.com</authorEmail>
 	<authorUrl>http://www.acyba.com</authorUrl>

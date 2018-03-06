@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -24,7 +25,6 @@ class NewsletterController extends acymailingController{
 		acymailing_checkToken();
 
 		$cids = acymailing_getVar('array', 'cid', array(), '');
-		$db = JFactory::getDBO();
 		$time = time();
 
 		$creatorId = intval(acymailing_currentUserId());
@@ -35,13 +35,10 @@ class NewsletterController extends acymailingController{
 		foreach($cids as $oneMailid){
 			$query = 'INSERT INTO `#__acymailing_mail` (`subject`, `body`, `altbody`, `published`'.$addSendDate.', `created`, `fromname`, `fromemail`, `replyname`, `replyemail`, `bccaddresses`, `type`, `visible`, `userid`, `alias`, `attach`, `html`, `tempid`, `key`, `frequency`, `params`,`filter`,`metakey`,`metadesc`)';
 			$query .= " SELECT CONCAT('copy_',`subject`), `body`, `altbody`, 0".$addSendDate.", '.$time.', `fromname`, `fromemail`, `replyname`, `replyemail`, `bccaddresses`, `type`, `visible`, '.$creatorId.', `alias`, `attach`, `html`, `tempid`, ".acymailing_escapeDB(acymailing_generateKey(8)).', `frequency`, `params`,`filter`,`metakey`,`metadesc` FROM `#__acymailing_mail` WHERE `mailid` = '.(int)$oneMailid;
-			$db->setQuery($query);
-			$db->query();
-			$newMailid = $db->insertid();
-			$db->setQuery('INSERT IGNORE INTO `#__acymailing_listmail` (`listid`,`mailid`) SELECT `listid`,'.$newMailid.' FROM `#__acymailing_listmail` WHERE `mailid` = '.(int)$oneMailid);
-			$db->query();
-			$db->setQuery('INSERT IGNORE INTO `#__acymailing_tagmail` (`tagid`,`mailid`) SELECT `tagid`,'.$newMailid.' FROM `#__acymailing_tagmail` WHERE `mailid` = '.(int)$oneMailid);
-			$db->query();
+			acymailing_query($query);
+			$newMailid = acymailing_insertID();
+			acymailing_query('INSERT IGNORE INTO `#__acymailing_listmail` (`listid`,`mailid`) SELECT `listid`,'.$newMailid.' FROM `#__acymailing_listmail` WHERE `mailid` = '.(int)$oneMailid);
+			acymailing_query('INSERT IGNORE INTO `#__acymailing_tagmail` (`tagid`,`mailid`) SELECT `tagid`,'.$newMailid.' FROM `#__acymailing_tagmail` WHERE `mailid` = '.(int)$oneMailid);
 		}
 
 		return $this->listing();
@@ -50,6 +47,7 @@ class NewsletterController extends acymailingController{
 	function store(){
 		if(!$this->isAllowed($this->aclCat, 'manage')) return;
 		acymailing_checkToken();
+		header('X-XSS-Protection:0');
 
 		$mailClass = acymailing_get('class.mail');
 		$status = $mailClass->saveForm();
@@ -94,9 +92,7 @@ class NewsletterController extends acymailingController{
 		$num = $class->delete($cids);
 
 		acymailing_arrayToInteger($cids);
-		$db = JFactory::getDBO();
-		$db->setQuery('DELETE FROM `#__acymailing_listmail` WHERE `mailid` IN ('.implode(',', $cids).')');
-		$db->query();
+		acymailing_query('DELETE FROM `#__acymailing_listmail` WHERE `mailid` IN ('.implode(',', $cids).')');
 
 		acymailing_enqueueMessage(acymailing_translation_sprintf('SUCC_DELETE_ELEMENTS', $num), 'message');
 
@@ -118,7 +114,6 @@ class NewsletterController extends acymailingController{
 
 	function preview(){
 		acymailing_setVar('layout', 'preview');
-		acymailing_setVar('hidemainmenu', 1);
 		return parent::display();
 	}
 
@@ -156,11 +151,11 @@ class NewsletterController extends acymailingController{
 		}else{
 			$gid = acymailing_getVar('int', 'test_group', '-1');
 			if($gid == -1) return false;
-			$db = JFactory::getDBO();
 			if(!ACYMAILING_J16){
-				$db->setQuery('SELECT email FROM '.acymailing_table('users', false).' WHERE gid = '.intval($gid));
-			}else $db->setQuery('SELECT u.email FROM '.acymailing_table('users', false).' AS u JOIN '.acymailing_table('user_usergroup_map', false).' AS ugm ON u.id = ugm.user_id WHERE ugm.group_id = '.intval($gid));
-			$receivers = acymailing_loadResultArray($db);
+				$receivers = acymailing_loadResultArray('SELECT '.$this->cmsUserVars->email.' AS email FROM '.acymailing_table($this->cmsUserVars->table, false).' WHERE gid = '.intval($gid));
+			}else{
+				$receivers = acymailing_loadResultArray('SELECT u.'.$this->cmsUserVars->email.' AS email FROM '.acymailing_table($this->cmsUserVars->table, false).' AS u JOIN '.acymailing_table('user_usergroup_map', false).' AS ugm ON u.'.$this->cmsUserVars->id.' = ugm.user_id WHERE ugm.group_id = '.intval($gid));
+			}
 		}
 
 		if(empty($receivers)){
@@ -193,7 +188,6 @@ class NewsletterController extends acymailingController{
 		$mailsArray = explode(',', $mailids);
 		acymailing_arrayToInteger($mailsArray);
 
-		$db = JFactory::getDBO();
 
 		$abTesting_prct = acymailing_getVar('int', 'abTesting_prct');
 		$abTesting_delay = acymailing_getVar('int', 'abTesting_delay');
@@ -250,7 +244,8 @@ class NewsletterController extends acymailingController{
 			$idMailCreated = $mailClass->save($mail);
 			if($idMailCreated){
 				acymailing_enqueueMessage(acymailing_translation('NEWSLETTER_INSTALLED'), 'success');
-				$js = "setTimeout('redirect()',2000); function redirect(){window.top.location.href = 'index.php?option=com_acymailing&ctrl=newsletter&task=edit&mailid=".$idMailCreated."'; }";
+				acymailing_setNoTemplate(false);
+				$js = "setTimeout('redirect()',2000); function redirect(){window.top.location.href = '".acymailing_completeLink('newsletter&task=edit&mailid='.$idMailCreated, false, true)."'; }";
 				acymailing_addScript(true, $js);
 				return;
 			}else{
@@ -269,21 +264,21 @@ class NewsletterController extends acymailingController{
 	}
 
 	function checkifedited(){
-		if(empty($_SESSION['timeOnModification'])){
-			echo 'n';
-			exit;
-		}
+		if(empty($_SESSION['timeOnModification'])) exit;
 
 		$mailClass = acymailing_get('class.mail');
-		$mailId = acymailing_getVar('string', 'mailId');
+		$mailId = acymailing_getVar('int', 'mailId');
 		$mail = $mailClass->get($mailId);
 
-		if(empty($mail->lastupdate) || $_SESSION['timeOnModification'] > $mail->lastupdate){
-			echo 'n';
-		}else{
-			$userId = acymailing_loadResult('SELECT userlastupdate FROM #__acymailing_mail WHERE mailid = '.$mailId);
+		if(!empty($mail->lastupdate) && $_SESSION['timeOnModification'] < $mail->lastupdate){
+			$userId = acymailing_loadResult('SELECT userlastupdate FROM #__acymailing_mail WHERE mailid = '.intval($mailId));
 			echo $userId.'|'.acymailing_currentUserName($userId);
 		}
 		exit;
+	}
+
+	function cancel(){
+		header('X-XSS-Protection:0');
+		return $this->listing();
 	}
 }

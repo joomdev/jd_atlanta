@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
-class frequencyType{
+class frequencyType extends acymailingClass{
 	var $valuesEvery = array();
 	var $valuesFrequency = array();
 	var $valuesOnThe = array();
@@ -20,6 +21,7 @@ class frequencyType{
 	var $txtPos = array();
 
 	function __construct(){
+		parent::__construct();
 		$this->txtDays = array(acymailing_translation('MONDAY'), acymailing_translation('TUESDAY'), acymailing_translation('WEDNESDAY'), acymailing_translation('THURSDAY'), acymailing_translation('FRIDAY'), acymailing_translation('SATURDAY'), acymailing_translation('SUNDAY'));
 		$this->txtPos = array(acymailing_translation('FREQUENCY_FIRST'), acymailing_translation('FREQUENCY_SECOND'), acymailing_translation('FREQUENCY_THIRD'), acymailing_translation('FREQUENCY_LAST'));
 		$this->days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
@@ -237,3 +239,4 @@ class frequencyType{
 }
 
 ?>
+

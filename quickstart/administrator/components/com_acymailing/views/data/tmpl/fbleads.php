@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><table class="acymailing_table">
 	<tr>
@@ -37,7 +38,7 @@ defined('_JEXEC') or die('Restricted access');
 			<label for="fbleads_mincreated"><?php echo acymailing_translation('ACY_FBLEADS_MINCREATED'); ?></label>
 		</td>
 		<td>
-			<?php echo acymailing_calendar($this->config->get('fbleads_mincreated'), 'fbleads_mincreated', 'fbleads_mincreated', '%Y-%m-%d', array('style' => 'width:80px')); ?>
+			<?php echo acymailing_calendar($this->config->get('fbleads_mincreated'), 'fbleads_mincreated', 'fbleads_mincreated', '%Y-%m-%d', array('style' => 'width:100px')); ?>
 		</td>
 	</tr>
 	<tr>
@@ -45,7 +46,7 @@ defined('_JEXEC') or die('Restricted access');
 			<label for="fbleads_maxcreated"><?php echo acymailing_translation('ACY_FBLEADS_MAXCREATED'); ?></label>
 		</td>
 		<td>
-			<?php echo acymailing_calendar($this->config->get('fbleads_maxcreated'), 'fbleads_maxcreated', 'fbleads_maxcreated', '%Y-%m-%d', array('style' => 'width:80px')); ?>
+			<?php echo acymailing_calendar($this->config->get('fbleads_maxcreated'), 'fbleads_maxcreated', 'fbleads_maxcreated', '%Y-%m-%d', array('style' => 'width:100px')); ?>
 		</td>
 	</tr>
 	<tr>

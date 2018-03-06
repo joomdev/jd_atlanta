@@ -1,14 +1,13 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 @import "acyicon.css";
 @import "frontendedition.css";
-
 
 .acytoolbartitle{
 	font-size: 14px !important;
@@ -310,9 +309,6 @@ div.acymailing_footer{
 	font-size: 10px;
 }
 
-
-
-
 div.acymailing_list{
 	border: 1px solid #cccccc;
 	margin: 10px;
@@ -324,7 +320,7 @@ div.acymailing_list:hover{
 }
 
 .list_description{
-	padding: 10px 10px;
+	padding: 10px 0px;
 }
 
 .list_name{
@@ -373,9 +369,6 @@ img.captchaimagecomponent{
 	border: 1px solid #dddddd;
 	float: left;
 }
-
-
-
 
 
 .icon-16-refuse{
@@ -451,17 +444,6 @@ img.captchaimagecomponent{
 	background-image: url(../images/icons/icon-48-acymailing.png);
 }
 
-
-
-
-
-a .icon16{
-	border: 1px solid transparent;
-}
-
-a:hover .icon16{
-	border: 1px solid #669933;
-}
 
 .acyschedule{
 	display: inline-block;
@@ -563,7 +545,6 @@ div.acynormalchart{
 	padding: 7px;
 }
 
-
 #acy_content table.admintable td input{
 	margin-bottom: 0px;
 }
@@ -620,9 +601,6 @@ div.acynormalchart{
 	padding: 4px;
 }
 
-
-
-
 div.acytagpopup .familymenu a{
 	background: #eee;
 	background: -moz-linear-gradient(top, #ffffff 0%, #eeeeee 100%);
@@ -671,7 +649,6 @@ div.acytagpopup .familymenu a:hover, div.acytagpopup .familymenu a.selected{
 }
 
 
-
 div.acytagpopup #inserttagdiv{
 	float: right;
 }
@@ -684,9 +661,6 @@ div.acytagpopup #plugarea{
 div.acytagpopup table.acymailing_table tr.selectedrow td{
 	background-color: #FDE2BA;
 }
-
-
-
 
 table.acltable thead{
 	background-color: #5471B5;
@@ -716,7 +690,6 @@ table.acltable tr.aclline:hover{
 	background-color: #CDE6E3;
 }
 
-
 #unsubpage .unsubsurvey, #unsubpage .unsubintro{
 	padding: 10px;
 }
@@ -724,7 +697,6 @@ table.acltable tr.aclline:hover{
 #unsubpage .unsuboptions{
 	padding-left: 20px;
 }
-
 
 div#wysija{
 	background: url(../images/editorback.png) no-repeat;
@@ -805,7 +777,6 @@ div.acyfilterarea{
 }
 
 
-
 #acy_content fieldset.radio{
 	border: 0;
 	margin-bottom: 5px;
@@ -858,7 +829,6 @@ body.com_acymailing #toolbar button{
 body.com_acymailing h1.page-title a{
 	color: white;
 }
-
 
 #acynavbar div.navbar-inner{
 	background-color: #FAFAFA;
@@ -929,10 +899,6 @@ body.com_acymailing h1.page-title a{
 	padding: 5px;
 }
 
-
-
-
-
 #acymodifyform div.acy_onefield, #acymodifyform div.acy_onelist{
 	clear: both;
 }
@@ -963,7 +929,6 @@ body.com_acymailing h1.page-title a{
 #acymodifyform div.acy_onefield, .respuserinfo #acyuserinfo .acy_onefield{
 	padding-top: 5px;
 }
-
 
 .respuserinfo #acyuserinfo .acykey{
 	width: 150px;
@@ -1000,7 +965,6 @@ body.com_acymailing h1.page-title a{
 	}
 }
 
-
 #acymodifyform fieldset.fieldCategory, .respuserinfo #acyuserinfo fieldset.fieldCategory{
 	clear: both;
 }
@@ -1013,13 +977,9 @@ fieldset.fieldCategory{
 	border: solid 1px #ccc;
 }
 
-
 #acy_content .respuserinfo td.key{
 	white-space: normal;
 }
-
-
-
 
 #acyarchivelisting .archiveRow{
 	width: 100%;
@@ -1073,7 +1033,6 @@ fieldset.fieldCategory{
 	height: 50px;
 }
 
-
 dl.tabs dt{
 	border: 1px solid #ccc;
 }
@@ -1106,7 +1065,6 @@ dl.tabs dt{
 	-o-transition: all 1s ease;
 }
 
-
 .acy_stat_subject{
 	line-height: 1.8em;
 }
@@ -1116,7 +1074,7 @@ dl.tabs dt{
 }
 
 #acy_selectChart{
-	with: 100%;
+	width: 100%;
 	height: 30px;
 	margin-top: 10px;
 }
@@ -1125,16 +1083,13 @@ dl.tabs dt{
 	cursor: default;
 }
 
-
 .subscriber_filter{
 	text-align: left;
 }
 
-
 .acymailing_table .acyradios{
 	margin: 5px;
 }
-
 
 .acyplugformat .formatbox{
 	width: 235px;
@@ -1173,7 +1128,6 @@ dl.tabs dt{
 	margin: 5px 8px;
 	line-height: 26px;
 }
-
 
 .acy_popup_cancel_button{
 	color: #6190b9;
@@ -1254,7 +1208,6 @@ dl.tabs dt{
 .acy_folder_name{
 	color: #5e93c0
 }
-
 
 
 .contentpane tr, .contentpane td{
@@ -1440,7 +1393,6 @@ dl.tabs dt{
 }
 
 
-
 .acyblockoptions{
 	background-color: #fff;
 	padding: 30px;
@@ -1473,7 +1425,6 @@ dl.tabs dt{
 	color: #728fbd;
 	font-size: 12px;
 }
-
 
 .acymailing_button{
 	background-color: #728fbd;
@@ -1556,7 +1507,6 @@ img.captchaimagemodule{
 	margin-left:2px;
 }
 
-
 #acy_media_browser .drag-resize:hover{
 	cursor: nw-resize;
 }
@@ -1595,7 +1545,6 @@ img.captchaimagemodule{
     background-color: #e6e6e6;
     background-image: none;
 }
-
 
 #tagfieldcontainer{
 	display: inline-block;
@@ -1645,6 +1594,7 @@ img.captchaimagemodule{
 	border: none;
 	box-shadow: none;
 	margin-bottom: 0px;
+	min-width: 175px;
 }
 
 #tagul .searchtag{
@@ -1703,7 +1653,6 @@ img.captchaimagemodule{
 	margin-bottom: 0px;
 	width: 220px;
 }
-
 
 #clicks_overview a{
 	position: relative;
@@ -1820,32 +1769,6 @@ img.captchaimagemodule{
 }
 
 
-.acymailingtooltip {
-	cursor: pointer;
-}
-
-.acymailingtooltiptext{
-    text-align: left;
-	visibility: hidden;
-	position: fixed;
-	z-index: 10000;
-	padding: 4px 8px;
-	max-width: 250px;
-	background-color: hsla(0, 0%, 20%, 0.9);
-	color: #fff;
-	font-size: 12px;
-	font-weight: normal;
-	text-transform: none;
-}
-
-.acymailingtooltip:hover .acymailingtooltiptext{
-	visibility: visible;
-	transform: translateY(-12px);
-	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out, transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
-}
-
-
-
 .acytabsystem ul{
 	padding: 0px !important;
 	margin: 0px 0px 9px 0px !important;
@@ -1908,4 +1831,47 @@ img.captchaimagemodule{
 
 .acytabsystem .nav > li > a {
 	display: block;
+}
+
+.acypagination li{
+	display: inline-block;
+	width: 40px;
+	height: 30px;
+	line-height: 25px;
+	border: 1px solid #ddd;
+	border-left-width: 0;
+	font-family: 'acyicon';
+}
+
+.acypagination li input{
+	width: 35px;
+}
+
+.acypagination li:first-child{
+	border-left-width: 1px;
+	border-radius: 3px 0px 0px 3px;
+}
+
+.acypagination li:last-child{
+	border-radius: 0px 3px 3px 0px;
+}
+
+.acypagination_counter, .acypagination{
+	text-align: center;
+	margin-left: 0;
+}
+
+.acypagination li span {
+	cursor: pointer;
+	display: block;
+	line-height: 25px;
+}
+
+.acypagination li span.acypaginactive{
+	opacity: 0.5;
+	cursor: default;
+}
+
+.acypagination li span:not(.acypaginactive):hover{
+	background-color: #e8e8e8;
 }

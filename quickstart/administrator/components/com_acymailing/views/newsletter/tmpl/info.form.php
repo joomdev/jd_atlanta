@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><table<?php if(!acymailing_isAdmin()){
 	echo ' class="acymailing_table" style="margin: 10px 0px;"';
@@ -69,7 +70,7 @@ defined('_JEXEC') or die('Restricted access');
 		</td>
 	</tr>
 	<?php if($this->type != 'joomlanotification'){ ?>
-		<tr>
+		<tr class="hidewp">
 			<td class="acykey" id="picturekey" valign="top">
 				<label for="pictureinput">
 					<?php echo acymailing_translation('ACY_THUMBNAIL'); ?>

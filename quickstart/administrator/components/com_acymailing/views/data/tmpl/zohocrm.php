@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 $listClass = acymailing_get('class.list');
@@ -107,7 +108,6 @@ if(empty($value['zoho_fields'])) $value['zoho_fields'] = array('First Name' => '
 
 <span class="acyblocktitle" style="margin-top: 20px;"><?php echo acymailing_translation('FIELD'); ?></span>
 <?php
-$db = JFactory::getDBO();
 $subfields = acymailing_getColumns('#__acymailing_subscriber');
 $acyfields = array();
 $acyfields[] = acymailing_selectOption('', ' - - - ');
@@ -121,11 +121,7 @@ if(!empty($subfields)){
 <table <?php echo $this->isAdmin ? 'class="acymailing_table"' : 'class="admintable table" cellspacing="1"' ?>>
 	<?php
 	echo '<tr><td class="acykey">'.acymailing_translation('ACY_LOADZOHOFIELDS').'</td><td>';
-	if(!ACYMAILING_J30){
-		echo '<input type="submit" class="btn" onclick="javascript: submitbutton(\'loadZohoFields\')" value="'.acymailing_translation('ACY_LOADFIELDS').'"></td></tr>';
-	}else{
-		echo '<input type="submit" class="btn" onclick="Joomla.submitbutton(\'loadZohoFields\')" value="'.acymailing_translation('ACY_LOADFIELDS').'"></td></tr>';
-	}
+	echo '<input type="submit" class="btn" onclick="acymailing.submitbutton(\'loadZohoFields\')" value="'.acymailing_translation('ACY_LOADFIELDS').'"></td></tr>';
 
 	$fields = explode(',', $config->get('zoho_fieldsname', 'First Name,Last Name,Date of Birth'));
 
@@ -136,4 +132,5 @@ if(!empty($subfields)){
 	}
 	?>
 </table>
+
 

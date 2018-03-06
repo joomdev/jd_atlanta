@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -81,9 +82,7 @@ class CpanelController extends acymailingController{
 		$status = $config->save($formData);
 
 		if(!empty($deleteAclCats)){
-			$db = JFactory::getDBO();
-			$db->setQuery("DELETE FROM `#__acymailing_config` WHERE `namekey` LIKE 'acl_".implode("%' OR `namekey` LIKE 'acl_", $deleteAclCats)."%'");
-			$db->query();
+			acymailing_query("DELETE FROM `#__acymailing_config` WHERE `namekey` LIKE 'acl_".implode("%' OR `namekey` LIKE 'acl_", $deleteAclCats)."%'");
 		}
 
 		if($status){
@@ -109,7 +108,7 @@ class CpanelController extends acymailingController{
 		$mailClass->Subject = 'Test e-mail from '.ACYMAILING_LIVE;
 		$mailClass->Body = acymailing_translation('TEST_EMAIL');
 		$mailClass->SMTPDebug = 1;
-		if(defined('JDEBUG') AND JDEBUG) $mailClass->SMTPDebug = 2;
+		if(acymailing_isDebug()) $mailClass->SMTPDebug = 2;
 		$result = $mailClass->send();
 
 		if(!$result){
@@ -154,7 +153,7 @@ class CpanelController extends acymailingController{
 			return;
 		}
 
-		$dispatcher = JDispatcher::getInstance();
+		$dispatcher = ACYMAILING_J40 ? \JFactory::getApplication()->getDispatcher() : JDispatcher::getInstance();
 		$instance = new $className($dispatcher, array('name' => $pluginToTrigger, 'type' => $pluginType));
 
 		$fctName = ($fctName == 'onAcyTestPlugin') ? 'onTestPlugin' : $fctName;
@@ -174,10 +173,12 @@ class CpanelController extends acymailingController{
 		$config = acymailing_config();
 
 		$path = trim(html_entity_decode($config->get('cron_savepath')));
-		if(!preg_match('#^[a-z0-9/_\-]*\.log$#i', $path)){
+		if(!preg_match('#^[a-z0-9/_\-{}]*\.log$#i', $path)){
 			acymailing_display('The log file must only contain alphanumeric characters and end with .log', 'error');
 			return;
 		}
+
+		$path = str_replace(array('{year}', '{month}'), array(date('Y'), date('m')), $config->get('cron_savepath'));
 
 		$reportPath = acymailing_cleanPath(ACYMAILING_ROOT.$path);
 
@@ -218,10 +219,12 @@ class CpanelController extends acymailingController{
 
 		$config = acymailing_config();
 		$path = trim(html_entity_decode($config->get('cron_savepath')));
-		if(!preg_match('#^[a-z0-9/_\-]*\.log$#i', $path)){
+		if(!preg_match('#^[a-z0-9/_\-{}]*\.log$#i', $path)){
 			acymailing_display('The log file must only contain alphanumeric characters and end with .log', 'error');
 			return;
 		}
+
+		$path = str_replace(array('{year}', '{month}'), array(date('Y'), date('m')), $config->get('cron_savepath'));
 
 		$reportPath = acymailing_cleanPath(ACYMAILING_ROOT.$path);
 		if(is_file($reportPath)){
@@ -237,7 +240,7 @@ class CpanelController extends acymailingController{
 	}
 
 	function cancel(){
-		$this->setRedirect(acymailing_completeLink('dashboard', false, true));
+		acymailing_redirect(acymailing_completeLink('dashboard', false, true));
 	}
 
 	function checkDB(){
@@ -245,61 +248,74 @@ class CpanelController extends acymailingController{
 		$tables = explode("CREATE TABLE IF NOT EXISTS", $queries);
 		$structure = array();
 		$createTable = array();
+		$indexes = array();
 		foreach($tables as $oneTable){
 			$fields = explode("\n\t", $oneTable);
 			$tableNameTmp = substr($oneTable, strpos($oneTable, '`') + 1, strlen($oneTable) - 1);
 			$tableName = substr($tableNameTmp, 0, strpos($tableNameTmp, '`'));
 			if(empty($tableName)) continue;
 			foreach($fields as $oneField){
-				if(substr($oneField, 0, 1) != '`' || substr($oneField, strlen($oneField) - 1, strlen($oneField)) != ',') continue;
-				$fieldNameTmp = substr($oneField, strpos($oneField, '`') + 1, strlen($oneField) - 1);
-				$fieldName = substr($fieldNameTmp, 0, strpos($fieldNameTmp, '`'));
-				$structure[$tableName][$fieldName] = trim($oneField, ",");
+				if(strpos($oneField, '#__')) continue;
+
+				if(substr($oneField, 0, 1) == '`'){
+					$fieldNameTmp = substr($oneField, strpos($oneField, '`') + 1, strlen($oneField) - 1);
+					$fieldName = substr($fieldNameTmp, 0, strpos($fieldNameTmp, '`'));
+					$structure[$tableName][$fieldName] = trim($oneField, ",");
+					continue;
+				}
+
+
+				$oneField = trim(str_replace("\n) /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci*/;", '', $oneField));
+        		$oneField = rtrim($oneField, ',');
+
+				if(strpos($oneField, 'PRIMARY KEY') !== false){
+					$indexes[$tableName]['PRIMARY'] = $oneField;
+				}else if(strpos($oneField, 'KEY') !== false){
+					$firstBackquotePos = strpos($oneField, '`');
+					$indexName = substr($oneField, $firstBackquotePos+1, strpos($oneField, '`', $firstBackquotePos+1)-$firstBackquotePos-1);
+					$indexes[$tableName][$indexName] = $oneField;
+				}
 			}
 			$createTable[$tableName] = "CREATE TABLE IF NOT EXISTS ".$oneTable;
 		}
 
-		$db = JFactory::getDBO();
-		$tableName = array_keys($structure);
+		$tableNames = array_keys($structure);
 		$structureDB = array();
-		foreach($tableName as $oneTableName){
+		foreach($tableNames as $oneTableName){
 			try{
-				$db->setQuery("SHOW COLUMNS FROM ".$oneTableName);
-				$fields2 = $db->loadObjectList();
+				$fields2 = acymailing_loadObjectList("SHOW COLUMNS FROM ".$oneTableName);
 			}catch(Exception $e){
 				$fields2 = null;
 			}
 			if($fields2 == null){
-				$errorMessage = (isset($e) ? $e->getMessage() : substr(strip_tags($db->getErrorMsg()), 0, 200));
+				$errorMessage = (isset($e) ? $e->getMessage() : substr(strip_tags(acymailing_getDBError()), 0, 200));
 				echo "<span style=\"color:blue\">Could not load columns from the table : ".$oneTableName." : ".$errorMessage."</span><br />";
 
 				if(strpos($errorMessage, 'marked as crashed')){
 					$repairQuery = 'REPAIR TABLE '.$oneTableName;
 
-					$db->setQuery($repairQuery);
 					try{
-						$isError = $db->query();
+						$isError = acymailing_query($repairQuery);
 					}catch(Exception $e){
 						$isError = null;
 					}
-					if($isError == null){
+					if($isError === null){
 						echo "<span style=\"color:red\">[ERROR]Could not repair the table ".$oneTableName." </span><br />";
-						acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags($db->getErrorMsg()), 0, 200).'...', 'error');
+						acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags(acymailing_getDBError()), 0, 200).'...', 'error');
 					}else{
 						echo "<span style=\"color:green\">[OK]Problem solved : Table ".$oneTableName." repaired</span><br />";
 					}
 					continue;
 				}
 
-				$db->setQuery($createTable[$oneTableName]);
 				try{
-					$isError = $db->query();
+					$isError = acymailing_query($createTable[$oneTableName]);
 				}catch(Exception $e){
 					$isError = null;
 				}
-				if($isError == null){
+				if($isError === null){
 					echo "<span style=\"color:red\">[ERROR]Could not create the table ".$oneTableName." </span><br />";
-					acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags($db->getErrorMsg()), 0, 200).'...', 'error');
+					acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags(acymailing_getDBError()), 0, 200).'...', 'error');
 				}else{
 					echo "<span style=\"color:green\">[OK]Problem solved : Table ".$oneTableName." created</span><br />";
 				}
@@ -309,7 +325,8 @@ class CpanelController extends acymailingController{
 				$structureDB[$oneTableName][$oneField->Field] = $oneField->Field;
 			}
 		}
-		foreach($tableName as $oneTableName){
+
+		foreach($tableNames as $oneTableName){
 			if(empty($structureDB[$oneTableName])) continue;
 			$resultCompare[$oneTableName] = array_diff(array_keys($structure[$oneTableName]), $structureDB[$oneTableName]);
 			if(empty($resultCompare[$oneTableName])){
@@ -319,14 +336,13 @@ class CpanelController extends acymailingController{
 			foreach($resultCompare[$oneTableName] as $oneField){
 				echo "<span style=\"color:blue\">Field ".$oneField." missing in ".$oneTableName."</span><br />";
 				try{
-					$db->setQuery("ALTER TABLE ".$oneTableName." ADD ".$structure[$oneTableName][$oneField]);
-					$isError = $db->query();
+					$isError = acymailing_query("ALTER TABLE ".$oneTableName." ADD ".$structure[$oneTableName][$oneField]);
 				}catch(Exception $e){
 					$isError = null;
 				}
-				if($isError == null){
+				if($isError === null){
 					echo "<span style=\"color:red\">[ERROR]Could not add the field ".$oneField." on the table : ".$oneTableName."</span><br />";
-					acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags($db->getErrorMsg()), 0, 200).'...', 'error');
+					acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags(acymailing_getDBError()), 0, 200).'...', 'error');
 					continue;
 				}else{
 					echo "<span style=\"color:green\">[OK]Problem solved : Add ".$oneField." in ".$oneTableName."</span><br />";
@@ -334,24 +350,45 @@ class CpanelController extends acymailingController{
 			}
 		}
 
-		$db->setQuery("DELETE listsub.* FROM #__acymailing_listsub as listsub LEFT JOIN #__acymailing_subscriber as sub ON sub.subid = listsub.subid WHERE sub.subid IS NULL");
-		$db->query();
-		$nbdeleted = $db->getAffectedRows();
+		foreach($tableNames as $oneTableName){
+			if(empty($structureDB[$oneTableName])) continue;
+
+			$results = acymailing_loadObjectList('SHOW INDEX FROM '.$oneTableName, 'Key_name');
+			if(empty($results)) continue;
+
+			foreach($indexes[$oneTableName] as $name => $query){
+				if(in_array($name, array_keys($results))) continue;
+
+				$keyName = $name == 'PRIMARY' ? 'primary key' : 'index '.$name;
+
+				echo "<span style=\"color:blue\">".$keyName." missing in ".$oneTableName."</span><br />";
+				try{
+					$isError = acymailing_query('ALTER TABLE '.$oneTableName.' ADD '.$query);
+				}catch(Exception $e){
+					$isError = null;
+				}
+
+				if($isError === null){
+					echo "<span style=\"color:red\">[ERROR]Could not add the ".$keyName." on the table : ".$oneTableName."</span><br />";
+					acymailing_display(substr(strip_tags(acymailing_getDBError()), 0, 200).'...', 'error');
+				}else{
+					echo "<span style=\"color:green\">[OK]Problem solved : Added ".$keyName." in ".$oneTableName."</span><br />";
+				}
+			}
+		}
+
+		$nbdeleted = acymailing_query("DELETE listsub.* FROM #__acymailing_listsub as listsub LEFT JOIN #__acymailing_subscriber as sub ON sub.subid = listsub.subid WHERE sub.subid IS NULL");
 		if(!empty($nbdeleted)){
 			echo "<span style=\"color:blue\">".$nbdeleted." lost subscriber entries fixed</span><br />";
 		}
 
-		$db->setQuery("DELETE listsub.* FROM #__acymailing_listsub AS listsub LEFT JOIN #__acymailing_list AS b ON listsub.listid = b.listid WHERE b.listid IS NULL");
-		$db->query();
-		$nbdeleted = $db->getAffectedRows();
+		$nbdeleted = acymailing_query("DELETE listsub.* FROM #__acymailing_listsub AS listsub LEFT JOIN #__acymailing_list AS b ON listsub.listid = b.listid WHERE b.listid IS NULL");
 		if(!empty($nbdeleted)){
 			echo "<span style=\"color:blue\">".$nbdeleted." lost list entries fixed</span><br />";
 		}
 
-		$db->setQuery('SELECT namekey FROM #__acymailing_fields WHERE type NOT IN (\'category\',\'customtext\')');
-		$customFields = array_keys($db->loadObjectList('namekey'));
-		$db->setQuery("SHOW COLUMNS FROM #__acymailing_subscriber");
-		$subFields = $db->loadObjectList();
+		$customFields = array_keys(acymailing_loadObjectList('SELECT namekey FROM #__acymailing_fields WHERE type NOT IN (\'category\',\'customtext\')', 'namekey'));
+		$subFields = acymailing_loadObjectList("SHOW COLUMNS FROM #__acymailing_subscriber");
 		$subFieldsName = array();
 		foreach($subFields as $oneField){
 			$subFieldsName[] = $oneField->Field;

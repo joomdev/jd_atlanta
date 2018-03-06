@@ -1,16 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
 class UserController extends acymailingController{
-
 
 	function __construct($config = array()){
 		parent::__construct($config);
@@ -42,16 +42,6 @@ class UserController extends acymailingController{
 		}
 
 		if(!empty($listRedirection)) $redirectUrl = $listRedirection;
-
-		if(!empty($redirectUrl)){
-			$replace = array();
-			foreach($user as $key => $val){
-				$replace['{'.$key.'}'] = $val;
-				$replace['{user:'.$key.'}'] = $val;
-			}
-			if($config->get('redirect_tags', 0) == 1) $redirectUrl = str_replace(array_keys($replace), $replace, $redirectUrl);
-			$this->setRedirect($redirectUrl);
-		}
 
 		if($config->get('confirmation_message', 1)){
 			if($user->confirmed && strlen(acymailing_translation('ALREADY_CONFIRMED')) > 0){
@@ -86,6 +76,18 @@ class UserController extends acymailingController{
 			}
 		}
 
+		if(!empty($redirectUrl)){
+			$replace = array();
+			foreach($user as $key => $val){
+				$replace['{'.$key.'}'] = $val;
+				$replace['{user:'.$key.'}'] = $val;
+			}
+			if($config->get('redirect_tags', 0) == 1) $redirectUrl = str_replace(array_keys($replace), $replace, $redirectUrl);
+			acymailing_redirect($redirectUrl);
+		}
+
+		if('joomla' == 'wordpress') acymailing_redirect(acymailing_rootURI());
+
 		acymailing_setVar('layout', 'confirm');
 		return parent::display();
 	}//endfct
@@ -113,10 +115,7 @@ class UserController extends acymailingController{
 		$config = acymailing_config();
 		$allowvisitor = $config->get('allow_visitor', 1);
 		if(empty($allowvisitor)){
-			$usercomp = !ACYMAILING_J16 ? 'com_user' : 'com_users';
-			$uri = JFactory::getURI();
-			$url = 'index.php?option='.$usercomp.'&view=login&return='.base64_encode($uri->toString());
-			acymailing_redirect($url, acymailing_translation('ONLY_LOGGED'));
+			acymailing_askLog(true, 'ONLY_LOGGED', 'message');
 			return false;
 		}
 
@@ -228,18 +227,14 @@ class UserController extends acymailingController{
 
 			$subscription = $subscriberClass->getSubscriptionStatus($subscriber->subid);
 
-			$db = JFactory::getDBO();
-			$db->setQuery('SELECT b.listid, b.name, b.type FROM '.acymailing_table('listmail').' as a JOIN '.acymailing_table('list').' as b on a.listid = b.listid WHERE a.mailid = '.$mailid);
-			$allLists = $db->loadObjectList();
+			$allLists = acymailing_loadObjectList('SELECT b.listid, b.name, b.type FROM '.acymailing_table('listmail').' as a JOIN '.acymailing_table('list').' as b on a.listid = b.listid WHERE a.mailid = '.$mailid);
 
 			if(empty($allLists)){
-				$db->setQuery('SELECT b.listid, b.name, b.type FROM '.acymailing_table('list').' as b WHERE b.welmailid = '.$mailid.' OR b.unsubmailid = '.$mailid);
-				$allLists = $db->loadObjectList();
+				$allLists = acymailing_loadObjectList('SELECT b.listid, b.name, b.type FROM '.acymailing_table('list').' as b WHERE b.welmailid = '.$mailid.' OR b.unsubmailid = '.$mailid);
 			}
 
 			if(empty($allLists)){
-				$db->setQuery('SELECT b.listid, b.name, b.type FROM #__acymailing_listsub as a JOIN #__acymailing_list as b on a.listid = b.listid WHERE a.subid = '.$subscriber->subid);
-				$allLists = $db->loadObjectList();
+				$allLists = acymailing_loadObjectList('SELECT b.listid, b.name, b.type FROM #__acymailing_listsub as a JOIN #__acymailing_list as b on a.listid = b.listid WHERE a.subid = '.$subscriber->subid);
 			}
 
 
@@ -253,8 +248,7 @@ class UserController extends acymailingController{
 					$i++;
 				}
 
-				$db->setQuery('SELECT listid, name, type FROM #__acymailing_list WHERE listid IN ('.implode(',', $othersubscriptionsToRemove).')');
-				$otherSubscriptions = $db->loadObjectList();
+				$otherSubscriptions = acymailing_loadObjectList('SELECT listid, name, type FROM #__acymailing_list WHERE listid IN ('.implode(',', $othersubscriptionsToRemove).')');
 
 				foreach($otherSubscriptions as $anotherSubscription){
 					array_push($allLists, $anotherSubscription);
@@ -280,8 +274,7 @@ class UserController extends acymailingController{
 			}
 
 			if(!empty($campaignList)){
-				$db->setQuery('SELECT b.listid, b.name, b.type FROM '.acymailing_table('listcampaign').' as a LEFT JOIN '.acymailing_table('list').' as b on a.listid = b.listid WHERE a.campaignid IN ('.implode(',', $campaignList).')');
-				$otherLists = $db->loadObjectList();
+				$otherLists = acymailing_loadObjectList('SELECT b.listid, b.name, b.type FROM '.acymailing_table('listcampaign').' as a LEFT JOIN '.acymailing_table('list').' as b on a.listid = b.listid WHERE a.campaignid IN ('.implode(',', $campaignList).')');
 				if(!empty($otherLists)){
 					foreach($otherLists as $oneList){
 						if(isset($subscription[$oneList->listid]) AND $subscription[$oneList->listid]->status != -1){
@@ -304,12 +297,10 @@ class UserController extends acymailingController{
 		}
 
 		if($incrementUnsub){
-			$db = JFactory::getDBO();
 			$alreadythere = acymailing_loadResult('SELECT subid FROM #__acymailing_history WHERE `action` = "unsubscribed" AND `subid` = '.intval($subscriber->subid).' AND `mailid` = '.intval($mailid).' LIMIT 1,1');
 
 			if(empty($alreadythere)){
-				$db->setQuery('UPDATE '.acymailing_table('stats').' SET `unsub` = `unsub` +1 WHERE `mailid` = '.(int)$mailid);
-				$db->query();
+				acymailing_query('UPDATE '.acymailing_table('stats').' SET `unsub` = `unsub` +1 WHERE `mailid` = '.(int)$mailid);
 			}
 		}
 
@@ -347,7 +338,10 @@ class UserController extends acymailingController{
 				$replace['{user:'.$key.'}'] = $val;
 			}
 			if($config->get('redirect_tags', 0) == 1) $redirectUnsub = str_replace(array_keys($replace), $replace, $redirectUnsub);
-			$this->setRedirect($redirectUnsub);
+			acymailing_redirect($redirectUnsub);
+			return;
+		}elseif('joomla' == 'wordpress'){
+			acymailing_redirect(acymailing_rootURI());
 			return;
 		}
 
@@ -396,7 +390,7 @@ class UserController extends acymailingController{
 				}
 			}
 
-			$this->setRedirect($redirectlink);
+			acymailing_redirect($redirectlink);
 			return;
 		}
 

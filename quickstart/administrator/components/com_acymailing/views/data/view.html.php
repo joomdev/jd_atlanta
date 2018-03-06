@@ -1,16 +1,18 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
 
 class dataViewdata extends acymailingView{
+	
 	function display($tpl = null){
 		$function = $this->getLayout();
 		if(method_exists($this, $function)) $this->$function();
@@ -81,9 +83,6 @@ class dataViewdata extends acymailingView{
 			$acyToolbar->display();
 		}
 
-
-		$db = JFactory::getDBO();
-
 		$importData = array();
 		$importData['textarea'] = acymailing_translation('IMPORT_TEXTAREA');
 		$importData['file'] = acymailing_translation('ACY_FILE');
@@ -102,18 +101,18 @@ class dataViewdata extends acymailingView{
 
 
 			$possibleImport = array();
-			$possibleImport[$db->getPrefix().'acajoom_subscribers'] = array('acajoom', 'Acajoom');
-			$possibleImport[$db->getPrefix().'ccnewsletter_subscribers'] = array('ccnewsletter', 'ccNewsletter');
-			$possibleImport[$db->getPrefix().'letterman_subscribers'] = array('letterman', 'Letterman');
-			$possibleImport[$db->getPrefix().'communicator_subscribers'] = array('communicator', 'Communicator');
-			$possibleImport[$db->getPrefix().'yanc_subscribers'] = array('yanc', 'Yanc');
-			$possibleImport[$db->getPrefix().'vemod_news_mailer_users'] = array('vemod', 'Vemod News Mailer');
-			$possibleImport[$db->getPrefix().'jnews_subscribers'] = array('jnews', 'jNews');
+			$possibleImport[acymailing_getPrefix().'acajoom_subscribers'] = array('acajoom', 'Acajoom');
+			$possibleImport[acymailing_getPrefix().'ccnewsletter_subscribers'] = array('ccnewsletter', 'ccNewsletter');
+			$possibleImport[acymailing_getPrefix().'letterman_subscribers'] = array('letterman', 'Letterman');
+			$possibleImport[acymailing_getPrefix().'communicator_subscribers'] = array('communicator', 'Communicator');
+			$possibleImport[acymailing_getPrefix().'yanc_subscribers'] = array('yanc', 'Yanc');
+			$possibleImport[acymailing_getPrefix().'vemod_news_mailer_users'] = array('vemod', 'Vemod News Mailer');
+			$possibleImport[acymailing_getPrefix().'jnews_subscribers'] = array('jnews', 'jNews');
 			$possibleImport['civicrm_email'] = array('civi', 'CiviCRM');
-			$possibleImport[$db->getPrefix().'sobipro_field'] = array('sobipro', 'SobiPro');
-			$possibleImport[$db->getPrefix().'nspro_subs'] = array('nspro', 'NS Pro');
+			$possibleImport[acymailing_getPrefix().'sobipro_field'] = array('sobipro', 'SobiPro');
+			$possibleImport[acymailing_getPrefix().'nspro_subs'] = array('nspro', 'NS Pro');
 
-			$tables = $db->getTableList();
+			$tables = acymailing_getTableList();
 			foreach($tables as $mytable){
 				if(isset($possibleImport[$mytable])){
 					$importData[$possibleImport[$mytable][0]] = $possibleImport[$mytable][1];
@@ -178,7 +177,6 @@ class dataViewdata extends acymailingView{
 
 	function export(){
 		$listClass = acymailing_get('class.list');
-		$db = JFactory::getDBO();
 		$fields = acymailing_getColumns('#__acymailing_subscriber');
 		$fieldsList = array();
 		$fieldsList['listid'] = 'smallint unsigned';
@@ -194,7 +192,7 @@ class dataViewdata extends acymailingView{
 			$isAdmin = true;
 
 			$acyToolbar = acymailing_get('helper.toolbar');
-			if(acymailing_getVar('string', 'tmpl') == 'component'){
+			if(acymailing_isNoTemplate()){
 				$acyToolbar->custom('doexport', acymailing_translation('ACY_EXPORT'), 'export', false, '');
 				$acyToolbar->setTitle(acymailing_translation('ACY_EXPORT'));
 				$acyToolbar->topfixed = false;
@@ -235,8 +233,7 @@ class dataViewdata extends acymailingView{
 				}
 
 				if(!empty($subids)){
-					$db->setQuery('SELECT DISTINCT `name`,`email` FROM `#__acymailing_subscriber` WHERE `subid` IN ('.implode(',', $subids).') LIMIT 10');
-					$users = $db->loadObjectList();
+					$users = acymailing_loadObjectList('SELECT DISTINCT `name`,`email` FROM `#__acymailing_subscriber` WHERE `subid` IN ('.implode(',', $subids).') LIMIT 10');
 					$this->users = $users;
 				}
 			}elseif(!empty($_SESSION['acymailing']['exportlist'])){
@@ -250,11 +247,10 @@ class dataViewdata extends acymailingView{
 		if(acymailing_getVar('int', 'fieldfilters')) $this->fieldfilters = true;
 
 		if(acymailing_getVar('int', 'sessionquery')){
-			$currentSession = JFactory::getSession();
-			$exportQuery = $currentSession->get('acyexportquery');
+			acymailing_session();
+			$exportQuery = $_SESSION['acymailing']['acyexportquery'];
 			if(!empty($exportQuery)){
-				$db->setQuery('SELECT DISTINCT s.`name`,s.`email` '.$exportQuery.' LIMIT 10');
-				$users = $db->loadObjectList();
+				$users = acymailing_loadObjectList('SELECT DISTINCT s.`name`,s.`email` '.$exportQuery.' LIMIT 10');
 				$this->users = $users;
 
 				if(strpos($exportQuery, 'userstats')){

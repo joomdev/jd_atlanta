@@ -1,20 +1,19 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
-class detailstatsbounceType{
+class detailstatsbounceType extends acymailingClass{
 	function display($map, $value){
 		$query = 'SELECT DISTINCT bouncerule FROM '.acymailing_table('userstats').' WHERE bouncerule IS NOT NULL';
-		$db = JFactory::getDBO();
-		$db->setQuery($query);
-		$bouncerules = $db->loadObjectList();
+		$bouncerules = acymailing_loadObjectList($query);
 		if(empty($bouncerules)) return '';
 		$valueBounce = array();
 		$valueBounce[] = acymailing_selectOption(0, acymailing_translation('ALL_RULES'));
@@ -26,4 +25,5 @@ class detailstatsbounceType{
 		return acymailing_select($valueBounce, $map, 'class="inputbox" size="1" onchange="document.adminForm.submit( );"', 'value', 'text', $value);
 	}
 }
+
 

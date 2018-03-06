@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -170,7 +171,6 @@ class acyzohoHelper {
 		}
 
 		$zohoFields = array();
-		$db = JFactory::getDBO();
 		foreach($xml->section as $key=>$oneSection){
 			foreach($oneSection as $key=>$oneField){
 				if(empty($oneField['label']) || $oneField['label'] == 'Email') continue;
@@ -181,28 +181,24 @@ class acyzohoHelper {
 	}
 
 	function subscribe($acyList, $zohoList){
-		$db = JFactory::getDBO();
 		if(empty($acyList) || empty($zohoList)) return 0;
 
 		$query = 'INSERT IGNORE INTO #__acymailing_listsub (subid, listid, status, subdate) SELECT subid,'.$acyList.',1,'.time().' FROM #__acymailing_subscriber WHERE zoholist = "'.strtolower($zohoList[0]).'"';
-		$db->setQuery($query);
-		$db->query();
-		return $db->getAffectedRows();
+		return acymailing_query($query) !== false;
 	}
 
 	function deleteAddress(&$allSubid, $userList) {
-		$db = JFactory::getDBO();
 		$subscriberClass= acymailing_get('class.subscriber');
 		$IdArray = array();
-		foreach($allSubid as $oneID)	$IdArray[] = acymailing_escapeDB($oneID);
+		foreach($allSubid as $oneID){
+			$IdArray[] = acymailing_escapeDB($oneID);
+		}
 		$query = 'SELECT subid FROM  #__acymailing_subscriber WHERE zoholist LIKE "'.$userList[0].'" AND zohoid IS NOT NULL AND subid NOT IN ('.implode(',',$IdArray).')';
-			$db->setQuery($query);
-			$subidToDelete = acymailing_loadResultArray($db);
-			$subscriberClass->delete($subidToDelete);
-		}
+		$subidToDelete = acymailing_loadResultArray($query);
+		$subscriberClass->delete($subidToDelete);
+	}
 
-		function close() {
-			fclose($this->conn);
-		}
-
+	function close() {
+		fclose($this->conn);
+	}
 }

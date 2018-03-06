@@ -1,10 +1,10 @@
 <?php
 
-defined('_JEXEC') or die('Restricted access');
+acymailing_cmsLoaded();
 
 
 /**
- * @copyright	Copyright (C) 2009-{__YEAR__} ACYBA SAS - All rights reserved..
+ * @copyright	Copyright (C) 2009-2018 ACYBA SAS - All rights reserved..
  * @license		GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 class acymailingElasticemail {

@@ -1,14 +1,15 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
-defined('_JEXEC') or die('Restricted access');
+acymailing_cmsLoaded();
 ?>
 <table class="adminlist table table-striped table-hover" cellpadding="1">
 	<thead>
@@ -35,7 +36,7 @@ defined('_JEXEC') or die('Restricted access');
 				$id = 'filter_'.$row->filid;
 		?>
 			<tr class="<?php echo "row$k"; ?>" id="<?php echo $id; ?>">
-				<td style="cursor:pointer" onclick="window.top.location.href = 'index.php?option=com_acymailing&ctrl=filter&task=edit&filid=<?php echo $row->filid; ?>';">
+				<td style="cursor:pointer" onclick="window.top.location.href = '<?php echo acymailing_completeLink('filter&task=edit&filid='.$row->filid); ?>';">
 					<?php
 						echo acymailing_tooltip($row->description, $row->name, '', $row->name);
 					?>
@@ -46,7 +47,7 @@ defined('_JEXEC') or die('Restricted access');
 				<td align="center" style="text-align:center" >
 					<?php echo $this->toggleClass->delete($id,$row->filid.'_'.$row->filid,'filter',true); ?>
 				</td>
-				<td width="1%" align="center" style="cursor:pointer" onclick="window.top.location.href = 'index.php?option=com_acymailing&ctrl=filter&task=edit&filid=<?php echo $row->filid; ?>';">
+				<td width="1%" align="center" style="cursor:pointer" onclick="window.top.location.href = '<?php echo acymailing_completeLink('filter&task=edit&filid='.$row->filid); ?>';">
 					<?php echo $row->filid; ?>
 				</td>
 			</tr>
@@ -56,3 +57,4 @@ defined('_JEXEC') or die('Restricted access');
 		?>
 	</tbody>
 </table>
+

@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -16,17 +17,15 @@ class acyupdateHelper{
 	var $bouncerulesversion = 13;
 
 	function __construct(){
-		$this->db = JFactory::getDBO();
-
-
+		global $acymailingCmsUserVars;
+		$this->cmsUserVars = $acymailingCmsUserVars;
 	}
 
 	function fixDoubleExtension(){
 
 		if(!ACYMAILING_J16) return;
 
-		$this->db->setQuery("SELECT extension_id FROM #__extensions WHERE type='component' AND element = 'com_acymailing' AND extension_id > 0 ORDER BY client_id ASC, extension_id ASC");
-		$results = $this->db->loadObjectList();
+		$results = acymailing_loadObjectList("SELECT extension_id FROM #__extensions WHERE type='component' AND element = 'com_acymailing' AND extension_id > 0 ORDER BY client_id ASC, extension_id ASC");
 		if(empty($results) || count($results) == 1) return;
 
 		$validExtension = reset($results)->extension_id;
@@ -39,29 +38,24 @@ class acyupdateHelper{
 
 		$tablesToUpdate = array('#__menu' => 'component_id');
 		foreach($tablesToUpdate as $table => $field){
-			$this->db->setQuery("UPDATE ".$table." SET ".$field." = ".intval($validExtension)." WHERE ".$field." IN (".implode(',', $toDelete).")");
-			$this->db->query();
+			acymailing_query("UPDATE ".$table." SET ".$field." = ".intval($validExtension)." WHERE ".$field." IN (".implode(',', $toDelete).")");
 		}
 		$tablesToCheck = array('#__updates' => 'extension_id', '#__update_sites_extensions' => 'extension_id', '#__extensions' => 'extension_id');
 		foreach($tablesToCheck as $table => $field){
-			$this->db->setQuery("DELETE FROM ".$table." WHERE ".$field." IN (".implode(',', $toDelete).")");
-			$this->db->query();
+			acymailing_query("DELETE FROM ".$table." WHERE ".$field." IN (".implode(',', $toDelete).")");
 		}
 	}
 
 	function fixMenu(){
-
 		if(!ACYMAILING_J16) return;
 
 		$extensionid = acymailing_loadResult("SELECT extension_id FROM #__extensions WHERE type='component' AND element LIKE '%acymailing' LIMIT 1");
 		if(empty($extensionid)) return;
 
-		$this->db->setQuery("UPDATE #__menu SET component_id = ".intval($extensionid).",published = 1 WHERE link LIKE '%com_acymailing%' AND component_id = 0 AND client_id = 1");
-		$this->db->query();
+		acymailing_query("UPDATE #__menu SET component_id = ".intval($extensionid).",published = 1 WHERE link LIKE '%com_acymailing%' AND component_id = 0 AND client_id = 1");
 	}
 
 	function installTables(){
-		$db = JFactory::getDBO();
 		echo '<h2 style="color:red">The installation failed, some tables are missing, we will try to create them now...</h2>';
 
 		$queries = file_get_contents(ACYMAILING_BACK.'tables.sql');
@@ -71,9 +65,9 @@ class acyupdateHelper{
 		foreach($queriesTable as $oneQuery){
 			$oneQuery = trim($oneQuery);
 			if(empty($oneQuery)) continue;
-			$db->setQuery("CREATE TABLE ".$oneQuery);
-			if(!$db->query()){
-				echo '<br /><br /><span style="color:red">Error creating table : '.$db->getErrorMsg().'</span><br />';
+			$res = acymailing_query("CREATE TABLE ".$oneQuery);
+			if($res === false){
+				echo '<br /><br /><span style="color:red">Error creating table : '.acymailing_getDBError().'</span><br />';
 				$success = false;
 			}else{
 				echo '<br /><span style="color:green">Table successfully created</span>';
@@ -98,8 +92,7 @@ class acyupdateHelper{
 
 		if(!ACYMAILING_J16) return false;
 
-		$this->db->setQuery("DELETE FROM #__updates WHERE element = 'com_acymailing'");
-		$this->db->query();
+		acymailing_query("DELETE FROM #__updates WHERE element = 'com_acymailing'");
 
 		$query = "SELECT update_site_id FROM #__update_sites WHERE location LIKE '%acymailing%' AND type LIKE 'extension'";
 		$update_site_id = acymailing_loadResult($query);
@@ -123,251 +116,73 @@ class acyupdateHelper{
 		if(empty($update_site_id) OR empty($extension_id)) return false;
 
 		$query = 'INSERT IGNORE INTO #__update_sites_extensions (update_site_id, extension_id) values ('.$update_site_id.','.$extension_id.')';
-		$this->db->setQuery($query);
-		$this->db->query();
+		acymailing_query($query);
 		return true;
 	}
 
-	function installNotifications(){
-		$this->db->setQuery('SELECT `alias` FROM `#__acymailing_mail` WHERE `type` = \'notification\'');
-
-		$notifications = acymailing_loadResultArray($this->db);
-
-		$data = array();
-
-		if(!in_array('notification_created', $notifications)){
-			$data[] = "('New Subscriber on your website : {user:email}', '<p>Hello {subtag:name},</p><p>A new user has been created in AcyMailing : </p><blockquote><p>Name : {user:name}</p><p>Email : {user:email}</p><p>IP : {user:ip} </p><p>Subscription : {user:subscription}</p></blockquote>', '', 1, 'notification', 0,'notification_created', 1,0,NULL)";
-		}
-
-		if(!in_array('notification_unsuball', $notifications)){
-			$data[] = "('A User unsubscribed from all your lists : {user:email}', '<p>Hello {subtag:name},</p><p>The user {user:name} : {user:email} unsubscribed from all your lists</p><p>Subscription : {user:subscription}</p><p>{survey}</p>', '', 1, 'notification', 0, 'notification_unsuball', 1,0,NULL)";
-		}
-
-		if(!in_array('notification_unsub', $notifications)){
-			$data[] = "('A User unsubscribed : {user:email}', '<p>Hello {subtag:name},</p><p>The user {user:name} : {user:email} unsubscribed from your list</p><p>Subscription : {user:subscription}</p><p>{survey}</p>', '', 1, 'notification', 0, 'notification_unsub', 1,0,NULL)";
-		}
-
-		if(!in_array('notification_refuse', $notifications)){
-			$data[] = "('A User refuses to receive e-mails from your website : {user:email}', '<p>The User {user:name} : {user:email} refuses to receive any e-mail anymore from your website.</p><p>Subscription : {user:subscription}</p><p>{survey}</p>', '', 1, 'notification',0,'notification_refuse', 1,0,NULL)";
-		}
-
-		if(!in_array('notification_contact', $notifications)){
-			$data[] = "('New contact from your website : {user:email}', '<p>Hello {subtag:name},</p><p>A user submitted the form : </p><blockquote><p>Name : {user:name}</p><p>Email : {user:email}</p><p>IP : {user:ip} </p><p>Subscription : {user:subscription}</p></blockquote>', '', 1, 'notification', 0,'notification_contact', 1,0,NULL)";
-		}
-
-		if(!in_array('notification_contact_menu', $notifications)){
-			$data[] = "('A user subscribed or modified his subscription : {user:email}', '<p>Hello {subtag:name},</p><p>A user submitted the form : </p><blockquote><p>Name : {user:name}</p><p>Email : {user:email}</p><p>IP : {user:ip} </p><p>Subscription : {user:subscription}</p></blockquote>', '', 1, 'notification', 0,'notification_contact_menu', 1,0,NULL)";
-		}
-
-		if(!in_array('notification_confirm', $notifications)){
-			$data[] = "('A user confirmed his subscription : {user:email}', '<p>Hello {subtag:name},</p><p>A user confirmed his subscription : </p><blockquote><p>Name : {user:name}</p><p>Email : {user:email}</p><p>IP : {user:ip} </p><p>Subscription : {user:subscription}</p></blockquote>', '', 1, 'notification', 0,'notification_confirm', 1,0,NULL)";
-		}
-
-		$conftemplate = (int)acymailing_loadResult("SELECT tempid FROM #__acymailing_template WHERE namekey = 'newsletter-4' LIMIT 1");
-
-		if(!in_array('confirmation', $notifications)){
-			$bodyNotif = $this->getJoomlaNotification('{subtag:name|ucfirst}, {trans:PLEASE_CONFIRM_SUB}', '<h1>Hello {subtag:name|ucfirst},</h1>
-			<p>{trans:CONFIRM_MSG}<br /><br />{trans:CONFIRM_MSG_ACTIVATE}</p>
-			<br />
-			<p style="text-align:center;"><strong>{confirm}{trans:CONFIRM_SUBSCRIPTION}{/confirm}</strong></p>');
-			$data[] = "('{subtag:name|ucfirst}, {trans:PLEASE_CONFIRM_SUB}', ".$this->db->Quote($bodyNotif).", '',1, 'notification', 0, 'confirmation', 1,".$conftemplate.',\'a:3:{s:6:"action";s:7:"confirm";s:13:"actionbtntext";s:28:"{trans:CONFIRM_SUBSCRIPTION}";s:9:"actionurl";s:19:"{confirm}{/confirm}";}\')';
-		}else{
-			$confirmParams = acymailing_loadResult('SELECT `params` FROM `#__acymailing_mail` WHERE `alias` = \'confirmation\'');
-			if(empty($confirmParams)){
-				$this->db->setQuery('UPDATE `#__acymailing_mail` SET `params` = \'a:3:{s:6:"action";s:7:"confirm";s:13:"actionbtntext";s:28:"{trans:CONFIRM_SUBSCRIPTION}";s:9:"actionurl";s:19:"{confirm}{/confirm}";}\' WHERE `alias` = \'confirmation\'');
-				$this->db->query();
-			}
-		}
-
-		if(!in_array('report', $notifications)){
-			$data[] = "('AcyMailing Cron Report {mainreport}', '<p>{report}</p><p>{detailreport}</p>', '',1, 'notification',0,  'report', 1,0,NULL)";
-		}
-
-		if(!in_array('modif', $notifications)){
-			$data[] = "('Modify your subscription', '<p>Hello {subtag:name}, </p><p>You requested some changes on your subscription,</p><p>Please {modify}click here{/modify} to be identified as the owner of this account and then modify your subscription.</p>', '',1, 'notification', 0, 'modif', 1,0,NULL)";
-		}
-
-		if(acymailing_level(1)){
-			$this->db->setQuery('SELECT LCASE(`alias`) FROM `#__acymailing_mail` WHERE `type` = \'joomlanotification\'');
-			$JNotifications = acymailing_loadResultArray($this->db);
-
-			if(ACYMAILING_J30){
-				if(!in_array(strtolower('joomla-directRegNoPwd-j3'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_BODY_NOPW|param1|param2|param3}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-directRegNoPwd-j3', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-directReg-j3'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_BODY|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-directReg-j3', 1, ".$conftemplate.",NULL)";
-				}
-			}elseif(ACYMAILING_J16){
-				if(!in_array(strtolower('joomla-directReg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_BODY|param1|param2|param3}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-directReg', 1, ".$conftemplate.",NULL)";
-				}
-			}
-			if(ACYMAILING_J16){
-				if(!in_array(strtolower('joomla-ownActivReg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_WITH_ACTIVATION_BODY|param1|param2|param3|param4|param5|param6}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-ownActivReg', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-ownActivRegNoPwd'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_WITH_ACTIVATION_BODY_NOPW|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-ownActivRegNoPwd', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-adminActivReg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_WITH_ADMIN_ACTIVATION_BODY|param1|param2|param3|param4|param5|param6}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-adminActivReg', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-adminActivRegNoPwd'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_WITH_ADMIN_ACTIVATION_BODY_NOPW|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-adminActivRegNoPwd', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-usernameReminder'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_USERNAME_REMINDER_SUBJECT|param1}', '{trans:COM_USERS_EMAIL_USERNAME_REMINDER_BODY|param1|param2|param3}');
-					$data[] = "('{trans:COM_USERS_EMAIL_USERNAME_REMINDER_SUBJECT|param1}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-usernameReminder', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-confirmActiv'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_SUBJECT|param1|param2}', '{trans:COM_USERS_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_BODY|param1|param2|param3}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_SUBJECT|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-confirmActiv', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-resetPwd'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_PASSWORD_RESET_SUBJECT|param1}', '{trans:COM_USERS_EMAIL_PASSWORD_RESET_BODY|param1|param2|param3}');
-					$data[] = "('{trans:COM_USERS_EMAIL_PASSWORD_RESET_SUBJECT|param1}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-resetPwd', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-regByAdmin'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:PLG_USER_JOOMLA_NEW_USER_EMAIL_SUBJECT}', '{trans:PLG_USER_JOOMLA_NEW_USER_EMAIL_BODY|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:PLG_USER_JOOMLA_NEW_USER_EMAIL_SUBJECT}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regByAdmin', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-regNotifAdmin'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_NOTIFICATION_TO_ADMIN_BODY|param1|param2|param3}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regNotifAdmin', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-regNotifAdminActiv'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_USERS_EMAIL_ACTIVATE_WITH_ADMIN_ACTIVATION_SUBJECT|param2|param1}', '{trans:COM_USERS_EMAIL_ACTIVATE_WITH_ADMIN_ACTIVATION_BODY|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:COM_USERS_EMAIL_ACTIVATE_WITH_ADMIN_ACTIVATION_SUBJECT|param2|param1}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regNotifAdminActiv', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-frontsendarticle'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{senderSubject}', '{trans:COM_MAILTO_EMAIL_MSG|param1|param2|param3|param4}');
-					$data[] = "('{senderSubject}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-frontsendarticle', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('jomsocial-directreg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR_WELCOME|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION_ACCOUNT_DETAILS|param1|param2|param3|param4}');
-					$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR_WELCOME|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-directreg', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('jomsocial-ownactivreg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param1|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION_COMPLETED_REQUIRES_ACTIVATION|param1|param2|param3|param5}');
-					$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-ownactivreg', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('jomsocial-welcomeactiv'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR_WELCOME|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION_ACCOUNT_DETAILS_REQUIRES_ACTIVATION|param1|param2|param3|param4}');
-					$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR_WELCOME|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-welcomeactiv', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('jomsocial-regactivadmin'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param1|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION_COMPLETED_REQUIRES_ADMIN_ACTIVATION|param1|param2|param3|param5}');
-					$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-regactivadmin', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('jomsocial-notifadmin'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param3|param2}', '{trans:COM_COMMUNITY_SEND_MSG_ADMIN|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param3|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-notifadmin', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('jomsocial-notifadminactiv'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param3|param2}', '{trans:COM_COMMUNITY_USER_REGISTERED_NEEDS_APPROVAL|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param3|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-notifadminactiv', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('jomsocial-notifactivated'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_COMMUNITY_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_SUBJECT|param1|param2}', '{trans:COM_COMMUNITY_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_BODY|param1|param2|param3}');
-					$data[] = "('{trans:COM_COMMUNITY_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_SUBJECT|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-notifactivated', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('jomsocial-notifaccountparameters'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_COMMUNITY_USER_REGISTERED_WAITING_APPROVAL_TITLE|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION|param1|param2|param3|param4}');
-					$data[] = "('{trans:COM_COMMUNITY_USER_REGISTERED_WAITING_APPROVAL_TITLE|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-notifaccountparameters', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('seblod-directreg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_BODY|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-directreg', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('seblod-directregnopwd'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_BODY_NOPW|param1|param2|param3}');
-					$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-directregnopwd', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('seblod-notifadmin'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:ACY_DEFAULT_NOTIF_SUBJECT}', '{trans:COM_CCK_EMAIL_REGISTERED_NOTIFICATION_TO_ADMIN_BODY|param1|param2|param3}');
-					$data[] = "('{trans:ACY_DEFAULT_NOTIF_SUBJECT}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-notifadmin', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('seblod-ownactivreg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_WITH_ACTIVATION_BODY|param1|param2|param3|param4|param5|param6}');
-					$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-ownactivreg', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('seblod-ownactivregnopwd'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_WITH_ACTIVATION_BODY_NOPW|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-ownactivregnopwd', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('seblod-adminactivreg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_WITH_ADMIN_ACTIVATION_BODY|param1|param2|param3|param4|param5|param6}');
-					$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-adminactivreg', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('seblod-adminactivregnopwd'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_WITH_ADMIN_ACTIVATION_BODY_NOPW|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-adminactivregnopwd', 1, ".$conftemplate.",NULL)";
-				}
-			}else{
-				if(!in_array(strtolower('joomla-directReg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:ACCOUNT DETAILS FOR|param1|param2}', '{trans:SEND_MSG|param1|param2|param3}');
-					$data[] = "('{trans:ACCOUNT DETAILS FOR|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-directReg', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-ownActivReg'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:ACCOUNT DETAILS FOR|param1|param2}', '{trans:SEND_MSG_ACTIVATE|param1|param2|param3|param4|param5|param6}');
-					$data[] = "('{trans:ACCOUNT DETAILS FOR|param1|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-ownActivReg', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-usernameReminder'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:USERNAME_REMINDER_EMAIL_TITLE|param1}', '{trans:USERNAME_REMINDER_EMAIL_TEXT|param1|param2|param3}');
-					$data[] = "('{trans:USERNAME_REMINDER_EMAIL_TITLE|param1}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-usernameReminder', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-resetPwd'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:PASSWORD_RESET_CONFIRMATION_EMAIL_TITLE|param1}', '{trans:PASSWORD_RESET_CONFIRMATION_EMAIL_TEXT|param1|param2|param3}');
-					$data[] = "('{trans:PASSWORD_RESET_CONFIRMATION_EMAIL_TITLE|param1}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-resetPwd', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-regByAdmin'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:NEW_USER_MESSAGE_SUBJECT}', '{trans:NEW_USER_MESSAGE|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:NEW_USER_MESSAGE_SUBJECT}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regByAdmin', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-regNotifAdmin'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{trans:ACCOUNT DETAILS FOR|param3|param2}', '{trans:SEND_MSG_ADMIN|param1|param2|param3|param4|param5}');
-					$data[] = "('{trans:ACCOUNT DETAILS FOR|param3|param2}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regNotifAdmin', 1, ".$conftemplate.",NULL)";
-				}
-				if(!in_array(strtolower('joomla-frontsendarticle'), $JNotifications)){
-					$bodyNotif = $this->getJoomlaNotification('{senderSubject}', '{trans:EMAIL_MSG|param1|param2|param3|param4}');
-					$data[] = "('{senderSubject}', ".$this->db->Quote($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-frontsendarticle', 1, ".$conftemplate.",NULL)";
-				}
-			}
-		}
-
-		if(!empty($data)){
-			$this->db->setQuery("INSERT INTO `#__acymailing_mail` (`subject`, `body`, `altbody`, `published`, `type`, `visible`, `alias`, `html`, `tempid`, `params`) VALUES ".implode(',', $data));
-			$this->db->query();
-		}
-
+	function installFields(){
 		$query = "INSERT IGNORE INTO `#__acymailing_fields` (`fieldname`, `namekey`, `type`, `value`, `published`, `ordering`, `options`, `core`, `required`, `backend`, `frontcomp`, `default`, `listing`, `frontlisting`, `frontform`) VALUES
 		('NAMECAPTION', 'name', 'text', '', 1, 1, '', 1, 1, 1, 1, '',1,1,1),
 		('EMAILCAPTION', 'email', 'text', '', 1, 2, '', 1, 1, 1, 1, '',1,1,1),
 		('RECEIVE', 'html', 'radio', '0::JOOMEXT_TEXT\n1::HTML', 1, 3, '', 1, 1, 1, 1, '1',1,0,1);";
-		$this->db->setQuery($query);
-		$this->db->query();
+		acymailing_query($query);
 	}
 
-	function getJoomlaNotification($subject, $body){
+	function installNotifications(){
+		$notifications = acymailing_loadResultArray('SELECT `alias` FROM `#__acymailing_mail` WHERE `type` = \'notification\' OR `type` = \'article\'');
+
+		$data = array();
+
+		if(!in_array('notification_created', $notifications)) $data[] = "('New Subscriber on your website : {user:email}', '<p>Hello {subtag:name},</p><p>A new user has been created in AcyMailing : </p><blockquote><p>Name : {user:name}</p><p>Email : {user:email}</p><p>IP : {user:ip} </p><p>Subscription : {user:subscription}</p></blockquote>', '', 1, 'notification', 0,'notification_created', 1,0,NULL,'')";
+		if(!in_array('notification_unsuball', $notifications)) $data[] = "('A User unsubscribed from all your lists : {user:email}', '<p>Hello {subtag:name},</p><p>The user {user:name} : {user:email} unsubscribed from all your lists</p><p>Subscription : {user:subscription}</p><p>{survey}</p>', '', 1, 'notification', 0, 'notification_unsuball', 1,0,NULL,'')";
+		if(!in_array('notification_unsub', $notifications)) $data[] = "('A User unsubscribed : {user:email}', '<p>Hello {subtag:name},</p><p>The user {user:name} : {user:email} unsubscribed from your list</p><p>Subscription : {user:subscription}</p><p>{survey}</p>', '', 1, 'notification', 0, 'notification_unsub', 1,0,NULL,'')";
+		if(!in_array('notification_refuse', $notifications)) $data[] = "('A User refuses to receive e-mails from your website : {user:email}', '<p>The User {user:name} : {user:email} refuses to receive any e-mail anymore from your website.</p><p>Subscription : {user:subscription}</p><p>{survey}</p>', '', 1, 'notification',0,'notification_refuse', 1,0,NULL,'')";
+		if(!in_array('notification_contact', $notifications)) $data[] = "('New contact from your website : {user:email}', '<p>Hello {subtag:name},</p><p>A user submitted the form : </p><blockquote><p>Name : {user:name}</p><p>Email : {user:email}</p><p>IP : {user:ip} </p><p>Subscription : {user:subscription}</p></blockquote>', '', 1, 'notification', 0,'notification_contact', 1,0,NULL,'')";
+		if(!in_array('notification_contact_menu', $notifications)) $data[] = "('A user subscribed or modified his subscription : {user:email}', '<p>Hello {subtag:name},</p><p>A user submitted the form : </p><blockquote><p>Name : {user:name}</p><p>Email : {user:email}</p><p>IP : {user:ip} </p><p>Subscription : {user:subscription}</p></blockquote>', '', 1, 'notification', 0,'notification_contact_menu', 1,0,NULL,'')";
+		if(!in_array('notification_confirm', $notifications)) $data[] = "('A user confirmed his subscription : {user:email}', '<p>Hello {subtag:name},</p><p>A user confirmed his subscription : </p><blockquote><p>Name : {user:name}</p><p>Email : {user:email}</p><p>IP : {user:ip} </p><p>Subscription : {user:subscription}</p></blockquote>', '', 1, 'notification', 0,'notification_confirm', 1,0,NULL,'')";
+
+		$conftemplate = (int)acymailing_loadResult("SELECT tempid FROM #__acymailing_template WHERE namekey = 'newsletter-4'");
+
+		if(!in_array('confirmation', $notifications)){
+			$bodyNotif = $this->getFormatedNotification('{subtag:name|ucfirst}, {trans:PLEASE_CONFIRM_SUB}', '<h1>Hello {subtag:name|ucfirst},</h1>
+			<p>{trans:CONFIRM_MSG}<br /><br />{trans:CONFIRM_MSG_ACTIVATE}</p>
+			<br />
+			<p style="text-align:center;"><strong>{confirm}{trans:CONFIRM_SUBSCRIPTION}{/confirm}</strong></p>');
+			$data[] = "('{subtag:name|ucfirst}, {trans:PLEASE_CONFIRM_SUB}', ".acymailing_escapeDB($bodyNotif).", '',1, 'notification', 0, 'confirmation', 1,".$conftemplate.',\'a:3:{s:6:"action";s:7:"confirm";s:13:"actionbtntext";s:28:"{trans:CONFIRM_SUBSCRIPTION}";s:9:"actionurl";s:19:"{confirm}{/confirm}";}\',"")';
+		}else{
+			$confirmParams = acymailing_loadResult('SELECT `params` FROM `#__acymailing_mail` WHERE `alias` = \'confirmation\'');
+			if(empty($confirmParams)){
+				acymailing_query('UPDATE `#__acymailing_mail` SET `params` = \'a:3:{s:6:"action";s:7:"confirm";s:13:"actionbtntext";s:28:"{trans:CONFIRM_SUBSCRIPTION}";s:9:"actionurl";s:19:"{confirm}{/confirm}";}\' WHERE `alias` = \'confirmation\'');
+			}
+		}
+
+		if(!in_array('report', $notifications)) $data[] = "('AcyMailing Cron Report {mainreport}', '<p>{report}</p><p>{detailreport}</p>', '',1, 'notification',0,  'report', 1,0,NULL,'')";
+		if(!in_array('modif', $notifications)) $data[] = "('Modify your subscription', '<p>Hello {subtag:name}, </p><p>You requested some changes on your subscription,</p><p>Please {modify}click here{/modify} to be identified as the owner of this account and then modify your subscription.</p>', '',1, 'notification', 0, 'modif', 1,0,NULL,'')";
+
+		if(!in_array('send-in-article', $notifications)){
+			$body = $this->getFormatedNotification('{joomlacontent:current| type:title}', '{joomlacontent:current| type:intro| format:TOP_LEFT| pict:1| link}');
+			$data[] = "('{joomlacontent:current| type:title}', ".acymailing_escapeDB($body).", '', 1, 'article', 0, 'send-in-article', 1, ".$conftemplate.", NULL, '')";
+		}
+
+		if('joomla' == 'joomla') $data = array_merge($data, $this->getJoomlaNotifications($conftemplate));
+
+		if(!empty($data)){
+			acymailing_query("INSERT INTO `#__acymailing_mail` (`subject`, `body`, `altbody`, `published`, `type`, `visible`, `alias`, `html`, `tempid`, `params`, `summary`) VALUES ".implode(',', $data));
+		}
+	}
+
+	function getFormatedNotification($subject, $body){
 		return '<div style="text-align: center; width: 100%; background-color:#ffffff;">
 		<table align="center" border="0" cellpadding="0" cellspacing="0" class="w600" style="text-align: justify; margin: auto; width: 600px;">
 			<tbody>
 				<tr class="acyeditor_delete" style="line-height: 0px;" id="zone_2">
-					<td class="w600" colspan="5" style="background-color: #69b4c0;" valign="bottom" width="600" id="zone_3"><img id="zone_29" alt=" - - - " border="0" src="media/com_acymailing/templates/newsletter-4/images/top.png"></td>
+					<td class="w600" colspan="5" style="background-color: #69b4c0;" valign="bottom" width="600" id="zone_3"><img id="zone_29" alt=" - - - " border="0" src="'.ACYMAILING_MEDIA_URL.'templates/newsletter-4/images/top.png"></td>
 				</tr>
 				<tr class="acyeditor_delete" id="zone_4">
 					<td class="w40" style="background-color: #ebebeb;" width="40" id="zone_5"></td>
-					<td class="w520 acyeditor_text" colspan="3" height="80" style="text-align: left; background-color: #ebebeb;" width="520" id="zone_6"><strong>​</strong>​​​​​​​​<img alt="-" border="0" src="media/com_acymailing/templates/newsletter-4/images/message_icon.png" style="float: left; margin-right: 10px;">
-		<h3>'.$subject.'<span style="display: none;">&nbsp;</span></h3>
-		</td>
+					<td class="w520 acyeditor_text" colspan="3" height="80" style="text-align: left; background-color: #ebebeb;" width="520" id="zone_6"><strong>​</strong>​​​​​​​​<img alt="-" border="0" src="'.ACYMAILING_MEDIA_URL.'templates/newsletter-4/images/message_icon.png" style="float: left; margin-right: 10px;">
+						<h3>'.$subject.'<span style="display: none;">&nbsp;</span></h3>
+					</td>
 					<td class="acyeditor_picture w40" style="background-color: #ebebeb;" width="40" id="zone_7"></td>
 				</tr>
 				<tr class="acyeditor_delete" id="zone_8">
@@ -392,20 +207,178 @@ class acyupdateHelper{
 					<td class="w40" style="background-color: #ebebeb;" width="40" id="zone_25"></td>
 				</tr>
 				<tr class="acyeditor_delete" style="line-height: 0px;" id="zone_26">
-					<td class="w600" colspan="5" style="background-color: #ebebeb;" width="600" id="zone_27"><img id="zone_31" alt=" - - - " border="0" src="media/com_acymailing/templates/newsletter-4/images/bottom.png"></td>
+					<td class="w600" colspan="5" style="background-color: #ebebeb;" width="600" id="zone_27"><img id="zone_31" alt=" - - - " border="0" src="'.ACYMAILING_MEDIA_URL.'templates/newsletter-4/images/bottom.png"></td>
 				</tr>
 			</tbody>
 		</table>
 		</div>';
 	}
 
-	function installMenu($code = ''){
-		if(empty($code)){
+	function getJoomlaNotifications($conftemplate){
+		$data = array();
 
-			$code = acymailing_getLanguageTag();
+		if(!acymailing_level(1)) return $data;
+
+		$JNotifications = acymailing_loadResultArray('SELECT LCASE(`alias`) FROM `#__acymailing_mail` WHERE `type` = \'joomlanotification\'');
+
+		if(ACYMAILING_J30){
+			if(!in_array(strtolower('joomla-directRegNoPwd-j3'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_BODY_NOPW|param1|param2|param3}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-directRegNoPwd-j3', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-directReg-j3'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_BODY|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-directReg-j3', 1, ".$conftemplate.",NULL,'')";
+			}
+		}elseif(ACYMAILING_J16){
+			if(!in_array(strtolower('joomla-directReg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_BODY|param1|param2|param3}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-directReg', 1, ".$conftemplate.",NULL,'')";
+			}
 		}
-		$path = acymailing_getLanguagePath(ACYMAILING_ROOT).DS.$code.DS.$code.'.com_acymailing.ini';
-		if(!file_exists($path)) return;
+		if(ACYMAILING_J16){
+			if(!in_array(strtolower('joomla-ownActivReg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_WITH_ACTIVATION_BODY|param1|param2|param3|param4|param5|param6}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-ownActivReg', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-ownActivRegNoPwd'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_WITH_ACTIVATION_BODY_NOPW|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-ownActivRegNoPwd', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-adminActivReg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_WITH_ADMIN_ACTIVATION_BODY|param1|param2|param3|param4|param5|param6}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-adminActivReg', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-adminActivRegNoPwd'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_WITH_ADMIN_ACTIVATION_BODY_NOPW|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-adminActivRegNoPwd', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-usernameReminder'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_USERNAME_REMINDER_SUBJECT|param1}', '{trans:COM_USERS_EMAIL_USERNAME_REMINDER_BODY|param1|param2|param3}');
+				$data[] = "('{trans:COM_USERS_EMAIL_USERNAME_REMINDER_SUBJECT|param1}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-usernameReminder', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-confirmActiv'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_SUBJECT|param1|param2}', '{trans:COM_USERS_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_BODY|param1|param2|param3}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_SUBJECT|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-confirmActiv', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-resetPwd'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_PASSWORD_RESET_SUBJECT|param1}', '{trans:COM_USERS_EMAIL_PASSWORD_RESET_BODY|param1|param2|param3}');
+				$data[] = "('{trans:COM_USERS_EMAIL_PASSWORD_RESET_SUBJECT|param1}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-resetPwd', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-regByAdmin'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:PLG_USER_JOOMLA_NEW_USER_EMAIL_SUBJECT}', '{trans:PLG_USER_JOOMLA_NEW_USER_EMAIL_BODY|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:PLG_USER_JOOMLA_NEW_USER_EMAIL_SUBJECT}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regByAdmin', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-regNotifAdmin'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_USERS_EMAIL_REGISTERED_NOTIFICATION_TO_ADMIN_BODY|param1|param2|param3}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regNotifAdmin', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-regNotifAdminActiv'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_USERS_EMAIL_ACTIVATE_WITH_ADMIN_ACTIVATION_SUBJECT|param2|param1}', '{trans:COM_USERS_EMAIL_ACTIVATE_WITH_ADMIN_ACTIVATION_BODY|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:COM_USERS_EMAIL_ACTIVATE_WITH_ADMIN_ACTIVATION_SUBJECT|param2|param1}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regNotifAdminActiv', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-frontsendarticle'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{senderSubject}', '{trans:COM_MAILTO_EMAIL_MSG|param1|param2|param3|param4}');
+				$data[] = "('{senderSubject}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-frontsendarticle', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('jomsocial-directreg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR_WELCOME|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION_ACCOUNT_DETAILS|param1|param2|param3|param4}');
+				$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR_WELCOME|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-directreg', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('jomsocial-ownactivreg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param1|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION_COMPLETED_REQUIRES_ACTIVATION|param1|param2|param3|param5}');
+				$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-ownactivreg', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('jomsocial-welcomeactiv'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR_WELCOME|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION_ACCOUNT_DETAILS_REQUIRES_ACTIVATION|param1|param2|param3|param4}');
+				$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR_WELCOME|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-welcomeactiv', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('jomsocial-regactivadmin'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param1|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION_COMPLETED_REQUIRES_ADMIN_ACTIVATION|param1|param2|param3|param5}');
+				$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-regactivadmin', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('jomsocial-notifadmin'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param3|param2}', '{trans:COM_COMMUNITY_SEND_MSG_ADMIN|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param3|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-notifadmin', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('jomsocial-notifadminactiv'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param3|param2}', '{trans:COM_COMMUNITY_USER_REGISTERED_NEEDS_APPROVAL|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:COM_COMMUNITY_ACCOUNT_DETAILS_FOR|param3|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-notifadminactiv', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('jomsocial-notifactivated'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_COMMUNITY_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_SUBJECT|param1|param2}', '{trans:COM_COMMUNITY_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_BODY|param1|param2|param3}');
+				$data[] = "('{trans:COM_COMMUNITY_EMAIL_ACTIVATED_BY_ADMIN_ACTIVATION_SUBJECT|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-notifactivated', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('jomsocial-notifaccountparameters'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_COMMUNITY_USER_REGISTERED_WAITING_APPROVAL_TITLE|param2}', '{trans:COM_COMMUNITY_EMAIL_REGISTRATION|param1|param2|param3|param4}');
+				$data[] = "('{trans:COM_COMMUNITY_USER_REGISTERED_WAITING_APPROVAL_TITLE|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'jomsocial-notifaccountparameters', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('seblod-directreg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_BODY|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-directreg', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('seblod-directregnopwd'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_BODY_NOPW|param1|param2|param3}');
+				$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-directregnopwd', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('seblod-notifadmin'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:ACY_DEFAULT_NOTIF_SUBJECT}', '{trans:COM_CCK_EMAIL_REGISTERED_NOTIFICATION_TO_ADMIN_BODY|param1|param2|param3}');
+				$data[] = "('{trans:ACY_DEFAULT_NOTIF_SUBJECT}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-notifadmin', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('seblod-ownactivreg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_WITH_ACTIVATION_BODY|param1|param2|param3|param4|param5|param6}');
+				$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-ownactivreg', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('seblod-ownactivregnopwd'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_WITH_ACTIVATION_BODY_NOPW|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-ownactivregnopwd', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('seblod-adminactivreg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_WITH_ADMIN_ACTIVATION_BODY|param1|param2|param3|param4|param5|param6}');
+				$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-adminactivreg', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('seblod-adminactivregnopwd'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', '{trans:COM_CCK_EMAIL_REGISTERED_WITH_ADMIN_ACTIVATION_BODY_NOPW|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:COM_CCK_EMAIL_ACCOUNT_DETAILS|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'seblod-adminactivregnopwd', 1, ".$conftemplate.",NULL,'')";
+			}
+		}else{
+			if(!in_array(strtolower('joomla-directReg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:ACCOUNT DETAILS FOR|param1|param2}', '{trans:SEND_MSG|param1|param2|param3}');
+				$data[] = "('{trans:ACCOUNT DETAILS FOR|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-directReg', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-ownActivReg'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:ACCOUNT DETAILS FOR|param1|param2}', '{trans:SEND_MSG_ACTIVATE|param1|param2|param3|param4|param5|param6}');
+				$data[] = "('{trans:ACCOUNT DETAILS FOR|param1|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-ownActivReg', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-usernameReminder'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:USERNAME_REMINDER_EMAIL_TITLE|param1}', '{trans:USERNAME_REMINDER_EMAIL_TEXT|param1|param2|param3}');
+				$data[] = "('{trans:USERNAME_REMINDER_EMAIL_TITLE|param1}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-usernameReminder', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-resetPwd'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:PASSWORD_RESET_CONFIRMATION_EMAIL_TITLE|param1}', '{trans:PASSWORD_RESET_CONFIRMATION_EMAIL_TEXT|param1|param2|param3}');
+				$data[] = "('{trans:PASSWORD_RESET_CONFIRMATION_EMAIL_TITLE|param1}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-resetPwd', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-regByAdmin'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:NEW_USER_MESSAGE_SUBJECT}', '{trans:NEW_USER_MESSAGE|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:NEW_USER_MESSAGE_SUBJECT}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regByAdmin', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-regNotifAdmin'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{trans:ACCOUNT DETAILS FOR|param3|param2}', '{trans:SEND_MSG_ADMIN|param1|param2|param3|param4|param5}');
+				$data[] = "('{trans:ACCOUNT DETAILS FOR|param3|param2}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-regNotifAdmin', 1, ".$conftemplate.",NULL,'')";
+			}
+			if(!in_array(strtolower('joomla-frontsendarticle'), $JNotifications)){
+				$bodyNotif = $this->getFormatedNotification('{senderSubject}', '{trans:EMAIL_MSG|param1|param2|param3|param4}');
+				$data[] = "('{senderSubject}', ".acymailing_escapeDB($bodyNotif).", '', 0, 'joomlanotification', 0, 'joomla-frontsendarticle', 1, ".$conftemplate.",NULL,'')";
+			}
+		}
+		return $data;
+	}
+
+	function installMenu($code = ''){
+		if(empty($code)) $code = acymailing_getLanguageTag();
+
+		$path = acymailing_getLanguagePath(ACYMAILING_ROOT, $code).DS.$code.'.com_acymailing.ini';
+		if(!file_exists($path) || strpos($path, $code.DS.$code) === false) return;
 		$content = file_get_contents($path);
 		if(empty($content)) return;
 
@@ -452,24 +425,20 @@ class acyupdateHelper{
 			$styles = array();
 			$stylesheet = '';
 			if(!@include($path.DS.$oneTemplateDir.DS.'install.php')) continue;
-			$body = str_replace(array('src="./', 'src="../', 'src="images/'), array('src="media/com_acymailing/templates/'.$oneTemplateDir.'/', 'src="media/com_acymailing/templates/', 'src="media/com_acymailing/templates/'.$oneTemplateDir.'/images/'), $body);
+			$body = str_replace(array('src="./', 'src="../', 'src="images/'), array('src="'.ACYMAILING_MEDIA_URL.'templates/'.$oneTemplateDir.'/', 'src="'.ACYMAILING_MEDIA_URL.'templates/', 'src="'.ACYMAILING_MEDIA_URL.'templates/'.$oneTemplateDir.'/images/'), $body);
 
-			$template[] = $this->db->Quote($oneTemplateDir).','.$this->db->Quote($name).','.$this->db->Quote($description).','.$this->db->Quote($body).','.$this->db->Quote($altbody).','.$this->db->Quote($premium).','.$this->db->Quote($ordering).','.$this->db->Quote(serialize($styles)).','.$this->db->Quote($stylesheet).','.$this->db->Quote($thumb).','.$this->db->Quote($readmore);
+			$template[] = acymailing_escapeDB($oneTemplateDir).','.acymailing_escapeDB($name).','.acymailing_escapeDB($description).','.acymailing_escapeDB($body).','.acymailing_escapeDB($altbody).','.acymailing_escapeDB($premium).','.acymailing_escapeDB($ordering).','.acymailing_escapeDB(serialize($styles)).','.acymailing_escapeDB($stylesheet).','.acymailing_escapeDB($thumb).','.acymailing_escapeDB($readmore);
 		}
 
 		if(empty($template)) return true;
 
 		try{
-			$this->db->setQuery("INSERT IGNORE INTO `#__acymailing_template` (`namekey`, `name`, `description`, `body`, `altbody`, `premium`, `ordering`, `styles`,`stylesheet`,`thumb`,`readmore`) VALUES (".implode('),(', $template).')');
-			$this->db->query();
+			$nbTemplates = acymailing_query("INSERT IGNORE INTO `#__acymailing_template` (`namekey`, `name`, `description`, `body`, `altbody`, `premium`, `ordering`, `styles`,`stylesheet`,`thumb`,`readmore`) VALUES (".implode('),(', $template).')');
 
-			$lastId = $this->db->insertid();
-
-			$nbTemplates = $this->db->getAffectedRows();
+			$lastId = acymailing_insertID();
 		}catch(Exception $e){
-
 			acymailing_enqueueMessage(substr(strip_tags($e->getMessage()), 0, 300).'...', 'error');
-			$nbTemplates = 0;
+			$nbTemplates = null;
 		}
 
 		if(!empty($nbTemplates)){
@@ -484,26 +453,22 @@ class acyupdateHelper{
 
 	function initList(){
 
-		$query = 'UPDATE IGNORE '.acymailing_table('users', false).' as b, '.acymailing_table('subscriber').' as a SET a.email = b.email, a.name = b.name WHERE a.userid = b.id AND a.userid > 0';
-		$this->db->setQuery($query);
-		$this->db->query();
+		$query = 'UPDATE IGNORE '.acymailing_table($this->cmsUserVars->table, false).' as b, '.acymailing_table('subscriber').' as a SET a.email = b.'.$this->cmsUserVars->email.', a.name = b.'.$this->cmsUserVars->name.' WHERE a.userid = b.'.$this->cmsUserVars->id.' AND a.userid > 0';
+		acymailing_query($query);
 
-		$time = time();
-		$query = 'INSERT IGNORE INTO `#__acymailing_subscriber` (`email`,`name`,`confirmed`,`userid`,`created`,`enabled`,`accept`,`html`) SELECT `email`,`name`,1-`block`,`id`,UNIX_TIMESTAMP(`registerDate`),1-`block`,1,1 FROM `#__users`';
-		$this->db->setQuery($query);
-		$this->db->query();
+		$query = 'INSERT IGNORE INTO `#__acymailing_subscriber` (`email`,`name`,`confirmed`,`userid`,`created`,`enabled`,`accept`,`html`) SELECT `'.$this->cmsUserVars->email.'`,`'.$this->cmsUserVars->name.'`,1-`'.$this->cmsUserVars->blocked.'`,`'.$this->cmsUserVars->id.'`,UNIX_TIMESTAMP(`'.$this->cmsUserVars->registered.'`),1-`'.$this->cmsUserVars->blocked.'`,1,1 FROM '.acymailing_table($this->cmsUserVars->table, false);
+		acymailing_query($query);
 
 		$nbLists = acymailing_loadResult('SELECT COUNT(*) FROM `#__acymailing_list`');
 
 		if(!empty($nbLists)) return true;
 
-		$this->db->setQuery("INSERT INTO `#__acymailing_list` (`name`, `description`, `ordering`, `published`, `alias`, `color`, `visible`, `type`,`userid`) VALUES ('Newsletters','Receive our latest news','1','1','mailing_list','#3366ff','1','list',".(int)acymailing_currentUserId().")");
-		$this->db->query();
-		$listid = $this->db->insertid();
+		acymailing_query("INSERT INTO `#__acymailing_list` (`name`, `description`, `ordering`, `published`, `alias`, `color`, `visible`, `type`,`userid`) VALUES ('Newsletters','Receive our latest news','1','1','mailing_list','#3366ff','1','list',".(int)acymailing_currentUserId().")");
+		$listid = acymailing_insertID();
 
 
-		$this->db->setQuery('INSERT IGNORE INTO `#__acymailing_listsub` (`listid`, `subid`, `subdate`, `status`) SELECT '.$listid.', subid, '.$time.',1 FROM `#__acymailing_subscriber`');
-		$this->db->query();
+		$time = time();
+		acymailing_query('INSERT IGNORE INTO `#__acymailing_listsub` (`listid`, `subid`, `subdate`, `status`) SELECT '.$listid.', subid, '.$time.',1 FROM `#__acymailing_subscriber`');
 	}
 
 
@@ -534,8 +499,7 @@ class acyupdateHelper{
 		$query .= '(\'ACY_RULE_ACKNOWLEDGE_BODY\', 13, \'vacances|holiday|vacation|absen|urlaub\', \'a:1:{s:4:"body";s:1:"1";}\', \'a:1:{s:6:"delete";s:1:"1";}\', \'a:1:{s:3:"min";s:1:"0";}\', 1),';
 		$query .= '(\'ACY_RULE_FINAL\', 14, \'.\', \'a:2:{s:10:"senderinfo";s:1:"1";s:7:"subject";s:1:"1";}\', \'a:2:{s:6:"delete";s:1:"1";s:9:"forwardto";s:'.$forwardEmail.';}\', \'a:1:{s:3:"min";s:1:"0";}\', 1)';
 
-		$this->db->setQuery($query);
-		$this->db->query();
+		acymailing_query($query);
 
 		$newConfig = new stdClass();
 		$newConfig->bouncerulesversion = $this->bouncerulesversion;
@@ -552,15 +516,12 @@ class acyupdateHelper{
 
 			$query = "SELECT CONCAT(`folder`,`element`) FROM #__plugins WHERE `folder` = 'acymailing' OR `element` LIKE '%acy%'";
 			$query .= " UNION SELECT `module` FROM #__modules WHERE `module` LIKE '%acymailing%'";
-			$this->db->setQuery($query);
-			$existingExtensions = acymailing_loadResultArray($this->db);
+			$existingExtensions = acymailing_loadResultArray($query);
 		}else{
 
-			$this->db->setQuery("SELECT CONCAT(`folder`,`element`) FROM #__extensions WHERE `folder` = 'acymailing' OR `element` LIKE '%acy%'");
-			$existingExtensions = acymailing_loadResultArray($this->db);
+			$existingExtensions = acymailing_loadResultArray("SELECT CONCAT(`folder`,`element`) FROM #__extensions WHERE `folder` = 'acymailing' OR `element` LIKE '%acy%' OR `name` LIKE '%acy%'");
 		}
-
-
+		
 		$plugins = array();
 		$modules = array();
 		$extensioninfo = array(); //array('name','ordering','required table or published')
@@ -579,17 +540,18 @@ class acyupdateHelper{
 		$extensioninfo['plg_acymailing_tagtime'] = array('AcyMailing Tag : Date / Time', 5, 1);
 		$extensioninfo['plg_acymailing_taguser'] = array('AcyMailing Tag : Joomla User Information', 3, 1);
 		$extensioninfo['plg_acymailing_template'] = array('AcyMailing Template Class Replacer', 25, 1);
-		$extensioninfo['plg_acymailing_urltracker'] = array('AcyMailing : Handle Click tracking part1', 30, 1);
+		$extensioninfo['plg_acymailing_urltracker'] = array('AcyMailing : Handle Click tracking part1', 24, 1);
 		$extensioninfo['plg_system_acymailingurltracker'] = array('AcyMailing : Handle Click tracking part2', 1, 1);
 		$extensioninfo['plg_system_regacymailing'] = array('AcyMailing : (auto)Subscribe during Joomla registration', 0, 1);
 		$extensioninfo['plg_editors_acyeditor'] = array('AcyMailing Editor', 5, 1);
 		$extensioninfo['plg_acymailing_geolocation'] = array('AcyMailing Geolocation : Tag and filter', 10, 1);
-		$extensioninfo['plg_acymailing_plginboxactions'] = array('AcyMailing : Inbox actions', 35, 1);
+		$extensioninfo['plg_acymailing_plginboxactions'] = array('AcyMailing : Inbox actions', 0, 1);
 		$extensioninfo['plg_system_acymailingclassmail'] = array('Override Joomla mailing system', 1, 0);
 		$extensioninfo['plg_acymailing_calltoaction'] = array('AcyMailing Tag : Call to action', 22, 1);
 		$extensioninfo['plg_system_jceacymailing'] = array('AcyMailing JCE integration', 23, 1);
+		$extensioninfo['plg_system_sendinarticle'] = array('AcyMailing : Send mail while editing an article', 10, 1);
 
-		$listTables = $this->db->getTableList();
+		$listTables = acymailing_getTableList();
 		$fromVersion = acymailing_getVar('cmd', 'fromversion');
 
 		foreach($dirs as $oneDir){
@@ -607,14 +569,13 @@ class acyupdateHelper{
 				$extension = $arguments[0] == 'mod' ? $oneDir : $arguments[1].$arguments[2];
 
 				if(in_array($extension, $existingExtensions) && version_compare($fromVersion, '4.8.1', '<')){
-					$query = "UPDATE `#__extensions` SET `manifest_cache` = ".$this->db->Quote(json_encode($additionalInfo))." WHERE (type = ";
+					$query = "UPDATE `#__extensions` SET `manifest_cache` = ".acymailing_escapeDB(json_encode($additionalInfo))." WHERE (type = ";
 					if($arguments[0] == 'mod'){
-						$query .= "'module' AND `element` = ".$this->db->Quote($oneDir).")";
+						$query .= "'module' AND `element` = ".acymailing_escapeDB($oneDir).")";
 					}else{
-						$query .= "'plugin' AND folder = ".$this->db->Quote($arguments[1])." AND `element` = ".$this->db->Quote($arguments[2]).")";
+						$query .= "'plugin' AND folder = ".acymailing_escapeDB($arguments[1])." AND `element` = ".acymailing_escapeDB($arguments[2]).")";
 					}
-					$this->db->setQuery($query);
-					$this->db->query();
+					acymailing_query($query);
 				}
 			}
 
@@ -630,7 +591,7 @@ class acyupdateHelper{
 				if(isset($extensioninfo[$oneDir][2])){
 					if(is_numeric($extensioninfo[$oneDir][2])){
 						$newPlugin->enabled = $extensioninfo[$oneDir][2];
-					}elseif(!in_array(str_replace('#__', $this->db->getPrefix(), $extensioninfo[$oneDir][2]), $listTables)) $newPlugin->enabled = 0;
+					}elseif(!in_array(str_replace('#__', acymailing_getPrefix(), $extensioninfo[$oneDir][2]), $listTables)) $newPlugin->enabled = 0;
 				}
 				$newPlugin->params = '{}';
 				$newPlugin->ordering = 0;
@@ -646,7 +607,6 @@ class acyupdateHelper{
 				}
 
 				if(!$this->copyFolder($path.DS.$oneDir, $destinationFolder)) continue;
-
 
 				if(in_array($newPlugin->folder.$newPlugin->element, $existingExtensions)) continue;
 
@@ -691,44 +651,40 @@ class acyupdateHelper{
 			if(!ACYMAILING_J16){
 				$queryExtensions = 'INSERT INTO `#__plugins` (`name`,`element`,`folder`,`published`,`ordering`) VALUES ';
 			}else{
-				$queryExtensions = 'INSERT INTO `#__extensions` (`name`,`element`,`folder`,`enabled`,`ordering`,`type`,`access`,`manifest_cache`) VALUES ';
+				$queryExtensions = 'INSERT INTO `#__extensions` (`name`,`element`,`folder`,`enabled`,`ordering`,`type`,`access`,`manifest_cache`,`client_id`,`params`) VALUES ';
 			}
 
 			foreach($extensions as $oneExt){
-				$queryExtensions .= '('.$this->db->Quote($oneExt->name).','.$this->db->Quote($oneExt->element).','.$this->db->Quote($oneExt->folder).','.$oneExt->enabled.','.$oneExt->ordering;
-				if(ACYMAILING_J16) $queryExtensions .= ','.$this->db->Quote($oneExt->type).',1,'.$this->db->Quote(!empty($oneExt->additionalInfo) ? $oneExt->additionalInfo : '');
+				$queryExtensions .= '('.acymailing_escapeDB($oneExt->name).','.acymailing_escapeDB($oneExt->element).','.acymailing_escapeDB($oneExt->folder).','.$oneExt->enabled.','.$oneExt->ordering;
+				if(ACYMAILING_J16) $queryExtensions .= ','.acymailing_escapeDB($oneExt->type).',1,'.acymailing_escapeDB(!empty($oneExt->additionalInfo) ? $oneExt->additionalInfo : '').",0,'{}'";
 				$queryExtensions .= '),';
 				if($oneExt->type != 'module') $success[] = acymailing_translation_sprintf('PLUG_INSTALLED', $oneExt->name);
 			}
 			$queryExtensions = trim($queryExtensions, ',');
 
-			$this->db->setQuery($queryExtensions);
-			$this->db->query();
+			acymailing_query($queryExtensions);
 		}
 
 		if(!empty($modules)){
 			foreach($modules as $oneModule){
 				if(!ACYMAILING_J16){
 					$queryModule = 'INSERT INTO `#__modules` (`title`,`position`,`published`,`module`) VALUES ';
-					$queryModule .= '('.$this->db->Quote($oneModule->name).",'left',0,".$this->db->Quote($oneModule->element).")";
+					$queryModule .= '('.acymailing_escapeDB($oneModule->name).",'left',0,".acymailing_escapeDB($oneModule->element).")";
 				}else{
-					$queryModule = 'INSERT INTO `#__modules` (`title`,`position`,`published`,`module`,`access`,`language`) VALUES ';
-					$queryModule .= '('.$this->db->Quote($oneModule->name).",'position-7',0,".$this->db->Quote($oneModule->element).",1,'*')";
+					$queryModule = 'INSERT INTO `#__modules` (`title`,`position`,`published`,`module`,`access`,`language`,`client_id`,`params`) VALUES ';
+					$queryModule .= '('.acymailing_escapeDB($oneModule->name).",'position-7',0,".acymailing_escapeDB($oneModule->element).",1,'*',0,'{}')";
 				}
-				$this->db->setQuery($queryModule);
-				$this->db->query();
-				$moduleId = $this->db->insertid();
+				acymailing_query($queryModule);
+				$moduleId = acymailing_insertID();
 
-				$this->db->setQuery('INSERT IGNORE INTO `#__modules_menu` (`moduleid`,`menuid`) VALUES ('.$moduleId.',0)');
-				$this->db->query();
+				acymailing_query('INSERT IGNORE INTO `#__modules_menu` (`moduleid`,`menuid`) VALUES ('.$moduleId.',0)');
 
 				$success[] = acymailing_translation_sprintf('MODULE_INSTALLED', $oneModule->name);
 			}
 		}
 
 		if(ACYMAILING_J16){
-			$this->db->setQuery("UPDATE `#__extensions` SET `access` = 1 WHERE ( `folder` = 'acymailing' OR `element` LIKE '%acymailing%' ) AND `type` = 'plugin'");
-			$this->db->query();
+			acymailing_query("UPDATE `#__extensions` SET `access` = 1 WHERE ( `folder` = 'acymailing' OR `element` LIKE '%acymailing%' ) AND `type` = 'plugin'");
 		}
 
 		$this->cleanPluginCache();
@@ -767,13 +723,37 @@ class acyupdateHelper{
 	public function cleanPluginCache(){
 		if(!ACYMAILING_J16 || !class_exists('JCache')) return;
 
-		$conf = JFactory::getConfig();
-
-		$options = array('defaultgroup' => 'com_plugins', 'cachebase' => $conf->get('cache_path', JPATH_SITE.'/cache'));
+		$options = array('defaultgroup' => 'com_plugins', 'cachebase' => acymailing_getCMSConfig('cache_path', ACYMAILING_ROOT.'cache'));
 
 		$cache = JCache::getInstance('callback', $options);
 		$cache->clean();
 
 		$resultsTrigger = acymailing_trigger('onContentCleanCache', $options);
+	}
+
+	function installLanguages($output = true){
+		$siteLanguages = acymailing_getLanguages();
+		if(!empty($siteLanguages[ACYMAILING_DEFAULT_LANGUAGE])) unset($siteLanguages[ACYMAILING_DEFAULT_LANGUAGE]);
+
+		$installedLanguages = array_keys($siteLanguages);
+		if(empty($installedLanguages)) return;
+
+		if(!$output) {
+			$newConfig = new stdClass();
+			$newConfig->installlang = implode(',', $installedLanguages);
+			$config = acymailing_config();
+			$config->save($newConfig);
+			return;
+		}
+		
+		$js = '
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "' . acymailing_prepareAjaxURL('file') . '&task=installLanguages&languages=' . implode(',', $installedLanguages) . '");
+			xhr.onload = function(){
+				container = document.getElementById("acymailing_div");
+				container.innerHTML = xhr.responseText+container.innerHTML;
+			};
+			xhr.send();';
+		acymailing_addScript(true, $js);
 	}
 }

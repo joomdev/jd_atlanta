@@ -44,14 +44,13 @@ defined('_AKEEBA') or die();
 	<div id="footer">
 		<div class="container">
 			<p class="muted credit pull-left">
-				Copyright &copy; 2008 &ndash; <?php echo date('Y') ?> JoomDev. For support about the template and the QuickStart package please <a href="http://www.joomdev.com/forum" target="_blank">click here</a>. <br/>
-				QuickStart is powered by Akeeba Backup technology but is not affiliated with or endorsed by Akeeba Ltd.<br>
-				This restoration script is Free Software distributed under the
+				Copyright &copy;2006 &ndash; <?php echo date('Y') ?> Akeeba Ltd. All rights reserved.<br/>
+				ANGIE is Free Software distributed under the
 				<a href="http://www.gnu.org/licenses/gpl.html">GNU GPL version 3</a> or any later version published by the FSF.
 			</p>
-			<div class="nav-collapse collapse pull-right btn-group" style="margin-top: 15px;">
-				<?php include __DIR__ . '/php/buttonsfooter.php'; ?>
-			</div>
+            <div class="nav-collapse collapse pull-right btn-group" style="margin-top: 15px;">
+                <?php include __DIR__ . '/php/buttonsfooter.php'; ?>
+            </div>
 		</div>
 	</div>
 <?php endif; ?>

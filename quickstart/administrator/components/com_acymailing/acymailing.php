@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
-if(version_compare(PHP_VERSION, '5.0.0', '<')){
-	echo '<p style="color:red">This version of AcyMailing does not support PHP4, it is time to upgrade your server to PHP5!</p>';
+if(version_compare(PHP_VERSION, '5.3.0', '<')){
+	echo '<p style="color:red">This version of AcyMailing requires at least PHP 5.3.0, it is time to upgrade the PHP version of your server!</p>';
 	exit;
 }
 
@@ -18,7 +19,7 @@ if(!include_once(rtrim(JPATH_ADMINISTRATOR, DIRECTORY_SEPARATOR).DIRECTORY_SEPAR
 	return;
 }
 
-if(defined('JDEBUG') AND JDEBUG) acymailing_displayErrors();
+if(acymailing_isDebug()) acymailing_displayErrors();
 
 $taskGroup = acymailing_getVar('cmd', 'ctrl', acymailing_getVar('cmd', 'gtask', 'dashboard'));
 if($taskGroup == 'config') $taskGroup = 'cpanel';
@@ -27,10 +28,23 @@ $config = acymailing_config();
 
 acymailing_addStyle(false, ACYMAILING_CSS.'backend_default.css?v='.filemtime(ACYMAILING_MEDIA.'css'.DS.'backend_default.css'));
 $cssBackend = $config->get('css_backend');
-if($cssBackend == 'backend_custom' && file_exists(ACYMAILING_MEDIA.'css'.DS.'backend_custom.css')) acymailing_addStyle(false, ACYMAILING_CSS.'backend_custom.css?v='.filemtime(ACYMAILING_MEDIA.'css'.DS.'backend_custom.css'));
-
+if($cssBackend == 'custom' && file_exists(ACYMAILING_MEDIA.'css'.DS.'backend_custom.css')) acymailing_addStyle(false, ACYMAILING_CSS.'backend_custom.css?v='.filemtime(ACYMAILING_MEDIA.'css'.DS.'backend_custom.css'));
+if(ACYMAILING_J30 && !ACYMAILING_J40) acymailing_addStyle(true, '.header{ display: none; }');
 
 acymailing_addScript(false, ACYMAILING_JS.'acymailing.js?v='.filemtime(ACYMAILING_MEDIA.'js'.DS.'acymailing.js'));
+
+if(ACYMAILING_J16 && file_exists(ACYMAILING_ROOT.'media'.DS.'system'.DS.'js'.DS.'core.js')){
+	$url = rtrim(acymailing_rootURI(), '/').'/media/system/js/core.js?v='.filemtime(ACYMAILING_ROOT.'media'.DS.'system'.DS.'js'.DS.'core.js');
+	$js = 'document.addEventListener("DOMContentLoaded", function(){
+		if(typeof Joomla == "undefined" && typeof window.Joomla == "undefined"){
+			var script = document.createElement("script");
+			script.type = "text/javascript";
+			script.src = "'.$url.'";
+			document.head.appendChild(script);
+		}
+	});';
+	acymailing_addScript(true, $js);
+}
 
 if($taskGroup != 'update' && !$config->get('installcomplete')){
 	$url = acymailing_completeLink('update&task=install', false, true);
@@ -48,7 +62,13 @@ if(empty($action)){
 }
 
 $menuDisplayed = false;
-if(!($taskGroup == 'send' && $action == 'send') && $taskGroup !== 'toggle' && acymailing_getVar('string', 'tmpl') !== 'component' && !in_array($action, array('doexport', 'continuesend', 'load')) && !in_array($taskGroup, array('editor'))){
+if(!ACYMAILING_J40
+   && !($taskGroup == 'send' && $action == 'send')
+   && $taskGroup !== 'toggle'
+   && !acymailing_isNoTemplate()
+   && !in_array($action, array('doexport', 'continuesend', 'load'))
+   && !in_array($taskGroup, array('editor'))){
+
 	$menuHelper = acymailing_get('helper.acymenu');
 	echo '<div id="acyallcontent" class="acyallcontent">';
 	echo $menuHelper->display($taskGroup);
@@ -67,7 +87,7 @@ if(($taskGroup == 'cpanel' || ($taskGroup == 'update' && $action == 'listing')) 
 }
 
 if(!include_once(ACYMAILING_CONTROLLER.$taskGroup.'.php')){
-	acymailing_redirect('index.php?option=com_acymailing');
+	acymailing_redirect(acymailing_completeLink('dashboard'));
 	return;
 }
 $className = ucfirst($taskGroup).'Controller';

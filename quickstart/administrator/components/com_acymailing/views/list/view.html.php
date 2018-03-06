@@ -1,16 +1,18 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
 
 class ListViewList extends acymailingView{
+	
 	function display($tpl = null){
 		$function = $this->getLayout();
 		if(method_exists($this, $function)) $this->$function();
@@ -39,8 +41,6 @@ class ListViewList extends acymailingView{
 		$pageInfo->limit->value = acymailing_getUserVar($paramBase.'.list_limit', 'limit', acymailing_getCMSConfig('list_limit'), 'int');
 		$pageInfo->limit->start = acymailing_getUserVar($paramBase.'.limitstart', 'limitstart', 0, 'int');
 
-		$database = JFactory::getDBO();
-
 		$filters = array();
 		if(!empty($pageInfo->search)){
 			$searchVal = '\'%'.acymailing_getEscaped($pageInfo->search, true).'%\'';
@@ -48,7 +48,7 @@ class ListViewList extends acymailingView{
 		}
 		$filters[] = "a.type = 'list'";
 		if(!empty($selectedCreator)) $filters[] = 'a.userid = '.$selectedCreator;
-		if(!empty($selectedCategory)) $filters[] = 'a.category = '.$database->Quote($selectedCategory);
+		if(!empty($selectedCategory)) $filters[] = 'a.category = '.acymailing_escapeDB($selectedCategory);
 
 		if(!acymailing_isAdmin()) {
 			$listClass = acymailing_get('class.list');
@@ -57,20 +57,17 @@ class ListViewList extends acymailingView{
 			$filters[] = 'listid IN ('.implode(',', array_keys($lists)).')';
 		}
 
-		$query = 'SELECT a.*, d.name as creatorname, d.username, d.email';
+		$query = 'SELECT a.*, d.'.$this->cmsUserVars->name.' as creatorname, d.'.$this->cmsUserVars->username.' AS username, d.'.$this->cmsUserVars->email.' AS email';
 		$query .= ' FROM '.acymailing_table('list').' as a';
-		$query .= ' LEFT JOIN '.acymailing_table('users', false).' as d on a.userid = d.id';
+		$query .= ' LEFT JOIN '.acymailing_table($this->cmsUserVars->table, false).' as d on a.userid = d.'.$this->cmsUserVars->id;
 		$query .= ' WHERE ('.implode(') AND (', $filters).')';
 		if(!empty($pageInfo->filter->order->value)){
 			$query .= ' ORDER BY '.$pageInfo->filter->order->value.' '.$pageInfo->filter->order->dir;
 		}
 
-		$database->setQuery($query, $pageInfo->limit->start, $pageInfo->limit->value);
-		$rows = $database->loadObjectList();
+		$rows = acymailing_loadObjectList($query, '', $pageInfo->limit->start, $pageInfo->limit->value);
 
 		$queryCount = 'SELECT COUNT(a.listid) FROM  '.acymailing_table('list').' as a';
-		if(!empty($pageInfo->search)) $queryCount .= ' LEFT JOIN '.acymailing_table('users', false).' as d on a.userid = d.id';
-
 		$queryCount .= ' WHERE ('.implode(') AND (', $filters).')';
 
 		$pageInfo->elements->total = acymailing_loadResult($queryCount);
@@ -83,8 +80,7 @@ class ListViewList extends acymailingView{
 		$subscriptionresults = array();
 		if(!empty($listids)){
 			$querySubscription = 'SELECT count(subid) as total,listid,status FROM '.acymailing_table('listsub').' WHERE listid IN ('.implode(',', $listids).') GROUP BY listid, status';
-			$database->setQuery($querySubscription);
-			$countresults = $database->loadObjectList();
+			$countresults = acymailing_loadObjectList($querySubscription);
 			foreach($countresults as $oneResult){
 				$subscriptionresults[$oneResult->listid][intval($oneResult->status)] = $oneResult->total;
 			}
@@ -98,9 +94,7 @@ class ListViewList extends acymailingView{
 
 		$pageInfo->elements->page = count($rows);
 
-		jimport('joomla.html.pagination');
-		$pagination = new JPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
-
+		$pagination = new acyPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
 
 		if(acymailing_isAdmin()) {
 			$acyToolbar = acymailing_get('helper.toolbar');
@@ -181,26 +175,18 @@ class ListViewList extends acymailingView{
 		$editor->content = $list->description;
 		$editor->setDescription();
 
-		if(!ACYMAILING_J16){
-			$script = 'function submitbutton(pressbutton){
-						if (pressbutton == \'cancel\') {
-							submitform( pressbutton );
-							return;
-						}';
-		}else{
-			$script = 'Joomla.submitbutton = function(pressbutton) {
-						if (pressbutton == \'cancel\') {
-							Joomla.submitform(pressbutton,document.adminForm);
-							return;
-						}';
-		}
-		$script .= 'if(window.document.getElementById("name").value.length < 2){alert(\''.acymailing_translation('ENTER_TITLE', true).'\'); return false;}';
+		$script = '
+			document.addEventListener("DOMContentLoaded", function(){
+				acymailing.submitbutton = function(pressbutton) {
+					if (pressbutton == \'cancel\') {
+						acymailing.submitform(pressbutton,document.adminForm);
+						return;
+					}
+					if(window.document.getElementById("name").value.length < 2){alert(\''.acymailing_translation('ENTER_TITLE', true).'\'); return false;}';
 		$script .= $editor->jsCode();
-		if(!ACYMAILING_J16){
-			$script .= 'submitform( pressbutton );}';
-		}else{
-			$script .= 'Joomla.submitform(pressbutton,document.adminForm);}; ';
-		}
+		$script .= 'acymailing.submitform(pressbutton,document.adminForm);
+				};
+			 }); ';
 		$script .= 'function affectUser(idcreator,name,email){
 			window.document.getElementById("creatorname").innerHTML = name;
 			window.document.getElementById("listcreator").value = idcreator;

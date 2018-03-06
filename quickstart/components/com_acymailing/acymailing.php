@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 jimport('joomla.application.component.controller');
@@ -13,7 +14,7 @@ jimport('joomla.application.component.view');
 
 include_once(rtrim(JPATH_ADMINISTRATOR, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_acymailing'.DIRECTORY_SEPARATOR.'helpers'.DIRECTORY_SEPARATOR.'helper.php');
 
-if(defined('JDEBUG') AND JDEBUG) acymailing_displayErrors();
+if(acymailing_isDebug()) acymailing_displayErrors();
 
 $view = acymailing_getVar('cmd', 'view');
 if(!empty($view) AND !acymailing_getVar('cmd', 'ctrl')){
@@ -36,6 +37,18 @@ $config = acymailing_config();
 
 acymailing_addScript(false, ACYMAILING_JS.'acymailing.js?v='.str_replace('.', '', $config->get('version')));
 
+if(ACYMAILING_J16 && file_exists(ACYMAILING_ROOT.'media'.DS.'system'.DS.'js'.DS.'core.js')){
+	$url = rtrim(acymailing_rootURI(), '/').'/media/system/js/core.js?v='.filemtime(ACYMAILING_ROOT.'media'.DS.'system'.DS.'js'.DS.'core.js');
+	$js = 'document.addEventListener("DOMContentLoaded", function(){
+		if(typeof Joomla == "undefined" && typeof window.Joomla == "undefined"){
+			var script = document.createElement("script");
+			script.type = "text/javascript";
+			script.src = "'.$url.'";
+			document.head.appendChild(script);
+		}
+	});';
+	acymailing_addScript(true, $js);
+}
 
 $cssFrontend = $config->get('css_frontend', 'default');
 if(!empty($cssFrontend)){

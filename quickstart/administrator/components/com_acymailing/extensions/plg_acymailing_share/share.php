@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -47,13 +48,13 @@ class plgAcymailingShare extends JPlugin{
 		$uploadFolder = acymailing_getVar('string', 'currentFolder', $uploadFolders[0]);
 		$uploadPath = acymailing_cleanPath(ACYMAILING_ROOT.trim(str_replace('/', DS, trim($uploadFolder)), DS));
 		$uploadedFile = acymailing_getVar('array', 'socialfile', array(), 'files');
-
+		
 		if(!empty($uploadedFile) && !empty($uploadedFile['name'])){
 			$uploadedFile['name'] = acymailing_getVar('string', 'socialchoice').substr($uploadedFile['name'], strrpos($uploadedFile['name'], '.'));
 			acymailing_importFile($uploadedFile, $uploadPath, true, 150);
 		}
-
-
+		
+		
 		$networks = array();
 		$networks['facebook'] = 'Facebook';
 		$networks['linkedin'] = 'LinkedIn';
@@ -62,7 +63,7 @@ class plgAcymailingShare extends JPlugin{
 		$networks['print'] = acymailing_translation('ACY_PRINT');
 
 		$k = 0;
-
+		
 		$this->regex = '('.implode('|', array_keys($networks)).').*(png|gif|jpeg|jpg)';
 		$this->_getPictures(ACYMAILING_MEDIA);
 
@@ -117,6 +118,7 @@ class plgAcymailingShare extends JPlugin{
 	}
 
 	function acymailing_replacetags(&$email, $send = true){
+		if(acymailing_getVar('none', 'task', '') == 'replacetags') return;
 		$this->_print($email, $send);
 		$this->_shareButtons($email, $send);
 	}

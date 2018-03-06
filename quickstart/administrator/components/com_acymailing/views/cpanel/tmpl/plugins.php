@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="config_plugins">
 
@@ -19,6 +20,9 @@ defined('_JEXEC') or die('Restricted access');
 				</th>
 				<th class="title">
 					<?php echo acymailing_translation('ACY_NAME'); ?>
+				</th>
+				<th class="title titleid">
+					<?php echo acymailing_translation('ACY_IS_UPDATE') ?>
 				</th>
 				<th class="title titletoggle">
 					<?php echo acymailing_translation('ENABLED'); ?>
@@ -45,6 +49,13 @@ defined('_JEXEC') or die('Restricted access');
 						<a target="_blank" href="<?php echo !ACYMAILING_J16 ? 'index.php?option=com_plugins&amp;view=plugin&amp;client=site&amp;task=edit&amp;cid[]=' : 'index.php?option=com_plugins&amp;task=plugin.edit&amp;extension_id=';
 						echo $row->id ?>"><?php echo $row->name; ?></a>
 					</td>
+					<td style="text-align: center">
+						<?php if(empty($row->needUpDate)){
+							echo '<a href="#" class="acyicon-apply" onclick="return false;"></a>';
+						}else{
+							echo '<a href="https://www.acyba.com/acymailing/plugins.html#'.$row->element.'" class="acyicon-cancel" target="_blank"></a>';
+						} ?>
+					</td>
 					<td align="center" style="text-align:center">
 						<span id="<?php echo $publishedid ?>" class="loading"><?php echo $this->toggleClass->toggle($publishedid, $row->published, 'plugins') ?></span>
 					</td>
@@ -70,6 +81,9 @@ defined('_JEXEC') or die('Restricted access');
 				<th class="title">
 					<?php echo acymailing_translation('ACY_NAME'); ?>
 				</th>
+				<th class="title">
+					<?php echo acymailing_translation('ACY_IS_UPDATE') ?>
+				</th>
 				<th class="title titletoggle">
 					<?php echo acymailing_translation('ENABLED'); ?>
 				</th>
@@ -94,6 +108,13 @@ defined('_JEXEC') or die('Restricted access');
 					<td>
 						<a target="_blank" href="<?php echo !ACYMAILING_J16 ? 'index.php?option=com_plugins&amp;view=plugin&amp;client=site&amp;task=edit&amp;cid[]=' : 'index.php?option=com_plugins&amp;task=plugin.edit&amp;extension_id=';
 						echo $row->id ?>"><?php echo $row->name; ?></a>
+					</td>
+					<td style="text-align: center">
+						<?php if(empty($row->needUpDate)){
+							echo '<a href="#" class="acyicon-apply" target="blank"></a>';
+						}else{
+							echo '<a href="https://www.acyba.com/acymailing/plugins.html#'.$row->element.'" class="acyicon-cancel" target="_blank"></a>';
+						} ?>
 					</td>
 					<td align="center" style="text-align:center">
 						<span id="<?php echo $publishedid ?>" class="spanloading"><?php echo $this->toggleClass->toggle($publishedid, $row->published, 'plugins') ?></span>

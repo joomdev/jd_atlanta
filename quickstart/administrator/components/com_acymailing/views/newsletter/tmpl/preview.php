@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
@@ -25,9 +26,9 @@ defined('_JEXEC') or die('Restricted access');
 						<tr class="<?php echo "row$k"; ?>">
 							<td>
 								<?php
-								if(!$row->published) echo '<a href="index.php?option=com_acymailing&ctrl=list&task=edit&listid='.$row->listid.'" title="'.acymailing_translation('LIST_PUBLISH', true).'"><img style="margin:0px;" src="'.ACYMAILING_IMAGES.'warning.png" alt="Warning" /></a> ';
+								if(!$row->published) echo '<a href="'.acymailing_completeLink('list&task=edit&listid='.$row->listid).'" title="'.acymailing_translation('LIST_PUBLISH', true).'"><img style="margin:0px;" src="'.ACYMAILING_IMAGES.'warning.png" alt="Warning" /></a> ';
 								echo acymailing_tooltip($row->description, $row->name, '', $row->name);
-								echo ' ( '.acymailing_translation_sprintf('SELECTED_USERS', $row->nbsub).' )';
+								echo ' ( '.acymailing_translation_sprintf('ACY_SELECTED_USERS', $row->nbsub).' )';
 								echo '<div class="roundsubscrib rounddisp" style="background-color:'.$row->color.'"></div>';
 								?>
 							</td>

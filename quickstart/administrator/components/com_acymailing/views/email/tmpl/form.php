@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
-	<form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl='.acymailing_getVar('cmd', 'ctrl')); ?>&tmpl=component" method="post" name="adminForm" id="adminForm" autocomplete="off" enctype="multipart/form-data">
+	<form action="<?php echo acymailing_completeLink(acymailing_getVar('cmd', 'ctrl'), true); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off" enctype="multipart/form-data">
 		<div id="iframetemplate"></div>
 		<div id="iframetag"></div>
 

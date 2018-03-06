@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -16,8 +17,7 @@ class rulesClass extends acymailingClass{
 	var $errors = array();
 
 	function getRules($all = true){
-		$this->database->setQuery('SELECT * FROM `#__acymailing_rules` '.($all ? '' : 'WHERE published = 1').' ORDER BY `ordering` ASC');
-		$rules = $this->database->loadObjectList();
+		$rules = acymailing_loadObjectList('SELECT * FROM `#__acymailing_rules` '.($all ? '' : 'WHERE published = 1').' ORDER BY `ordering` ASC');
 
 		foreach($rules as $id => $rule){
 			$rules[$id] = $this->_prepareRule($rule);
@@ -27,9 +27,8 @@ class rulesClass extends acymailingClass{
 
 	function get($ruleid, $default = null){
 		$query = 'SELECT * FROM '.acymailing_table('rules').' WHERE `ruleid` = '.intval($ruleid).' LIMIT 1';
-		$this->database->setQuery($query);
+		$rule = acymailing_loadObject($query);
 
-		$rule = $this->database->loadObject();
 		return $this->_prepareRule($rule);
 	}
 
@@ -57,11 +56,11 @@ class rulesClass extends acymailingClass{
 
 		foreach($formData['rule'] as $column => $value){
 			acymailing_secureField($column);
-		if(is_array($value)){
-			$rule->$column = serialize($value);
-		}else{
-			$rule->$column = strip_tags($value);
-		}
+			if(is_array($value)){
+				$rule->$column = serialize($value);
+			}else{
+				$rule->$column = strip_tags($value);
+			}
 		}
 
 

@@ -1,16 +1,17 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<?php if(!acymailing_isAdmin()) include(dirname(__FILE__).DS.'menu.detaillisting.php') ?>
 	<div id="iframedoc"></div>
-	<form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>&amp;ctrl=<?php echo acymailing_getVar('cmd', 'ctrl'); ?>" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'stats', acymailing_isNoTemplate()); ?>" method="post" name="adminForm" id="adminForm">
 		<table class="acymailing_table_options">
 			<tr>
 				<td>
@@ -65,18 +66,16 @@ defined('_JEXEC') or die('Restricted access');
 			<tr>
 				<td colspan="10">
 					<?php echo $this->pagination->getListFooter();
-					echo $this->pagination->getResultsCounter();
-					if(ACYMAILING_J30) echo '<br />'.$this->pagination->getLimitBox(); ?>
+					echo $this->pagination->getResultsCounter(); ?>
 				</td>
 			</tr>
 			</tfoot>
 			<tbody>
 			<?php
 			$k = 0;
-			$tmpl = (acymailing_getVar('string', 'tmpl') == 'component') ? true : false;
 			for($i = 0, $a = count($this->rows); $i < $a; $i++){
 				$row =& $this->rows[$i];
-				$row->subject = Emoji::Decode($row->subject);
+				$row->subject = acyEmoji::Decode($row->subject);
 				?>
 				<tr class="<?php echo "row$k"; ?>">
 					<td align="center" style="text-align:center">
@@ -104,7 +103,7 @@ defined('_JEXEC') or die('Restricted access');
 						<?php
 						$text = '<b>'.acymailing_translation('ACY_NAME').' : </b>'.$row->name;
 						$text .= '<br /><b>'.acymailing_translation('ACY_ID').' : </b>'.$row->subid;
-						$link = $tmpl ? '' : acymailing_completeLink('subscriber&task=edit&subid='.$row->subid);
+						$link = acymailing_isNoTemplate() ? '' : acymailing_completeLink('subscriber&task=edit&subid='.$row->subid);
 						echo acymailing_tooltip($text, $row->email, '', $row->name.' ( '.$row->email.' )', $link);
 						?>
 					</td>
@@ -146,10 +145,7 @@ defined('_JEXEC') or die('Restricted access');
 
 		<input type="hidden" name="defaulttask" value="detaillisting"/>
 
-		<?php acymailing_formOptions($this->pageInfo->filter->order); ?>
-		<?php if($tmpl){ ?>
-			<input type="hidden" name="tmpl" value="component"/>
-		<?php }
+		<?php acymailing_formOptions($this->pageInfo->filter->order);
 		if(acymailing_getVar('int', 'listid')){ ?>
 			<input type="hidden" name="listid" value="<?php echo acymailing_getVar('int', 'listid'); ?>"/>
 		<?php } ?>

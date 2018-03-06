@@ -1,19 +1,18 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
-class categoryfieldType{
+class categoryfieldType extends acymailingClass{
 	function display($table, $map, $previous){
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT DISTINCT category FROM `#__acymailing_'.$table.'` WHERE category NOT LIKE "" ORDER BY category');
-		$allCats = $db->loadObjectList();
+		$allCats = acymailing_loadObjectList('SELECT DISTINCT category FROM `#__acymailing_'.$table.'` WHERE category NOT LIKE "" ORDER BY category');
 		$possibleCats = array();
 		$possibleCats[] = acymailing_selectOption('', '- - -');
 		$possibleCats[] = acymailing_selectOption('-1', acymailing_translation('ACY_NEW_CATEGORY'));
@@ -34,9 +33,7 @@ class categoryfieldType{
 	}
 
 	function getFilter($table, $map, $previous, $js = ''){
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT DISTINCT category FROM `#__acymailing_'.$table.'` WHERE category NOT LIKE "" ORDER BY category');
-		$allCats = $db->loadObjectList();
+		$allCats = acymailing_loadObjectList('SELECT DISTINCT category FROM '.acymailing_table($table).' WHERE category NOT LIKE "" ORDER BY category');
 		$possibleCats = array();
 		$possibleCats[] = acymailing_selectOption(0, acymailing_translation('ACY_ALL_CATEGORIES'));
 		$catExists = empty($previous);
@@ -47,6 +44,7 @@ class categoryfieldType{
 			}
 		}
 		if(!$catExists) $possibleCats[] = acymailing_selectOption($previous, $previous);
+
 		return acymailing_select($possibleCats, $map, 'size="1"'.$js, 'value', 'text', $previous);
 	}
 }

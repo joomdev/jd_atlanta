@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="config_interface">
 	<div class="onelineblockoptions">
@@ -64,14 +65,22 @@ defined('_JEXEC') or die('Restricted access');
 	<div class="onelineblockoptions">
 		<span class="acyblocktitle">CSS</span>
 		<table class="acymailing_table" cellspacing="1">
+			<?php if(!empty($this->elements->css_module)){ ?>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(acymailing_translation('CSS_MODULE_DESC'), acymailing_translation('CSS_MODULE'), '', acymailing_translation('CSS_MODULE')); ?>
+					<?php
+					if('joomla' == 'wordpress'){
+						echo acymailing_translation('ACY_CSS_WIDGET');
+					}else{
+						echo acymailing_tooltip(acymailing_translation('CSS_MODULE_DESC'), acymailing_translation('CSS_MODULE'), '', acymailing_translation('CSS_MODULE'));
+					}
+					?>
 				</td>
 				<td>
 					<?php echo $this->elements->css_module; ?>
 				</td>
 			</tr>
+			<?php } ?>
 			<tr>
 				<td class="acykey">
 					<?php echo acymailing_tooltip(acymailing_translation('CSS_FRONTEND_DESC'), acymailing_translation('CSS_FRONTEND'), '', acymailing_translation('CSS_FRONTEND')); ?>
@@ -88,7 +97,7 @@ defined('_JEXEC') or die('Restricted access');
 					<?php echo $this->elements->css_backend; ?>
 				</td>
 			</tr>
-			<?php if(ACYMAILING_J30){ ?>
+			<?php if(ACYMAILING_J30 && !empty($this->elements->bootstrap_frontend)){ ?>
 				<tr>
 					<td class="acykey">
 						<?php echo acymailing_translation('USE_BOOTSTRAP_FRONTEND'); ?>
@@ -100,6 +109,7 @@ defined('_JEXEC') or die('Restricted access');
 			<?php } ?>
 		</table>
 	</div>
+	<?php if(!empty($this->elements->use_sef)){ ?>
 	<div class="onelineblockoptions">
 		<span class="acyblocktitle"><?php echo acymailing_translation('FEATURES'); ?></span>
 		<table class="acymailing_table" cellspacing="1">
@@ -119,8 +129,23 @@ defined('_JEXEC') or die('Restricted access');
 					<?php echo $this->elements->use_sef; ?>
 				</td>
 			</tr>
+			<?php
+			if(acymailing_level(3)){
+				?>
+				<tr>
+					<td class="acykey">
+						<?php echo acymailing_tooltip(acymailing_translation('ACY_FEATURE_SEND_IN_ARTICLE_DESC'), acymailing_translation('ACY_FEATURE_SEND_IN_ARTICLE'), '', acymailing_translation('ACY_FEATURE_SEND_IN_ARTICLE')); ?>
+					</td>
+					<td class="acykey">
+						<?php echo $this->elements->edit_send_in_article ?>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
 		</table>
 	</div>
+	<?php } ?>
 	<div class="onelineblockoptions">
 		<span class="acyblocktitle"><?php echo acymailing_translation('TRACKING'); ?></span>
 		<table class="acymailing_table" cellspacing="1">
@@ -142,19 +167,24 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 		</table>
 	</div>
-	<div class="onelineblockoptions">
-		<span class="acyblocktitle"><?php echo acymailing_translation('MENU'); ?></span>
-		<table class="acymailing_table" cellspacing="1">
-			<tr>
-				<td class="acykey">
-					<?php echo acymailing_tooltip(acymailing_translation('ACYMAILING_MENU_DESC'), acymailing_translation('ACYMAILING_MENU'), '', acymailing_translation('ACYMAILING_MENU')); ?>
-				</td>
-				<td>
-					<?php echo $this->elements->acymailing_menu; ?>
-				</td>
-			</tr>
-		</table>
-	</div>
+	<?php if(!empty($this->elements->acymailing_menu)) { ?>
+		<div class="onelineblockoptions">
+			<span class="acyblocktitle"><?php echo acymailing_translation('MENU'); ?></span>
+			<table class="acymailing_table" cellspacing="1">
+				<tr>
+					<td class="acykey">
+						<?php echo acymailing_tooltip(acymailing_translation('ACYMAILING_MENU_DESC'), acymailing_translation('ACYMAILING_MENU'), '', acymailing_translation('ACYMAILING_MENU')); ?>
+					</td>
+					<td>
+						<?php echo $this->elements->acymailing_menu; ?>
+					</td>
+				</tr>
+			</table>
+		</div>
+	<?php
+		}
+		if(!empty($this->elements->editor)){
+	?>
 	<div class="onelineblockoptions">
 		<span class="acyblocktitle"><?php echo acymailing_translation('ACY_EDITOR'); ?></span>
 		<table class="acymailing_table" cellspacing="1">
@@ -168,6 +198,10 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 		</table>
 	</div>
+	<?php
+		}
+		if(!empty($this->elements->indexFollow)){
+	?>
 	<div class="onelineblockoptions">
 		<span class="acyblocktitle"><?php echo acymailing_translation('ARCHIVE_SECTION'); ?></span>
 		<table class="acymailing_table" cellspacing="1">
@@ -205,26 +239,22 @@ defined('_JEXEC') or die('Restricted access');
 					<?php echo acymailing_tooltip(acymailing_translation('COMMENTS_ENABLED_DESC'), acymailing_translation('COMMENTS_ENABLED'), '', acymailing_translation('COMMENTS_ENABLED')); ?>
 				</td>
 				<td>
-					<?php if(ACYMAILING_J30) { ?>
 					<div class="controls">
-						<fieldset id="config_frontend_subject" class="radio btn-group">
-							<?php } ?>
-							<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature" value="" <?php echo $no_checked; ?> size="1" type="radio"/>
-							<label for="config_comments_feature"><?php echo acymailing_translation('JOOMEXT_NO'); ?></label>
-							<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_rscomments" value="rscomments" <?php echo $rscomments; ?> size="1" type="radio"/>
-							<label for="config_comments_feature_rscomments">RSComments</label>
-							<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_komento" value="komento" <?php echo $komento; ?> size="1" type="radio"/>
-							<label for="config_comments_feature_komento">Komento</label>
-							<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_jcomments" value="jcomments" <?php echo $jcomments; ?> size="1" type="radio"/>
-							<label for="config_comments_feature_jcomments">jComments</label>
-							<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_jomcomment" value="jomcomment" <?php echo $jomcomment; ?> size="1" type="radio"/>
-							<label for="config_comments_feature_jomcomment">jomComment</label>
-							<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_disqus" value="disqus" <?php echo $disqus; ?> size="1" type="radio"/>
-							<label for="config_comments_feature_disqus">Disqus</label>
-							<?php if(ACYMAILING_J30) { ?>
-						</fieldset>
+						<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature" value="" <?php echo $no_checked; ?> size="1" type="radio"/>
+						<label for="config_comments_feature"><?php echo acymailing_translation('JOOMEXT_NO'); ?></label>
+						<?php if('joomla' == 'joomla') { ?>
+						<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_rscomments" value="rscomments" <?php echo $rscomments; ?> size="1" type="radio"/>
+						<label for="config_comments_feature_rscomments">RSComments</label>
+						<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_komento" value="komento" <?php echo $komento; ?> size="1" type="radio"/>
+						<label for="config_comments_feature_komento">Komento</label>
+						<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_jcomments" value="jcomments" <?php echo $jcomments; ?> size="1" type="radio"/>
+						<label for="config_comments_feature_jcomments">jComments</label>
+						<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_jomcomment" value="jomcomment" <?php echo $jomcomment; ?> size="1" type="radio"/>
+						<label for="config_comments_feature_jomcomment">jomComment</label>
+						<?php } ?>
+						<input onclick="updateCommentsOption();" name="config[comments_feature]" id="config_comments_feature_disqus" value="disqus" <?php echo $disqus; ?> size="1" type="radio"/>
+						<label for="config_comments_feature_disqus">Disqus</label>
 					</div>
-				<?php } ?>
 					<label for="config_disqus_shortname" style="display:<?php echo empty($disqus) ? "none" : "inline-block"; ?>;" id="config_disqus_shortname_label">Shortname : </label>
 					<input type="text" name="config[disqus_shortname]" id="config_disqus_shortname" value="<?php echo $this->config->get('disqus_shortname'); ?>" size="1" style="width:100px;float:none;<?php if(empty($disqus)) echo "display:none;"; ?>"/>
 				</td>
@@ -304,7 +334,7 @@ defined('_JEXEC') or die('Restricted access');
 				<td>
 					<?php echo acymailing_boolean("config[open_popup]", '', $this->config->get('open_popup', 1)); ?>
 					<div style="margin-top:10px;">
-						<?php echo acymailing_translation('CAPTCHA_WIDTH'); ?> <input type="text" name="config[popup_width]" style="float:none;width:30px" value="<?php echo intval($this->config->get('popup_width', 750)); ?>"/> x <?php echo acymailing_translation('CAPTCHA_HEIGHT'); ?> <input type="text" name="config[popup_height]" style="float:none;width:30px"
+						<?php echo acymailing_translation('CAPTCHA_WIDTH'); ?> <input type="text" name="config[popup_width]" style="float:none;width:40px" value="<?php echo intval($this->config->get('popup_width', 750)); ?>"/> x <?php echo acymailing_translation('CAPTCHA_HEIGHT'); ?> <input type="text" name="config[popup_height]" style="float:none;width:40px"
 																																																																		value="<?php echo intval($this->config->get('popup_height', 550)); ?>"/>
 					</div>
 				</td>
@@ -319,6 +349,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 		</table>
 	</div>
+	<?php } ?>
 	<div class="onelineblockoptions">
 		<span class="acyblocktitle"><?php echo acymailing_translation('UNSUB_PAGE'); ?></span>
 		<table class="acymailing_table" cellspacing="1">
@@ -376,6 +407,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 		</table>
 	</div>
+	<?php if(!empty($this->elements->acyrss_format)){ ?>
 	<div class="onelineblockoptions">
 		<span class="acyblocktitle">RSS</span>
 		<table class="acymailing_table" cellspacing="1">
@@ -421,7 +453,8 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 		</table>
 	</div>
-	<?php if(acymailing_level(3)) include(dirname(__FILE__).DS.'interface_enterprise.php'); ?>
+	<?php }
+	if(acymailing_level(3) && 'joomla' == 'joomla') include(dirname(__FILE__).DS.'interface_enterprise.php'); ?>
 	<script language="javascript" type="text/javascript">
 		<!--
 		function updateCommentsOption(){

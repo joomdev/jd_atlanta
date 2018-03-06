@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -13,20 +14,9 @@ jimport( 'joomla.application.component.view');
 class archiveViewArchive extends acymailingView
 {
 	function display($tpl = null){
-
-		global $Itemid;
-		$db			= JFactory::getDBO();
 		$doc	= JFactory::getDocument();
-		$jsite = JFactory::getApplication('site');
-		$menus = $jsite->getMenu();
-		$menu	= $menus->getActive();
-		if(empty($menu) AND !empty($Itemid)){
-			$menus->setActive($Itemid);
-			$menu	= $menus->getItem($Itemid);
-		}
-		$myItem = empty($Itemid) ? '' : '&Itemid='.$Itemid;
+		$menu = acymailing_getMenu();
 		if (is_object( $menu )) {
-			jimport('joomla.html.parameter');
 			$menuparams = new acyParameter( $menu->params );
 		}
  		$listid = acymailing_getCID('listid');
@@ -58,8 +48,7 @@ class archiveViewArchive extends acymailingView
 		$query .= ' WHERE ('.implode(') AND (',$filters).')';
 		$query .= ' ORDER BY a.'.$config->get('acyrss_order','senddate').' '.($config->get('acyrss_order','senddate') == 'subject' ? 'ASC' : 'DESC');
 		$query .= ' LIMIT '.$config->get('acyrss_element','20');
-		$db->setQuery($query);
-		$rows = $db->loadObjectList();
+		$rows = acymailing_loadObjectList($query);
 		$doc->title = $config->get('acyrss_name','');
 		$doc->description = $config->get('acyrss_description','');
 
@@ -92,3 +81,4 @@ class archiveViewArchive extends acymailingView
 		}
 	}
 }
+

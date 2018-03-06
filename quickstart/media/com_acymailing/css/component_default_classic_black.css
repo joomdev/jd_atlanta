@@ -1,18 +1,16 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 @import url("component_default.css");
 
 
-
-
-
-
+	
+	
 #acyarchivelisting .inputbox, #acyuserinfo .inputbox{
 	color:#666 !important;
 	border:1px solid #ddd !important;
@@ -20,7 +18,7 @@
 	border-bottom:1px solid #ccc !important;
 	margin-right: 10px!important;
     padding: 2px !important;}
-
+	
 
 #acyarchivelisting .inputbox:hover, #acyuserinfo .inputbox:hover{
 	border:1px solid #bbb!important;
@@ -31,8 +29,7 @@
 #acyarchivelisting .inputbox:focus; #acyuserinfo .inputbox:focus{
 	border:1px solid #bbb !important;
 	background-color:#f5f5f5 !important;}
-
-
+	
 
 
 #acyarchivelisting .button, #acymodifyform .button, #unsubbutton_div .button{
@@ -52,10 +49,7 @@
 	background-color:#000 !important;
 }
 
-
-
-
-
+	
 
 
 #acyarchivelisting {
@@ -65,7 +59,7 @@
 
 #acyarchivelisting table{
 	border:0px !important;}
-
+	
 #acyarchivelisting .contentheading{
 	color:#000;
 	font-size:16px;
@@ -164,9 +158,6 @@
 
 
 
-
-
-
 #acylistslisting{
 	border:1px solid #ddd;
 	padding:10px;}
@@ -227,9 +218,6 @@ div.acymailing_list:hover{
 }
 
 
-
-
-
 #acymodifyform{
 	border:1px solid #ddd;
 	padding:10px;}
@@ -239,7 +227,7 @@ div.acymailing_list:hover{
 	color:#666;
 	padding: 4px 5px;
 	background-color:#f5f5f5;}
-
+	
 
 #acyusersubscription tr{
 	border-bottom:1px solid #ccc !important;}
@@ -267,14 +255,14 @@ div.acymailing_list:hover{
 
 #acyuserinfo #trname td{
 	padding-top:10px;}
-
+	
 #acyuserinfo #trplus td{
 	padding-bottom:10px;}
-
+	
 
 #acyuserinfo select{
 	border:1px solid #dcc2b2;}
-
+	
 #acyuserinfo .key{
 	color:#666;
 	font-weight:bold;
@@ -325,10 +313,7 @@ div.acymailing_list:hover{
 #acymodifyform p{
 	margin:0px;}
 
-
-
-
-
+	
 
 #unsubpage{
 padding: 20px;
@@ -337,10 +322,10 @@ border:1px solid #ddd;}
 
 #unsubpage .unsubsurvey, #unsubpage .unsubintro{
 	padding:0px;}
-
+	
 #unsubpage input{
 	margin-right:5px;}
-
+	
 #unsubpage .unsubintro{
 	font-weight:bold;
 	color:#000;
@@ -397,7 +382,6 @@ border:1px solid #ddd;}
 #unsubbutton_div{
 	text-align:center;
 }
-
 
 #acyarchiveview{
 	border:1px solid #ccc;

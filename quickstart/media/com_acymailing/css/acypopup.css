@@ -1,11 +1,10 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-
 
 @keyframes fadeIn {
     0% {
@@ -23,7 +22,7 @@
 }
 
 #acymailingpopupshadow{
-    z-index: 65555;
+    z-index: 101000;
     background-color: #000;
     position: fixed;
     left: 0px;
@@ -34,7 +33,7 @@
 }
 
 #acymailingpopup{
-    z-index: 65557;
+    z-index: 101100;
     background-color: #fff;
     position: fixed;
     padding: 10px;
@@ -62,6 +61,7 @@
     cursor: pointer;
     font-family: 'acyicon';
     line-height: 1;
+    box-sizing: content-box;
 }
 
 #closepop:before{

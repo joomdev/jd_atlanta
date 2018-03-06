@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -21,7 +22,7 @@ class SendController extends acymailingController{
 		if(!$this->isAllowed('newsletters', 'send')) return;
 		acymailing_checkToken();
 
-		acymailing_setVar('tmpl', 'component');
+		acymailing_setNoTemplate();
 		$mailid = acymailing_getCID('mailid');
 		if(empty($mailid)) exit;
 
@@ -62,7 +63,7 @@ class SendController extends acymailingController{
 		$config = acymailing_config();
 
 		if(acymailing_level(1) && $config->get('queue_type') == 'onlyauto'){
-			acymailing_setVar('tmpl', 'component');
+			acymailing_setNoTemplate();
 			acymailing_display(acymailing_translation('ACY_ONLYAUTOPROCESS'), 'warning');
 			return;
 		}
@@ -88,7 +89,7 @@ class SendController extends acymailingController{
 		$helperQueue->pause = $config->get('queue_pause');
 		$helperQueue->process();
 
-		acymailing_setVar('tmpl', 'component');
+		acymailing_setNoTemplate();
 
 
 
@@ -108,7 +109,7 @@ class SendController extends acymailingController{
 		$warnings = ob_get_clean();
 
 		if(empty($spamtestSystem) || $spamtestSystem === false || !empty($warnings)){
-			acymailing_display('Could not load your information from our server'.((!empty($warnings) && defined('JDEBUG') && JDEBUG) ? $warnings : ''), 'error');
+			acymailing_display('Could not load your information from our server'.((!empty($warnings) && acymailing_isDebug()) ? $warnings : ''), 'error');
 			return;
 		}
 		$decodedInformation = json_decode($spamtestSystem, true);
@@ -143,9 +144,8 @@ class SendController extends acymailingController{
 			acymailing_display($mailerHelper->reportMessage, 'error');
 			return;
 		}
-
+		
 		acymailing_redirect($decodedInformation['displayURL']);
-
 		return;
 	}
 }

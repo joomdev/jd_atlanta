@@ -1,14 +1,12 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 @import url("component_default.css");
-
-
 
 
 
@@ -31,7 +29,6 @@
 	border-bottom:1px solid #999;}
 
 
-
 #acyuserinfo .inputbox, #acyarchivelisting .inputbox{
 	color:#666;
 	border:1px solid #ddd;
@@ -43,9 +40,6 @@
 
 #acyuserinfo .inputbox:focus, #acyarchivelisting .inputbox:focus{
 	border:1px solid #bbb !important;}
-
-
-
 
 
 
@@ -160,9 +154,6 @@
 
 
 
-
-
-
 #acylistslisting .componentheading{
 	color:#000;
 	border-bottom:1px solid #000;
@@ -213,9 +204,6 @@ div.acymailing_list:hover{
 		margin: 0px;
 		padding-top: 10px;
 }
-
-
-
 
 
 #acyusersubscription th{
@@ -310,9 +298,6 @@ div.acymailing_list:hover{
 
 
 
-
-
-
 #unsubpage{
 padding: 20px 20px 40px;
 font-size:11px;
@@ -385,7 +370,6 @@ border:1px solid #ccc;}
 }
 
 
-
 #acyarchiveview{
 	border:1px solid #ccc;
 	padding:10px;}
@@ -398,4 +382,5 @@ border:1px solid #ccc;}
 
 #acyuserinfo .invalid{
 border:1px solid #999 !important;}
+
 

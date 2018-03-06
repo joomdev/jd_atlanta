@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -42,8 +43,8 @@ class listsubClass extends acymailingClass{
 			}else $column = 'subdate';
 
 			$query = 'UPDATE '.acymailing_table('listsub').' SET `status` = '.intval($status).','.$column.'='.$time.' WHERE subid = '.intval($subid).' AND listid IN ('.implode(',', $listids).')';
-			$this->database->setQuery($query);
-			$result = $this->database->query() && $result;
+			$affected = acymailing_query($query);
+			$result = $affected !== false && $result;
 
 			if($status == 1){
 				$listHelper->subscribe($subid, $listids);
@@ -59,8 +60,7 @@ class listsubClass extends acymailingClass{
 
 		acymailing_arrayToInteger($listids);
 		$query = 'DELETE FROM '.acymailing_table('listsub').' WHERE subid = '.intval($subid).' AND listid IN ('.implode(',', $listids).')';
-		$this->database->setQuery($query);
-		$this->database->query();
+		acymailing_query($query);
 
 		$listHelper = acymailing_get('helper.list');
 		$listHelper->sendNotif = $this->sendNotif;
@@ -88,8 +88,7 @@ class listsubClass extends acymailingClass{
 			$status = intval($status);
 			acymailing_arrayToInteger($listids);
 
-			$this->database->setQuery('SELECT `listid`,`access_sub` FROM '.acymailing_table('list').' WHERE `listid` IN ('.implode(',', $listids).') AND `type` = \'list\'');
-			$allResults = $this->database->loadObjectList('listid');
+			$allResults = acymailing_loadObjectList('SELECT `listid`,`access_sub` FROM '.acymailing_table('list').' WHERE `listid` IN ('.implode(',', $listids).') AND `type` = \'list\'', 'listid');
 			$listids = array_keys($allResults);
 
 			if($status == '-1'){
@@ -110,8 +109,8 @@ class listsubClass extends acymailingClass{
 			if(empty($values)) continue;
 
 			$query = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (listid,subid,`status`,'.$column.') VALUES ('.implode('),(', $values).')';
-			$this->database->setQuery($query);
-			$result = $this->database->query() && $result;
+			$affected = acymailing_query($query);
+			$result = $affected !== false && $result;
 
 			if($status == 1){
 				$listHelper->subscribe($subid, $listids);
@@ -123,8 +122,7 @@ class listsubClass extends acymailingClass{
 
 	function getSubscription($subid){
 		$query = 'SELECT * FROM '.acymailing_table('listsub').' as a LEFT JOIN '.acymailing_table('list').' as b on a.listid = b.listid WHERE a.subid = '.intval($subid).' AND b.type = \''.$this->type.'\' ORDER BY b.ordering ASC';
-		$this->database->setQuery($query);
-		return $this->database->loadObjectList('listid');
+		return acymailing_loadObjectList($query, 'listid');
 	}
 
 	function getSubscriptionString($subid, $dates = false){

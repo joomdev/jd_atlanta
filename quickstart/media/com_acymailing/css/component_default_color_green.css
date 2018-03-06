@@ -1,14 +1,12 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 @import url("component_default_color_black.css");
-
-
 
 
 
@@ -20,7 +18,6 @@
 	}
 
 
-
 #acyarchivelisting .contentpane tbody .button, #acymodifyform .button, #unsubbutton_div .button {
 	color:#fff !important;
 	background-color:#727127 !important;
@@ -30,10 +27,7 @@
     color:#fff!important;
 	background-color:#9e9c07 !important;
 }
-
-
-
-
+	
 
 #acyarchivelisting .contentheading{
 	color:#727127;
@@ -60,14 +54,10 @@
 
 
 
-
 #acyarchiveview .contentheading{
 	color:#9e9c07;}
-
-
-
-
-
+	
+	
 
 
 
@@ -86,9 +76,6 @@
 
 
 
-
-
-
 #acymodifyform legend{
 	color:#727127;
 	border-bottom:1px solid #727127;
@@ -97,24 +84,22 @@
 #acyusersubscription th{
 	color:#fff;
 	background-color:#730028;}
-
-
+	
+	
 #acyusersubscription .list_name{
     color: #9e9c07;
 }
-
-
-
-
+	
 
 
 #unsubpage .unsubintro{
 	border-bottom: 1px solid #727127;
     color: #727127;}
-
+	
 #unsubpage .unsubsurveytext{
    	border-bottom: 1px solid #727127;
     color: #727127;
 }
+
 
 

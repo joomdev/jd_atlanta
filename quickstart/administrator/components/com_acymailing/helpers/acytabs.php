@@ -1,71 +1,29 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
 class acytabsHelper{
-	var $ctrl = 'tabs';
-	var $tabs = null;
 	var $openPanel = false;
-	var $mode = null;
 	var $data = array();
-	var $options = null;
 	var $name = '';
 
 	function __construct(){
-		if(!ACYMAILING_J16){
-			$this->mode = 'pane';
-		}elseif(!ACYMAILING_J30){
-			$this->mode = 'pane';
-		}else{
-			$this->mode = 'bootstrap';
-		}
 	}
 
 	function startPane($name){
-		return $this->start($name);
+		$this->name = $name;
 	}
 
 	function startPanel($text, $id){
-		return $this->panel($text, $id);
-	}
-
-	function endPanel(){
-		return '';
-	}
-
-	function endPane(){
-		return $this->end();
-	}
-
-	function setOptions($options = array()){
-		if($this->options == null){
-			$this->options = $options;
-		}else{
-			$this->options = array_merge($this->options, $options);
-		}
-	}
-
-	function start($name, $options = array()){
-		$this->name = $name;
-		if($this->options == null){
-			$this->options = $options;
-		}else{
-			$this->options = array_merge($this->options, $options);
-		}
-		return '';
-	}
-
-	function panel($text, $id){
-		if($this->openPanel){
-			$this->_closePanel();
-		}
+		if($this->openPanel) $this->endPanel();
 
 		$obj = new stdClass();
 		$obj->text = $text;
@@ -74,46 +32,54 @@ class acytabsHelper{
 		$this->data[] = $obj;
 		ob_start();
 		$this->openPanel = true;
-		return '';
 	}
 
-	function _closePanel(){
-		if(!$this->openPanel){
-			return;
-		}
+	function endPanel(){
+		if(!$this->openPanel) return;
+
 		$panel = end($this->data);
 		$panel->data .= ob_get_clean();
 		$this->openPanel = false;
 	}
 
-	function end(){
+	function endPane(){
 		$ret = '';
-		static $jsInit = false;
+		$content = '';
 
-		if($this->openPanel){
-			$this->_closePanel();
-		}
+		if($this->openPanel) $this->endPanel();
 
-		$ret .= '<div style="margin-left:10px;"><ul class="nav nav-tabs" id="'.$this->name.'" style="width:100%;">'."\r\n";
+		$ret .= '<div style="margin-left:10px;" class="acytabsystem"><ul class="nav nav-tabs" id="'.$this->name.'" style="width:100%;">'."\r\n";
 		foreach($this->data as $k => $data){
-			$active = '';
-			if($k == 0) $active = ' class="active"';
-			$ret .= '	<li'.$active.'><a href="#'.$data->id.'" id="'.$data->id.'_tablink" onclick="toggleTab(\''.$this->name.'\', \''.$data->id.'\');return false;">'.acymailing_translation($data->text).'</a></li>'."\r\n";
-		}
-		$ret .= '</ul>'."\r\n".'<div class="tab-content" id="'.$this->name.'_content">'."\r\n";
-		foreach($this->data as $k => $data){
-			$active = '';
-			if($k == 0) $active = ' active';
-			$ret .= '	<div class="tab-pane'.$active.'" id="'.$data->id.'">'."\r\n".$data->data."\r\n".'	</div>'."\r\n";
+			$ret .= '	<li'.($k == 0 ? ' class="active"' : '').' id="'.$data->id.'_tabli"><a href="#'.$data->id.'" id="'.$data->id.'_tablink" onclick="toggleTab(\''.$this->name.'\', \''.$data->id.'\');return false;">'.acymailing_translation($data->text).'</a></li>'."\r\n";
+
+			$content .= '	<div class="tab-pane'.($k == 0 ? ' active' : '').'" id="'.$data->id.'">'."\r\n".$data->data."\r\n".'	</div>'."\r\n";
 			unset($data->data);
 		}
-		$ret .= '</div></div>';
+		$ret .= '</ul>'."\r\n".'<div class="tab-content" id="'.$this->name.'_content">'."\r\n";
+		$ret .= $content.'</div></div>';
 		unset($this->data);
 
+		static $jsInit = false;
 		if(!$jsInit){
 			$jsInit = true;
 			$js = '
+			
+			document.addEventListener("DOMContentLoaded", function(){
+				var selectedTab = localStorage.getItem("acy'.$this->name.'");
+				if(selectedTab && document.getElementById(selectedTab)){
+					var selectedLi = document.getElementById("'.$this->name.'").querySelector("li.active");
+					var selectedContent = document.getElementById("'.$this->name.'_content").querySelector("div.tab-pane.active");
+					selectedLi.className = selectedLi.className.replace("active", "");
+					selectedContent.className = selectedContent.className.replace("active", "");
+					
+					document.getElementById(selectedTab+"_tabli").className += " active";
+					document.getElementById(selectedTab).className += " active";
+				}
+			});
+				
 			function toggleTab(group, id){
+				localStorage.setItem("acy"+group, id);
+			
 				var contentTabs = document.querySelectorAll("#"+group+"_content > div");
 				for (i = 0; i < contentTabs.length; i++) {
 					contentTabs[i].className = contentTabs[i].className.replace("active", "");
@@ -124,10 +90,11 @@ class acytabsHelper{
 					groupTabs[i].className = groupTabs[i].className.replace("active", "");
 				}
 				document.getElementById(id+"_tablink").parentElement.className += " active";
-
+				
 			}';
 			acymailing_addScript(true, $js);
 		}
+
 		return $ret;
 	}
 }

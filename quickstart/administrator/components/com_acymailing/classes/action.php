@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -21,8 +22,7 @@ class actionClass extends acymailingClass{
 			acymailing_arrayToInteger($onlyActionIds);
 		}
 
-		$this->database->setQuery('SELECT * FROM '.acymailing_table('action').(empty($onlyActionIds) ? '' : ' WHERE listid IN ('.implode(',', $onlyActionIds).')').' ORDER BY ordering ASC');
-		return $this->database->loadObjectList($index);
+		return acymailing_loadObjectList('SELECT * FROM '.acymailing_table('action').(empty($onlyActionIds) ? '' : ' WHERE listid IN ('.implode(',', $onlyActionIds).')').' ORDER BY ordering ASC', $index);
 	}
 
 	function delete($elements){
@@ -34,9 +34,8 @@ class actionClass extends acymailingClass{
 	}
 
 	function get($actionid, $default = null){
-		$query = 'SELECT a.*, b.name AS creatorname, b.username AS creatorusername, b.email FROM '.acymailing_table('action').' AS a LEFT JOIN '.acymailing_table('users', false).' AS b on a.userid = b.id WHERE action_id = '.intval($actionid).' LIMIT 1';
-		$this->database->setQuery($query);
-		return $this->database->loadObject();
+		$query = 'SELECT a.*, b.'.$this->cmsUserVars->name.' AS creatorname, b.'.$this->cmsUserVars->username.' AS creatorusername, b.'.$this->cmsUserVars->email.' AS email FROM '.acymailing_table('action').' AS a LEFT JOIN '.acymailing_table($this->cmsUserVars->table, false).' AS b on a.userid = b.'.$this->cmsUserVars->id.' WHERE action_id = '.intval($actionid).' LIMIT 1';
+		return acymailing_loadObject($query);
 	}
 
 	function saveForm(){

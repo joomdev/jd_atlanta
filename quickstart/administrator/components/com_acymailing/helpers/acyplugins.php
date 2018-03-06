@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -182,13 +183,13 @@ class acypluginsHelper{
 	private function _convertbase64pictures(&$html){
 		if(!preg_match_all('#<img[^>]*src=("data:image/([^;]{1,5});base64[^"]*")([^>]*)>#Uis', $html, $resultspictures)) return;
 
-
+		
 
 		$dest = ACYMAILING_MEDIA.'resized'.DS;
 		acymailing_createDir($dest);
 		foreach($resultspictures[2] as $i => $extension){
 			$pictname = md5($resultspictures[1][$i]).'.'.$extension;
-			$picturl = ACYMAILING_LIVE.'media/'.ACYMAILING_COMPONENT.'/resized/'.$pictname;
+			$picturl = ACYMAILING_LIVE.ACYMAILING_MEDIA_FOLDER.'/resized/'.$pictname;
 			$pictPath = $dest.$pictname;
 			$pictCode = trim($resultspictures[1][$i], '"');
 			if(file_exists($pictPath)){
@@ -655,17 +656,15 @@ class acypluginsHelper{
 	}
 
 	function translateItem(&$item, &$tag, $referenceTable, $referenceId = 0){
-		if(empty($tag->lang) || (!file_exists(JPATH_SITE.DS.'components'.DS.'com_falang') && !file_exists(JPATH_SITE.DS.'components'.DS.'com_joomfish'))) return;
+		if(empty($tag->lang) || (!file_exists(ACYMAILING_ROOT.'components'.DS.'com_falang') && !file_exists(ACYMAILING_ROOT.'components'.DS.'com_joomfish'))) return;
 		$langid = (int)substr($tag->lang, strpos($tag->lang, ',') + 1);
 
 		if(empty($langid)) return;
 
-		$db = JFactory::getDBO();
 		if(empty($referenceId)) $referenceId = $tag->id;
-		$table = (ACYMAILING_J16 && file_exists(JPATH_SITE.DS.'components'.DS.'com_falang')) ? '`#__falang_content`' : '`#__jf_content`';
+		$table = (ACYMAILING_J16 && file_exists(ACYMAILING_ROOT.'components'.DS.'com_falang')) ? '`#__falang_content`' : '`#__jf_content`';
 		$query = "SELECT reference_field, value FROM ".$table." WHERE `published` = 1 AND `reference_table` = ".acymailing_escapeDB($referenceTable)." AND `language_id` = $langid AND `reference_id` = ".$referenceId;
-		$db->setQuery($query);
-		$translations = $db->loadObjectList();
+		$translations = acymailing_loadObjectList($query);
 
 		if(empty($translations)) return;
 
@@ -688,7 +687,7 @@ class acypluginsHelper{
 		$reset = '';
 		if(file_exists(ACYMAILING_MEDIA.'plugins')){
 
-
+			
 
 			$files = acymailing_getFiles(ACYMAILING_MEDIA.'plugins', '^'.$plugin);
 			foreach($files as $oneFile){
@@ -762,3 +761,4 @@ class acypluginsHelper{
 		return $result;
 	}
 }
+

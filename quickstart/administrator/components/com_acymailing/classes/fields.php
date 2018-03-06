@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -65,7 +66,7 @@ class fieldsClass extends acymailingClass{
 			$where[] = "a.`type`='category'";
 		}elseif($area == 'module'){
 		}elseif($area != 'all'){
-			$area = $this->database->Quote($area);
+			$area = acymailing_escapeDB($area);
 			$namesField = str_replace(",", $area[0].",".$area[0], $area);
 			$where[] = "a.`namekey` IN (".$namesField.")";
 		}
@@ -81,8 +82,7 @@ class fieldsClass extends acymailingClass{
 			$filterAccess = '';
 		}
 
-		$this->database->setQuery('SELECT * FROM `#__acymailing_fields` as a WHERE '.implode(' AND ', $where).' '.$filterAccess.' ORDER BY a.`ordering` ASC');
-		$fields = $this->database->loadObjectList('namekey');
+		$fields = acymailing_loadObjectList('SELECT * FROM `#__acymailing_fields` as a WHERE '.implode(' AND ', $where).' '.$filterAccess.' ORDER BY a.`ordering` ASC', 'namekey');
 		foreach($fields as $namekey => $field){
 			if(!empty($fields[$namekey]->options)){
 				$fields[$namekey]->options = unserialize($fields[$namekey]->options);
@@ -97,8 +97,7 @@ class fieldsClass extends acymailingClass{
 			if(empty($user->subid)) $user->$namekey = $field->default;
 		}
 		if(acymailing_level(3)){
-			$this->database->setQuery('SELECT * FROM `#__acymailing_fields`');
-			$allFields = $this->database->loadObjectList('fieldid');
+			$allFields = acymailing_loadObjectList('SELECT * FROM `#__acymailing_fields`', 'fieldid');
 
 			$baseElem = array();
 			$elemInCat = array();

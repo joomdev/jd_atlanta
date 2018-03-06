@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div class="acymailing_module<?php echo $params->get('moduleclass_sfx')?>" id="acymailing_module_<?php echo $formName; ?>">
 <?php
@@ -172,9 +173,9 @@ defined('_JEXEC') or die('Restricted access');
 				</div>
 			<?php
 			if(!empty($fieldsClass->excludeValue)){
-				$js = "\n"."acymailing['excludeValues".$formName."'] = Array();";
+				$js = "\n"."acymailingModule['excludeValues".$formName."'] = Array();";
 				foreach($fieldsClass->excludeValue as $namekey => $value){
-					$js .= "\n"."acymailing['excludeValues".$formName."']['".$namekey."'] = '".$value."';";
+					$js .= "\n"."acymailingModule['excludeValues".$formName."']['".$namekey."'] = '".$value."';";
 				}
 				$js .= "\n";
 				if($params->get('includejs','header') == 'header'){
@@ -210,3 +211,4 @@ defined('_JEXEC') or die('Restricted access');
 	</div>
 	<?php if($params->get('effect','normal') == 'mootools-slide'){ ?> </div> <?php } ?>
 </div>
+

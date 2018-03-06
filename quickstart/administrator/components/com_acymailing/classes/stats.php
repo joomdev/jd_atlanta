@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -23,22 +24,21 @@ class statsClass extends acymailingClass{
 	function saveStats(){
 		$subid = empty($this->subid) ? acymailing_getVar('int', 'subid') : $this->subid;
 		$mailid = empty($this->mailid) ? acymailing_getVar('int', 'mailid') : $this->mailid;
-		if(empty($subid) OR empty($mailid)) return false;
+		if(empty($subid) || empty($mailid)) return false;
 		if(acymailing_isRobot()) return false;
 
-		$db = JFactory::getDBO();
 		$actual = acymailing_loadObject('SELECT `open` FROM '.acymailing_table('userstats').' WHERE `mailid` = '.intval($mailid).' AND `subid` = '.intval($subid).' LIMIT 1');
 		if(empty($actual)) return false;
 
 		$userHelper = acymailing_get('helper.user');
-		$db->setQuery('UPDATE #__acymailing_subscriber SET `lastopen_date` = '.time().', `lastopen_ip` = '.acymailing_escapeDB($userHelper->getIP()).' WHERE `subid` = '.intval($subid));
+
 		try{
-			$results = $db->query();
+			$results = acymailing_query('UPDATE #__acymailing_subscriber SET `lastopen_date` = '.time().', `lastopen_ip` = '.acymailing_escapeDB($userHelper->getIP()).' WHERE `subid` = '.intval($subid));
 		}catch(Exception $e){
 			$results = null;
 		}
 		if($results === null){
-			acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags($db->getErrorMsg()), 0, 200).'...', 'error');
+			acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags(acymailing_getDBError()), 0, 200).'...', 'error');
 			exit;
 		}
 
@@ -51,20 +51,18 @@ class statsClass extends acymailingClass{
 			$open = $actual->open + 1;
 			$unique = '';
 		}
-
 		if(empty($open)) return true;
 
 		$ipClass = acymailing_get('helper.user');
 		$ip = $ipClass->getIP();
 
-		$db->setQuery('UPDATE '.acymailing_table('userstats').' SET open = '.$open.', opendate = '.time().', `ip`= '.acymailing_escapeDB($ip).' WHERE mailid = '.$mailid.' AND subid = '.$subid);
 		try{
-			$results = $db->query();
+			$results = acymailing_query('UPDATE '.acymailing_table('userstats').' SET open = '.$open.', opendate = '.time().', `ip`= '.acymailing_escapeDB($ip).' WHERE mailid = '.$mailid.' AND subid = '.$subid);
 		}catch(Exception $e){
 			$results = null;
 		}
 		if($results === null){
-			acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags($db->getErrorMsg()), 0, 200).'...', 'error');
+			acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags(acymailing_getDBError()), 0, 200).'...', 'error');
 			exit;
 		}
 
@@ -265,19 +263,17 @@ class statsClass extends acymailingClass{
 			}
 		}
 
-		$db->setQuery('UPDATE '.acymailing_table('userstats').' SET `is_mobile` = '.intval($isMobile).', `mobile_os` = '.acymailing_escapeDB($osName).', `browser` = '.acymailing_escapeDB($name).', browser_version = '.intval($version).', user_agent = '.acymailing_escapeDB($agent).' WHERE mailid = '.$mailid.' AND subid = '.$subid.' LIMIT 1');
 		try{
-			$results = $db->query();
+			$results = acymailing_query('UPDATE '.acymailing_table('userstats').' SET `is_mobile` = '.intval($isMobile).', `mobile_os` = '.acymailing_escapeDB($osName).', `browser` = '.acymailing_escapeDB($name).', browser_version = '.intval($version).', user_agent = '.acymailing_escapeDB($agent).' WHERE mailid = '.$mailid.' AND subid = '.$subid.' LIMIT 1');
 		}catch(Exception $e){
 			$results = null;
 		}
 		if($results === null){
-			acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags($db->getErrorMsg()), 0, 200).'...', 'error');
+			acymailing_display(isset($e) ? $e->getMessage() : substr(strip_tags(acymailing_getDBError()), 0, 200).'...', 'error');
 			exit;
 		}
 
-		$db->setQuery('UPDATE '.acymailing_table('stats').' SET opentotal = opentotal +1 '.$unique.' WHERE mailid = '.$mailid.' LIMIT 1');
-		$db->query();
+		acymailing_query('UPDATE '.acymailing_table('stats').' SET opentotal = opentotal +1 '.$unique.' WHERE mailid = '.$mailid.' LIMIT 1');
 
 		if(!empty($subid)){
 			$filterClass = acymailing_get('class.filter');

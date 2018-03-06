@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -62,8 +63,6 @@ class StatsController extends acymailingController{
 		$selectedStatus = acymailing_getVar('string', 'filter_status', '');
 		$selectedBounce = acymailing_getVar('string', 'filter_bounce', '');
 
-		$db = JFactory::getDBO();
-
 		$filters = array();
 		if(!empty($selectedMail)) $filters[] = 'userstats.mailid = '.$selectedMail;
 		if(!empty($selectedStatus)){
@@ -77,11 +76,10 @@ class StatsController extends acymailingController{
 		$query = 'FROM `#__acymailing_userstats` as userstats JOIN `#__acymailing_subscriber` as s ON s.subid = userstats.subid';
 		if(!empty($filters)) $query .= ' WHERE ('.implode(') AND (',$filters).')';
 
-		$currentSession = JFactory::getSession();
-		$currentSession->set('acyexportquery',$query);
+		acymailing_session();
+		$_SESSION['acymailing']['acyexportquery'] = $query;
 
-		$tmplVar = acymailing_getVar('string', 'tmpl', '') == 'component' ? '&tmpl=component' : '';
-		acymailing_redirect(acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'data&task=export&sessionquery=1'.$tmplVar,false,true));
+		acymailing_redirect(acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'data&task=export&sessionquery=1', acymailing_isNoTemplate(),true));
 	}
 
 	public function exportUnsubscribed(){
@@ -102,9 +100,10 @@ class StatsController extends acymailingController{
 		$query = 'FROM #__acymailing_history as hist JOIN #__acymailing_mail as b on hist.mailid = b.mailid JOIN #__acymailing_subscriber as s on hist.subid = s.subid';
 		if(!empty($filters)) $query .= ' WHERE ('.implode(') AND (',$filters).')';
 
-		$currentSession = JFactory::getSession();
-		$currentSession->set('acyexportquery',$query);
-		$this->setRedirect(acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'data&task=export&sessionquery=1',true,true));
+		acymailing_session();
+		$_SESSION['acymailing']['acyexportquery'] = $query;
+		
+		acymailing_redirect(acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'data&task=export&sessionquery=1',true,true));
 	}
 
 	function exportglobal(){
@@ -123,15 +122,13 @@ class StatsController extends acymailingController{
 			$filters[] = 'lm.listid IN (' . implode(',', $frontListsIds) . ')';
 		}
 
-		$db = JFactory::getDBO();
 		$query = 'SELECT b.subject, a.senddate, a.* , a.bouncedetails 
 					FROM #__acymailing_stats AS a 
 					JOIN #__acymailing_mail AS b ON a.mailid = b.mailid '.$extraJoin;
 		if(!empty($nlCondition)) $query .= ' WHERE '.implode(' AND ', $nlCondition);
 		$query .= ' ORDER BY a.senddate DESC';
-
-		$db->setQuery($query);
-		$mydata = $db->loadObjectList();
+		
+		$mydata = acymailing_loadObjectList($query);
 
 		$exportHelper = acymailing_get('helper.export');
 		$config = acymailing_config();
@@ -251,18 +248,15 @@ class StatsController extends acymailingController{
 	}
 
 	function opendays(){
-		$db = JFactory::getDBO();
 		$tags = acymailing_getVar('string', 'tags', '');
 		if(empty($tags)){
 			$intoQuery = 'SELECT opendate FROM ' . acymailing_table('userstats') . ' WHERE opendate > 0 LIMIT 5000';
-			$db->setQuery('SELECT COUNT(*) AS nb, FROM_UNIXTIME(opendate,\'%w\') AS day FROM ('.$intoQuery.') AS a GROUP BY day');
-			$statsDays = $db->loadObjectList('day');
+			$statsDays = acymailing_loadObjectList('SELECT COUNT(*) AS nb, FROM_UNIXTIME(opendate,\'%w\') AS day FROM ('.$intoQuery.') AS a GROUP BY day', 'day');
 		}else{
 			$tags = explode(',', $tags);
 			acymailing_arrayToInteger($tags);
 
-			$db->setQuery('SELECT * FROM ' . acymailing_table('tagmail') . ' WHERE tagid IN ('.implode(',', $tags).')');
-			$tagsData = $db->loadObjectList();
+			$tagsData = acymailing_loadObjectList('SELECT * FROM ' . acymailing_table('tagmail') . ' WHERE tagid IN ('.implode(',', $tags).')');
 
 			$mails = array();
 			foreach($tagsData as $oneData){
@@ -287,8 +281,7 @@ class StatsController extends acymailingController{
 						  WHERE opendate > 0 AND mailid IN (' . implode(',', $eligibleMails) . ') 
 						  LIMIT 5000';
 
-				$db->setQuery('SELECT COUNT(*) AS nb, FROM_UNIXTIME(opendate,\'%w\') AS day FROM ('.$intoQuery.') AS a GROUP BY day');
-				$statsDays = $db->loadObjectList('day');
+				$statsDays = acymailing_loadObjectList('SELECT COUNT(*) AS nb, FROM_UNIXTIME(opendate,\'%w\') AS day FROM ('.$intoQuery.') AS a GROUP BY day', 'day');
 			}
 		}
 
@@ -339,6 +332,23 @@ class StatsController extends acymailingController{
 			drawChart();
 		</script>
 <?php
+		exit;
+	}
+
+	function detecttimeout(){
+		$config = acymailing_config();
+		if($config->get('security_key') != acymailing_getVar('string', 'seckey')) die('wrong key');
+		acymailing_query("REPLACE INTO `#__acymailing_config` (`namekey`,`value`) VALUES ('max_execution_time','5'), ('last_maxexec_check','".time()."')");
+		@ini_set('max_execution_time',600);
+		@ignore_user_abort(true);
+		$i = 0;
+		while($i < 480){
+			sleep(8);
+			$i += 10;
+			acymailing_query("UPDATE `#__acymailing_config` SET `value` = '".intval($i)."' WHERE `namekey` = 'max_execution_time'");
+			acymailing_query("UPDATE `#__acymailing_config` SET `value` = '".time()."' WHERE `namekey` = 'last_maxexec_check'");
+			sleep(2);
+		}
 		exit;
 	}
 }

@@ -1,23 +1,21 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 @import url("component_default.css");
 
 
-
-
-
+	
 
 #acyarchivelisting .inputbox, #acyuserinfo .inputbox{
 	color:#666;
 	border:1px solid #ddd;
 	padding: 2px;}
-
+	
 #acyarchivelisting .inputbox:hover, #acyuserinfo .inputbox:hover{
 	border:1px solid #999!important;
 	border-bottom: 1px solid #333!important;
@@ -27,7 +25,6 @@
 
 #acyarchivelisting .inputbox:focus, #acyuserinfo .inputbox:focus{
 	border:1px solid #bbb !important;}
-
 
 
 
@@ -45,15 +42,12 @@
     color:#fff!important;
 	background-color:#666 !important;
 }
-
-
-
-
+	
 
 
 #acyarchivelisting table{
 	border:0px !important;}
-
+	
 #acyarchivelisting .contentheading{
 	color:#000;
 	font-size:16px;
@@ -160,9 +154,6 @@
 }
 
 
-
-
-
 #acylistslisting .componentheading{
 	color:#000;
 	font-weight:bold;
@@ -197,7 +188,7 @@
 #acylistslisting p{
 	line-height: 15px;
     margin: 3px 0;}
-
+    
 
 div.acymailing_list:hover{
 	background-color :#f5f5f5;
@@ -213,9 +204,6 @@ div.acymailing_list:hover{
     margin: 0px;
     padding-top: 10px;
 }
-
-
-
 
 
 #acyusersubscription th{
@@ -249,14 +237,14 @@ div.acymailing_list:hover{
 
 #acyuserinfo #trname td{
 	padding-top:10px;}
-
+	
 #acyuserinfo #trplus td{
 	padding-bottom:10px;}
 
 
 #acyuserinfo select{
 	border:1px solid #dcc2b2;}
-
+	
 #acyuserinfo .key{
 	color:#666;
 	font-weight:bold;
@@ -305,10 +293,7 @@ div.acymailing_list:hover{
 #acymodifyform .acymodifybutton{
 	text-align:center;
 }
-
-
-
-
+	
 
 #unsubpage{
 padding: 20px;
@@ -317,10 +302,10 @@ border:1px solid #ccc;}
 
 #unsubpage .unsubsurvey, #unsubpage .unsubintro{
 	padding:0px;}
-
+	
 #unsubpage input{
 	margin-right:5px;}
-
+	
 #unsubpage .unsubintro{
 	border-bottom: 1px solid #000;
     color: #000;
@@ -381,7 +366,6 @@ border:1px solid #ccc;}
 }
 
 
-
 #acyarchiveview{
 	border:1px solid #ccc;
 	padding:10px;}
@@ -394,4 +378,5 @@ border:1px solid #ccc;}
 
 #acyuserinfo .invalid{
 border:1px solid #999 !important;}
+
 

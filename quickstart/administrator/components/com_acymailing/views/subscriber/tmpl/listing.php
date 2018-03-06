@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content" class="acysubscriberlisting">
 	<div id="iframedoc"></div>
-	<form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl='.acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_completeLink(acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm">
 		<table width="100%" class="acymailing_table_options">
 			<tr>
 				<td id="subscriberfilter" style="min-width:325px;">
@@ -82,8 +83,7 @@ defined('_JEXEC') or die('Restricted access');
 			<tr>
 				<td colspan="<?php echo acymailing_isAdmin() ? count($this->displayFields) + 9 : count($this->displayFields) + 3; ?>">
 					<?php echo $this->pagination->getListFooter();
-					echo $this->pagination->getResultsCounter();
-					if(ACYMAILING_J30) echo '<br />'.$this->pagination->getLimitBox(); ?>
+					echo $this->pagination->getResultsCounter(); ?>
 				</td>
 			</tr>
 			</tfoot>
@@ -173,16 +173,9 @@ defined('_JEXEC') or die('Restricted access');
 						<td align="center">
 							<?php
 							if(!empty($row->userid)){
-								if(file_exists(ACYMAILING_ROOT.'components'.DS.'com_comprofiler'.DS.'comprofiler.php')){
-									$editLink = 'index.php?option=com_comprofiler&task=edit&cid[]=';
-								}elseif(!ACYMAILING_J16){
-									$editLink = 'index.php?option=com_users&task=edit&cid[]=';
-								}else{
-									$editLink = 'index.php?option=com_users&task=user.edit&id=';
-								}
 								$text = acymailing_translation('ACY_USERNAME').' : <b>'.acymailing_dispSearch($row->username, $this->pageInfo->search);
 								$text .= '</b><br />'.acymailing_translation('USER_ID').' : <b>'.acymailing_dispSearch($row->userid, $this->pageInfo->search).'</b>';
-								echo acymailing_tooltip($text, acymailing_dispSearch($row->username, $this->pageInfo->search), '', acymailing_dispSearch($row->userid, $this->pageInfo->search), $editLink.$row->userid);
+								echo acymailing_tooltip($text, acymailing_dispSearch($row->username, $this->pageInfo->search), '', acymailing_dispSearch($row->userid, $this->pageInfo->search), acymailing_userEditLink().$row->userid);
 							} ?>
 						</td>
 						<td align="center">

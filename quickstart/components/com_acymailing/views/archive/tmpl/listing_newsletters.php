@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php if($this->values->filter){ ?>
 	<input placeholder="<?php echo acymailing_translation('ACY_SEARCH'); ?>" type="text" name="search" id="acymailingsearch" value="<?php echo $this->escape($this->pageInfo->search); ?>" class="inputbox"/>
@@ -16,7 +17,7 @@ echo $this->ordering;
 $k = 1;
 for($i = 0, $a = count($this->rows); $i < $a; $i++){
 	$row =& $this->rows[$i];
-	$row->subject = Emoji::Decode($row->subject);
+	$row->subject = acyEmoji::Decode($row->subject);
 	echo '<div class="archiveRow archiveRow'.$k.$this->values->suffix.'">';
 
 	if(!empty($row->thumb)) echo '<img class="archiveItemPict" src="'.$row->thumb.'"/>';
@@ -44,6 +45,6 @@ for($i = 0, $a = count($this->rows); $i < $a; $i++){
 }
 ?>
 <div class="archivePagination">
-	<div class="sectiontablefooter<?php echo $this->values->suffix; ?> pagination"><?php echo $this->pagination->getPagesLinks(); ?></div>
-	<div class="sectiontablefooter<?php echo $this->values->suffix; ?>"><?php echo $this->pagination->getPagesCounter(); ?></div>
+	<?php echo $this->pagination->getListFooter();
+	echo $this->pagination->getResultsCounter(); ?>
 </div>

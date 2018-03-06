@@ -1,11 +1,10 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-
 
 
 #acymenu_leftside{
@@ -371,7 +370,6 @@
 }
 
 
-
 .myacymailingarea{
 	color: #c2d5f3;
 	font-size: 13px;
@@ -391,7 +389,6 @@
 #mainelementmyacymailing{
 	margin-top: 5px;
 	padding-top: 5px;
-	border-top: 2px dotted #466597
 }
 
 #acymenu_leftside .mainelement#mainelementmyacymailing{

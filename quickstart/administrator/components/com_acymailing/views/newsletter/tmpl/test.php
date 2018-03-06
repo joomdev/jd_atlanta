@@ -1,13 +1,14 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
-?><form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl='.$this->ctrl); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off" <?php if(in_array($this->type, array('news', 'autonews'))){
+?><form action="<?php echo acymailing_completeLink($this->ctrl); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off" <?php if(in_array($this->type, array('news', 'autonews'))){
 	if(acymailing_isAdmin()) echo 'style="width:42%;min-width:480px;float:left;margin-right:15px;"';
 } ?>>
 	<div class="<?php if(acymailing_isAdmin()){

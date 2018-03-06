@@ -1,14 +1,12 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 @import url("module_default.css");
-
-
 
 
 
@@ -25,7 +23,6 @@
 	background-image: -moz-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%) !important;
 	background-image: -webkit-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%) !important;
 	background-image: -ms-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%) !important;
-
 }
 
 .acymailing_module .inputbox:hover{
@@ -37,7 +34,6 @@
 
 .acymailing_module .inputbox:focus{
 	border:1px solid #bbb !important;}
-
 
 
 
@@ -54,10 +50,8 @@
 	background-image: -webkit-linear-gradient(bottom, #333 21%, #666 58%) !important;
 	background-image: -ms-linear-gradient(bottom, #333 21%, #666 58%) !important;
 
-	background: -ms-linear-gradient(top, ellipse cover, #333 0%,#666 100%); 
-	background: radial-gradient(top, ellipse cover, #333 0%,#666 100%);
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#666666', endColorstr='#333333',GradientType=0 ) !important; 
-}
+	background: -ms-linear-gradient(top, ellipse cover, #333 0%,#666 100%); 	background: radial-gradient(top, ellipse cover, #333 0%,#666 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#666666', endColorstr='#333333',GradientType=0 ) !important; }
 
 .acysubbuttons input.button:hover, .acysubbuttons .button:hover, .acysubbuttons button.validate:hover, .acymailing_mootoolsbutton a:hover, .acymailing_mootoolsbutton a:active{
 	color:#fff !important;
@@ -70,13 +64,8 @@
 	background-image: -webkit-linear-gradient(bottom, #666666 21%, #cccccc 58%) !important;
 	background-image: -ms-linear-gradient(bottom, #666666 21%, #cccccc 58%) !important;
 
-	background: -ms-linear-gradient(top, ellipse cover, #666666 0%,#cccccc 100%); 
-	background: radial-gradient(top, ellipse cover, #666666 0%,#cccccc 100%);
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cccccc', endColorstr='#666666',GradientType=0 ) !important; 
-}
-
-
-
+	background: -ms-linear-gradient(top, ellipse cover, #666666 0%,#cccccc 100%); 	background: radial-gradient(top, ellipse cover, #666666 0%,#cccccc 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cccccc', endColorstr='#666666',GradientType=0 ) !important; }
 
 
 .acymailing_module_form td{
@@ -86,9 +75,6 @@
 .acymailing_module .acyfield_html {
 	display:inline-block;
 	padding-right:10px !important;}
-
-
-
 
 
 
@@ -115,9 +101,6 @@
 
 
 
-
-
-
 .acymailing_form {
 	margin:0px;}
 
@@ -127,9 +110,6 @@
 
 .acymailing_module .acymailing_module_form td{
 	padding-bottom:8px;}
-
-
-
 
 
 

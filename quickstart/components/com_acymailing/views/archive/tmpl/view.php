@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acyarchiveview">
 	<div>
@@ -14,7 +15,7 @@ defined('_JEXEC') or die('Restricted access');
 			echo '<h1 class="contentheading'.$this->values->suffix.'">'.$this->mail->subject;
 				if($this->frontEndManagement && ($this->config->get('frontend_modif',1) || ($this->mail->userid == acymailing_currentUserId())) && ($this->config->get('frontend_modif_sent',1) || empty($this->mail->senddate))){
 					$editLink = acymailing_completeLink('frontnewsletter&task=edit&mailid='.$this->mail->mailid);
-					echo '<a '.(acymailing_getVar('cmd', 'tmpl') == 'component' ? 'target="_blank" ' : '').' href="'.$editLink.'"><img class="icon16" src="'.ACYMAILING_IMAGES.'icons/icon-16-edit.png" alt="'.acymailing_translation('ACY_EDIT',true).'"/></a>';
+					echo '<a '.(acymailing_getVar('cmd', 'tmpl') == 'component' ? 'target="_blank" ' : '').' href="'.$editLink.'"><img src="'.ACYMAILING_IMAGES.'icons/icon-16-edit.png" alt="'.acymailing_translation('ACY_EDIT',true).'"/></a>';
 				}
 			echo '</h1>';
 		}
@@ -81,7 +82,7 @@ defined('_JEXEC') or die('Restricted access');
 				<script type="text/javascript">
 					var disqus_identifier = "Joomla_Disqus_MAILID_<?php echo $this->mail->mailid; ?>";
 					var disqus_shortname = "<?php echo $disqus_shortname; ?>";
-					var disqus_config = function () {
+					var disqus_config = function() {
 						this.language = "<?php echo $lang_shortcode[0]; ?>";
 					};
 					(function() {
@@ -96,9 +97,8 @@ defined('_JEXEC') or die('Restricted access');
 		}elseif($this->config->get('comments_feature') == 'rscomments'){
 			echo '{rscomments option="com_acymailing" id="'.$this->mail->mailid.'"}';
 		}elseif($this->config->get('comments_feature') == 'komento'){
-			require_once(JPATH_ROOT.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_komento'.DIRECTORY_SEPARATOR.'bootstrap.php' );
-			echo Komento::commentify('com_acymailing', $this->mail,array());
+			require_once(ACYMAILING_ROOT.'components'.DS.'com_komento'.DS.'bootstrap.php' );
+			echo Komento::commentify('com_acymailing', $this->mail, array());
 		}
-
 	?>
 </div>

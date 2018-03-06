@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
-	<form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl='.acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off">
+	<form action="<?php echo acymailing_completeLink(acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off">
 		<div class="<?php echo acymailing_isAdmin() ? 'acyblockoptions' : 'onelineblockoptions'; ?>" style="display:block; float:none;">
 			<span class="acyblocktitle" style="display:block; float:none;"><?php echo acymailing_translation('ACY_LIST_INFORMATIONS'); ?></span>
 			<table cellspacing="1" width="100%">
@@ -89,7 +90,7 @@ defined('_JEXEC') or die('Restricted access');
 							<input type="hidden" id="listcreator" name="data[list][userid]"
 								   value="<?php echo @$this->list->userid; ?>"/>
 							<?php echo '<span id="creatorname">' . @$this->list->creatorname . '</span>';
-							echo ' '.acymailing_popup('index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=subscriber&amp;task=choose&amp;onlyreg=1', '<img class="icon16" src="' . ACYMAILING_IMAGES . 'icons/icon-16-edit.png" alt="' . acymailing_translation('ACY_EDIT', true) . '"/>');
+							echo ' '.acymailing_popup(acymailing_completeLink('subscriber&amp;task=choose&amp;onlyreg=1', true), '<img src="' . ACYMAILING_IMAGES . 'icons/icon-16-edit.png" alt="' . acymailing_translation('ACY_EDIT', true) . '"/>');
 						} ?>
 					</td>
 				</tr>

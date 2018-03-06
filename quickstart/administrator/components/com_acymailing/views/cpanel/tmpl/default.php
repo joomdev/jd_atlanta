@@ -1,18 +1,18 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
-	<form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl=cpanel'); ?>" method="post" name="adminForm" autocomplete="off" id="adminForm">
+	<form action="<?php echo acymailing_completeLink('cpanel'); ?>" method="post" name="adminForm" autocomplete="off" id="adminForm">
 		<?php acymailing_formOptions();
 
-		echo '<div class="acytabsystem">';
 		echo $this->tabs->startPane('config_tab');
 
 		echo $this->tabs->startPanel(acymailing_translation('MAIL_CONFIG'), 'config_mail');
@@ -45,17 +45,17 @@ defined('_JEXEC') or die('Restricted access');
 		include(dirname(__FILE__).DS.'acl.php');
 		echo $this->tabs->endPanel();
 
-		echo $this->tabs->startPanel(acymailing_translation('PLUGINS'), 'config_plugins');
-		include(dirname(__FILE__).DS.'plugins.php');
-		echo $this->tabs->endPanel();
+		if(!empty($this->plugins) || !empty($this->integrationplugins)) {
+			echo $this->tabs->startPanel(acymailing_translation('PLUGINS'), 'config_plugins');
+			include(dirname(__FILE__) . DS . 'plugins.php');
+			echo $this->tabs->endPanel();
+		}
 
 		echo $this->tabs->startPanel(acymailing_translation('LANGUAGES'), 'config_languages');
 		include(dirname(__FILE__).DS.'languages.php');
 		echo $this->tabs->endPanel();
 
 		echo $this->tabs->endPane();
-
-		echo '</div>';
 		?>
 
 		<div class="clr"></div>

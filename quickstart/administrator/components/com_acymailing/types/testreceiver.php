@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
-class testreceiverType{
+class testreceiverType extends acymailingClass{
 	function display($selection = '', $group = '', $emails = ''){
 		if(empty($emails)) $emails = acymailing_currentUserEmail();
 
@@ -26,7 +27,7 @@ class testreceiverType{
 		if(acymailing_isAdmin()){
 			$js .= 'if(currentValue != document.getElementById("message_receivers").value) return;
 					var xhr = new XMLHttpRequest();
-					xhr.open("GET", "index.php?option=com_acymailing&tmpl=component&ctrl=subscriber&task=getSubscribersByEmail&search="+currentValue);
+					xhr.open("GET", "'.acymailing_prepareAjaxURL('subscriber').'&task=getSubscribersByEmail&search="+currentValue);
 					xhr.onload = function(){
 						document.getElementById("acymailing_divSelectReceiver").style.display = "block";
 						document.getElementById("acymailing_receiversTable").innerHTML = xhr.responseText;
@@ -93,7 +94,7 @@ class testreceiverType{
 		<style>
 			.removeUser{
 				width: 20px;
-				background-image: url(<?php echo ACYMAILING_LIVE; ?>/media/com_acymailing/images/closecross.png);
+				background-image: url(<?php echo ACYMAILING_LIVE.'/'.ACYMAILING_MEDIA_FOLDER; ?>/images/closecross.png);
 				background-size: cover;
 				height: 20px;
 				cursor: pointer;
@@ -168,13 +169,11 @@ class testreceiverType{
 		</div>
 		<?php
 		if(acymailing_isAdmin()){
-			$db = JFactory::getDBO();
 			if(ACYMAILING_J16){
-				$db->setQuery('SELECT ug.id, ug.parent_id, ug.title AS text, COUNT(ugm.user_id) AS nbusers '.'FROM #__usergroups AS ug '.'LEFT JOIN #__user_usergroup_map ugm '.'ON ug.id = ugm.group_id '.'GROUP BY ug.id');
+				$values = acymailing_getGroups();
 			}else{
-				$db->setQuery('SELECT ug.id, ug.parent_id, ug.name AS text, COUNT(u.id) AS nbusers '.'FROM #__core_acl_aro_groups AS ug '.'LEFT JOIN #__users u '.'ON ug.id = u.gid '.'GROUP BY ug.id');
+				$values = acymailing_loadObjectList('SELECT ug.id, ug.parent_id, ug.name AS text, COUNT(u.'.$this->cmsUserVars->id.') AS nbusers FROM #__core_acl_aro_groups AS ug LEFT JOIN '.acymailing_table($this->cmsUserVars->table, false).' u ON ug.id = u.gid GROUP BY ug.id');
 			}
-			$values = $db->loadObjectList();
 			$this->cats = array();
 			if(!empty($values)){
 				foreach($values as $oneCat){

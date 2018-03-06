@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 if(!include_once(rtrim(JPATH_ADMINISTRATOR,DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_acymailing'.DIRECTORY_SEPARATOR.'helpers'.DIRECTORY_SEPARATOR.'helper.php')){
@@ -18,9 +19,7 @@ if(!ACYMAILING_J16){
 	{
 		function fetchElement($name, $value, &$node, $control_name)
 		{
-			$db = JFactory::getDBO();
-			$db->setQuery("SELECT `mailid`, CONCAT(subject,' ( ',mailid,' )') as `title` FROM #__acymailing_mail WHERE `type`='news' AND (`senddate` IS NULL OR `senddate` < 1)AND `type` = 'news' ORDER BY `subject` ASC");
-			$results = $db->loadObjectList();
+			$results = acymailing_loadObjectList("SELECT `mailid`, CONCAT(subject,' ( ',mailid,' )') as `title` FROM #__acymailing_mail WHERE `type`='news' AND (`senddate` IS NULL OR `senddate` < 1)AND `type` = 'news' ORDER BY `subject` ASC");
 			$novalue = new stdClass();
 			$novalue->mailid = 0;
 			$novalue->title = ' - - - - - ';
@@ -37,9 +36,7 @@ if(!ACYMAILING_J16){
 
 		function getInput() {
 
-			$db = JFactory::getDBO();
-			$db->setQuery("SELECT `mailid`, CONCAT(subject,' ( ',mailid,' )') as `title` FROM #__acymailing_mail WHERE `type`='news' AND (`senddate` IS NULL OR `senddate` < 1)AND `type` = 'news' ORDER BY `subject` ASC");
-			$results = $db->loadObjectList();
+			$results = acymailing_loadObjectList("SELECT `mailid`, CONCAT(subject,' ( ',mailid,' )') as `title` FROM #__acymailing_mail WHERE `type`='news' AND (`senddate` IS NULL OR `senddate` < 1)AND `type` = 'news' ORDER BY `subject` ASC");
 			$novalue = new stdClass();
 			$novalue->mailid = 0;
 			$novalue->title = ' - - - - - ';

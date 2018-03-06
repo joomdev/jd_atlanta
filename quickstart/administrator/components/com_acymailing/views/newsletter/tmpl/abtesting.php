@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content" class="abTestingPage">
 	<div id="iframedoc"></div>
@@ -23,12 +24,11 @@ defined('_JEXEC') or die('Restricted access');
 			document.getElementById('nbtestreceivers').innerHTML = newVal;
 		}
 	</script>
-	<form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>&amp;ctrl=newsletter" method="post" name="adminForm" id="adminForm" autocomplete="off">
+	<form action="<?php echo acymailing_completeLink('newsletter', true); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off">
 		<input type="hidden" name="mailid" value="<?php echo $this->mailid; ?>"/>
-		<input type="hidden" name="tmpl" value="component"/>
 
 		<div class="onelineblockoptions">
-			<?php echo acymailing_translation_sprintf('ABTESTING_PART_RECEIVER', '<input type="text" id="abTesting_prct" name="abTesting_prct" style="width:20px;" value="'.$this->abTestDetail['prct'].'" oninput="updateReceivers(this)">%'); ?>
+			<?php echo acymailing_translation_sprintf('ABTESTING_PART_RECEIVER', '<input type="text" id="abTesting_prct" name="abTesting_prct" style="width:30px;" value="'.$this->abTestDetail['prct'].'" oninput="updateReceivers(this)">%'); ?>
 			<div class="abtesting_mails">
 				<table class="acymailing_smalltable">
 					<?php
@@ -65,7 +65,7 @@ defined('_JEXEC') or die('Restricted access');
 							echo '<td style="text-align:center">'.$sent.'</td>';
 						}
 						if(!empty($this->abTestDetail['status']) && $this->abTestDetail['status'] == 'testSendOver' && $this->validationStatus != 'abTestAdd' && $this->abTestDetail['action'] == 'manual'){
-							echo '<td><a class="acymailing_button" href="index.php?option=com_acymailing&ctrl=newsletter&task=complete_abtest&tmpl=component&mailToSend='.$oneMail->mailid.'">'.acymailing_translation('SEND').'</a></td>';
+							echo '<td><a class="acymailing_button" href="'.acymailing_completeLink('newsletter&task=complete_abtest&mailToSend='.$oneMail->mailid, true).'">'.acymailing_translation('SEND').'</a></td>';
 						}
 						echo '</tr>';
 					} ?>
@@ -83,9 +83,9 @@ defined('_JEXEC') or die('Restricted access');
 							<tr class="<?php echo "row$k"; ?>">
 								<td>
 									<?php
-									if(!$row->published) echo '<a href="index.php?option=com_acymailing&ctrl=list&task=edit&listid='.$row->listid.'" title="'.acymailing_translation('LIST_PUBLISH', true).'"><img style="margin:0px;" src="'.ACYMAILING_IMAGES.'warning.png" alt="Warning" /></a> ';
+									if(!$row->published) echo '<a href="'.acymailing_completeLink('list&task=edit&listid='.$row->listid).'" title="'.acymailing_translation('LIST_PUBLISH', true).'"><img style="margin:0px;" src="'.ACYMAILING_IMAGES.'warning.png" alt="Warning" /></a> ';
 									echo acymailing_tooltip($row->description, $row->name, '', $row->name);
-									echo ' ( '.acymailing_translation_sprintf('SELECTED_USERS', $row->nbsub).' )';
+									echo ' ( '.acymailing_translation_sprintf('ACY_SELECTED_USERS', $row->nbsub).' )';
 									echo '<div class="roundsubscrib rounddisp" style="background-color:'.$row->color.'"></div>';
 									?>
 								</td>
@@ -123,7 +123,7 @@ defined('_JEXEC') or die('Restricted access');
 			<?php echo acymailing_translation_sprintf('ABTESTING_MODIFY_RECEIVERS', '<a target="_blank" href="'.acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'newsletter&task=edit&mailid='.$this->mailsdetails[0]->mailid).'">'.$this->mailsdetails[0]->subject.'</a>'); ?>
 		</div>
 		<div class="onelineblockoptions">
-			<?php echo acymailing_translation_sprintf('ABTESTING_DELAY_ACTION', '<input type="text" id="abTesting_delay" name="abTesting_delay" style="width:20px;" value="'.$this->abTestDetail['delay'].'">'); ?>
+			<?php echo acymailing_translation_sprintf('ABTESTING_DELAY_ACTION', '<input type="text" id="abTesting_delay" name="abTesting_delay" style="width:30px;" value="'.$this->abTestDetail['delay'].'">'); ?>
 			<div class="abtesting_actions">
 				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_manual" value="manual" <?php echo ($this->abTestDetail['action'] == 'manual') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_manual" class="radiobtn"><?php echo acymailing_translation('DO_NOTHING'); ?></label></div>
 				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_open" value="open" <?php echo ($this->abTestDetail['action'] == 'open') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_open" class="radiobtn"><?php echo acymailing_translation('ABTESTING_ACTION_GENERATE_OPEN'); ?></label></div>
@@ -131,9 +131,7 @@ defined('_JEXEC') or die('Restricted access');
 				<div style="margin-bottom: 5px;"><input type="radio" name="abTesting_action" id="abTesting_action_mix" value="mix" <?php echo ($this->abTestDetail['action'] == 'mix') ? 'checked="checked"' : ''; ?>><label for="abTesting_action_mix" class="radiobtn"><?php echo acymailing_translation('ABTESTING_ACTION_GENERATE_MIX'); ?></label></div>
 			</div>
 		</div>
-		<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-		<input type="hidden" name="task" value="abtesting"/>
-		<input type="hidden" name="ctrl" value="newsletter"/>
 		<input type="hidden" name="nbTotalReceivers" value="<?php echo $this->nbTotalReceivers; ?>"/>
+		<?php acymailing_formOptions(); ?>
 	</form>
 </div>

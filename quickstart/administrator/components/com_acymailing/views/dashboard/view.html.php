@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -19,11 +20,8 @@ class dashboardViewDashboard extends acymailingView{
 		$acyToolbar->setTitle(acymailing_translation('ACY_CPANEL'), 'dashboard');
 		$acyToolbar->display();
 
-		$db = JFactory::getDBO();
-
 		$userQuery = 'SELECT (confirmed + enabled) AS addition, COUNT(subid) AS total FROM #__acymailing_subscriber GROUP BY addition';
-		$db->setQuery($userQuery);
-		$userResult = $db->loadObjectList('addition');
+		$userResult = acymailing_loadObjectList($userQuery, 'addition');
 
 		$userStats = new stdClass();
 		$userStats->nbUnconfirmedAndDisabled = (empty($userResult[0]->total) ? 0 : $userResult[0]->total);
@@ -46,8 +44,7 @@ class dashboardViewDashboard extends acymailingView{
 		$listStats->subscribedPercent = (empty($nbLists) ? 0 : round((($atLeastOneSub * 100) / $nbLists), 0));
 
 		$nlQuery = 'SELECT count(mailid) AS total, published FROM #__acymailing_mail WHERE type = "news" GROUP BY published';
-		$db->setQuery($nlQuery);
-		$nlResult = $db->loadObjectList('published');
+		$nlResult = acymailing_loadObjectList($nlQuery, 'published');
 
 		$nlStats = new stdClass();
 		$nlStats->nbUnpublished = (empty($nlResult[0]->total) ? 0 : $nlResult[0]->total);
@@ -72,12 +69,10 @@ class dashboardViewDashboard extends acymailingView{
 				$condition = " WHERE geolocation_type='creation'";
 			}
 
-			$db = JFactory::getDBO();
 			$nbUsersToGet = 100;
 			$query = 'SELECT geolocation_type, geolocation_subid, geolocation_country_code, geolocation_city, geolocation_country, geolocation_state';
 			$query .= ' FROM #__acymailing_geolocation'.$condition.' GROUP BY geolocation_subid ORDER BY geolocation_created DESC LIMIT '.$nbUsersToGet;
-			$db->setQuery($query);
-			$geoloc = $db->loadObjectList();
+			$geoloc = acymailing_loadObjectList($query);
 
 			if(!empty($geoloc)){
 				$markCities = array();
@@ -112,13 +107,10 @@ class dashboardViewDashboard extends acymailingView{
 		}
 
 		acymailing_addScript(false, "https://www.google.com/jsapi");
-		$db->setQuery("SELECT count(`subid`) as total, DATE_FORMAT(FROM_UNIXTIME(`created`),'%Y-%m-%d') as subday FROM ".acymailing_table('subscriber')." WHERE `created` > 100000 GROUP BY subday ORDER BY subday DESC LIMIT 15");
-		$statsusers = $db->loadObjectList();
+		$statsusers = acymailing_loadObjectList("SELECT count(`subid`) as total, DATE_FORMAT(FROM_UNIXTIME(`created`),'%Y-%m-%d') as subday FROM ".acymailing_table('subscriber')." WHERE `created` > 100000 GROUP BY subday ORDER BY subday DESC LIMIT 15");
 		$this->statsusers = $statsusers;
 
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT name,email,html,confirmed,subid,created FROM '.acymailing_table('subscriber').' ORDER BY subid DESC LIMIT 10');
-		$users10 = $db->loadObjectList();
+		$users10 = acymailing_loadObjectList('SELECT name,email,html,confirmed,subid,created FROM '.acymailing_table('subscriber').' ORDER BY subid DESC LIMIT 10');
 		$this->users = $users10;
 
 		$toggleClass = acymailing_get('helper.toggle');
@@ -126,8 +118,7 @@ class dashboardViewDashboard extends acymailingView{
 
 
 		$listStatusQuery = 'SELECT count(subid) AS total, list.name AS listname, list.listid, listsub.status FROM #__acymailing_list AS list JOIN #__acymailing_listsub AS listsub ON list.listid = listsub.listid GROUP BY listsub.listid, listsub.status';
-		$db->setQuery($listStatusQuery);
-		$listStatusResult = $db->loadObjectList();
+		$listStatusResult = acymailing_loadObjectList($listStatusQuery);
 
 		$listStatusData = array();
 		foreach($listStatusResult as $oneResult){
@@ -136,14 +127,13 @@ class dashboardViewDashboard extends acymailingView{
 		$this->listStatusData = $listStatusData;
 
 
-		$db->setQuery("SELECT count(userstats.`mailid`) as total, DATE_FORMAT(FROM_UNIXTIME(`senddate`), '%Y-%m-%d') AS send_date,
+		$newsletters = acymailing_loadObjectList("SELECT count(userstats.`mailid`) as total, DATE_FORMAT(FROM_UNIXTIME(`senddate`), '%Y-%m-%d') AS send_date,
 						SUM(CASE WHEN fail>0 THEN 1 ELSE 0 END) AS nbFailed
 						FROM ".acymailing_table('userstats')." AS userstats
 						WHERE userstats.senddate > ".intval(time() - 2628000)."
 						GROUP BY send_date
 						ORDER BY send_date DESC");
 
-		$newsletters = $db->loadObjectList();
 		$this->newsletters = $newsletters;
 
 
@@ -160,7 +150,7 @@ class dashboardViewDashboard extends acymailingView{
 
 		$news = @simplexml_load_file('https://www.acyba.com/acynews.xml');
 		if(!empty($news->news)) {
-
+			
 			$currentLanguage = acymailing_getLanguageTag();
 
 			$latestNews = null;
@@ -171,11 +161,13 @@ class dashboardViewDashboard extends acymailingView{
 
 				if (!empty($oneNews->extension) && strtolower($oneNews->extension) != 'acymailing') continue;
 
+				if (!empty($oneNews->cms) && strtolower($oneNews->cms) != 'joomla') continue;
+
 				if (!empty($oneNews->level) && strtolower($oneNews->level) != strtolower($config->get('level'))) continue;
 
 				if (!empty($oneNews->version)) {
 					list($version, $operator) = explode('_', $oneNews->version);
-					if (!version_compare($config->get('version'), $version, $operator)) continue;
+					if(!version_compare($config->get('version'), $version, $operator)) continue;
 				}
 
 				$latestNews = $oneNews;

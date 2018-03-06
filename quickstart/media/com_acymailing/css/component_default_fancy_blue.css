@@ -1,8 +1,8 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -10,12 +10,10 @@
 
 
 
-
-
 #acyarchivelisting .inputbox, #acyuserinfo .inputbox, #acyuserinfo .inputbox{
 	border:1px solid #dde5e8;
 	padding:3px;}
-
+	
 #acyarchivelisting .inputbox:hover, #acyuserinfo .inputbox:hover, #acyuserinfo .inputbox:hover{
 	border:1px solid #c6d5da;
 	border-bottom:1px solid #a5b9c0;
@@ -24,7 +22,6 @@
 #acyarchivelisting .inputbox:focus, #acyuserinfo .inputbox:focus, #acyuserinfo .inputbox:focus{
 	border:1px solid #8ca3ab;
 	background-color:#eff3f4;}
-
 
 
 
@@ -42,7 +39,6 @@
 	border-bottom:2px solid #7ea5b5;
 	background-image:none;
 }
-
 
 
 #acyarchivelisting{
@@ -149,7 +145,6 @@
 	margin-bottom:10px;}
 
 
-
 #acylistslisting{
 	background-color:#f8f8f8;
 	border:1px solid #ccc;
@@ -212,7 +207,6 @@ div.acymailing_list:hover{
 	margin : 0px;
 	padding : 0px;
 }
-
 
 
 #acyusersubscription th{
@@ -313,7 +307,6 @@ div.acymailing_list:hover{
 
 
 
-
 #unsubpage{
 	background-color:#F5F5F5;
 	border:1px solid #ccc;
@@ -384,5 +377,6 @@ div.acymailing_list:hover{
 #unsubbutton_div{
 	text-align:center;
 }
+
 
 

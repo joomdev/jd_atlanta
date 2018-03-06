@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -83,7 +84,7 @@ if($params->get('effect') == 'mootools-box' AND acymailing_getVar('string', 'tmp
 	require(JModuleHelper::getLayoutPath('mod_acymailing', 'popup'));
 	return;
 }
-acymailing_initModule($params->get('includejs', 'header'), $params);
+acymailing_initModule($params);
 
 $userClass = acymailing_get('class.subscriber');
 $identifiedUser = null;
@@ -190,7 +191,7 @@ if(!in_array('email', $fieldsToDisplay) && empty($currentUserid)) $fieldsToDispl
 if($params->get('effect') == 'mootools-slide'){
 	$mootoolsButton = $params->get('mootoolsbutton', '');
 	if(empty($mootoolsButton)) $mootoolsButton = acymailing_translation('SUBSCRIBE');
-
+	
 	$js .= "document.addEventListener(\"DOMContentLoaded\", function(){
 				var acytogglemodule = document.getElementById('acymailing_togglemodule_$formName');
 				var module = document.getElementById('acymailing_fulldiv_$formName');
@@ -205,7 +206,7 @@ if($params->get('effect') == 'mootools-slide'){
 						acytogglemodule.className = 'acymailing_togglemodule acyactive';
 						module.className = 'slide_open';
 					}
-
+					
 					return false;
 				});
 			});
@@ -229,14 +230,12 @@ if($params->get('showterms', false)){
 		$termslink = acymailing_translation('JOOMEXT_TERMS');
 	}else{
 		if(is_numeric($termsIdContent)){
-			$db = JFactory::getDBO();
 			if(!ACYMAILING_J16){
 				$query = 'SELECT a.id,a.alias,a.catid,a.sectionid, c.alias as catalias, s.alias as secalias FROM #__content as a ';
 				$query .= ' LEFT JOIN #__categories AS c ON c.id = a.catid ';
 				$query .= ' LEFT JOIN #__sections AS s ON s.id = a.sectionid ';
 				$query .= 'WHERE a.id = '.$termsIdContent.' LIMIT 1';
-				$db->setQuery($query);
-				$article = $db->loadObject();
+				$article = acymailing_loadObject($query);
 
 				$section = $article->sectionid.(!empty($article->secalias) ? ':'.$article->secalias : '');
 				$category = $article->catid.(!empty($article->catalias) ? ':'.$article->catalias : '');
@@ -246,8 +245,7 @@ if($params->get('showterms', false)){
 				$query = 'SELECT a.id,a.alias,a.catid, c.alias as catalias FROM #__content as a ';
 				$query .= ' LEFT JOIN #__categories AS c ON c.id = a.catid ';
 				$query .= 'WHERE a.id = '.$termsIdContent.' LIMIT 1';
-				$db->setQuery($query);
-				$article = $db->loadObject();
+				$article = acymailing_loadObject($query);
 
 				$category = $article->catid.(!empty($article->catalias) ? ':'.$article->catalias : '');
 				$articleid = $article->id.(!empty($article->alias) ? ':'.$article->alias : '');

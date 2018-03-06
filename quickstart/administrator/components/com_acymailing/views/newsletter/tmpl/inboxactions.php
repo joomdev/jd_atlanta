@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 echo $this->tabs->startPanel(acymailing_translation('ACY_INBOX_ACTIONS'), 'mail_inboxactions'); ?>
@@ -13,7 +14,7 @@ echo $this->tabs->startPanel(acymailing_translation('ACY_INBOX_ACTIONS'), 'mail_
 if($this->config->get('inboxactionswhitelist', 1)){
 	$toggleClass = acymailing_get('helper.toggle');
 	$notremind = '<small style="float:right;margin-right:30px;position:relative;">'.$toggleClass->delete('acymailing_messages_warning', 'inboxactionswhitelist_0', 'config', false, acymailing_translation('DONT_REMIND')).'</small>';
-	acymailing_display(acymailing_translation('ACY_INBOX_ACTIONS_WHITELIST').' <a target="_blank" href="http://www.acyba.com/index.php?option=com_updateme&ctrl=redirect&page=inboxactions">'.acymailing_translation('TELL_ME_MORE').'</a>'.$notremind, 'warning');
+	acymailing_display(acymailing_translation('ACY_INBOX_ACTIONS_WHITELIST').' <a target="_blank" href="'.ACYMAILING_REDIRECT.'inboxactions">'.acymailing_translation('TELL_ME_MORE').'</a>'.$notremind, 'warning');
 }
 ?>
 	<table width="100%" class="acymailing_smalltable" id="metadatatable">

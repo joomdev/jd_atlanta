@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -26,16 +27,13 @@ class listClass extends acymailingClass{
 		}
 
 		$query = 'SELECT * FROM '.acymailing_table('list').' WHERE type = \''.$this->type.'\' '.(empty($onlyListids) ? '' : 'AND listid IN ('.implode(',', $onlyListids).')').' ORDER BY ordering ASC';
-		$this->database->setQuery($query);
-		return $this->database->loadObjectList($index);
+		return acymailing_loadObjectList($query, $index);
 	}
 
 	function getAllCampaigns($index = ''){
 		$query = 'SELECT * FROM '.acymailing_table('list').' WHERE type = \'campaign\' ORDER BY ordering ASC';
-		$this->database->setQuery($query);
-		return $this->database->loadObjectList($index);
+		return acymailing_loadObjectList($query, $index);
 	}
-
 
 	function delete($elements){
 		if(!is_array($elements)){
@@ -46,11 +44,9 @@ class listClass extends acymailingClass{
 
 		if(empty($elements)) return 0;
 
-		$this->database->setQuery('DELETE FROM #__acymailing_listcampaign WHERE `campaignid` IN ('.implode(',', $elements).')');
-		$this->database->query();
+		acymailing_query('DELETE FROM #__acymailing_listcampaign WHERE `campaignid` IN ('.implode(',', $elements).')');
 
-		$this->database->setQuery('DELETE #__acymailing_mail, #__acymailing_listmail FROM #__acymailing_mail INNER JOIN #__acymailing_listmail WHERE #__acymailing_mail.mailid=#__acymailing_listmail.mailid AND #__acymailing_mail.type=\'followup\' AND #__acymailing_listmail.listid IN ('.implode(',', $elements).')');
-		$this->database->query();
+		acymailing_query('DELETE #__acymailing_mail, #__acymailing_listmail FROM #__acymailing_mail INNER JOIN #__acymailing_listmail WHERE #__acymailing_mail.mailid=#__acymailing_listmail.mailid AND #__acymailing_mail.type=\'followup\' AND #__acymailing_listmail.listid IN ('.implode(',', $elements).')');
 
 		return parent::delete($elements);
 	}
@@ -69,8 +65,7 @@ class listClass extends acymailingClass{
 		}
 
 		$query = 'SELECT * FROM '.acymailing_table('list').' WHERE published = 1 AND type = \''.$this->type.'\' AND ('.implode(' OR ', $possibleValues).') ORDER BY ordering ASC';
-		$this->database->setQuery($query);
-		return $this->database->loadObjectList($index);
+		return acymailing_loadObjectList($query, $index);
 	}
 
 	function getFrontendCampaigns($index = ''){
@@ -87,14 +82,12 @@ class listClass extends acymailingClass{
 		}
 
 		$query = 'SELECT DISTINCT l.* FROM '.acymailing_table('list').' AS l INNER JOIN '.acymailing_table('listcampaign').' AS lc ON l.listid = lc.campaignid WHERE lc.listid IN (SELECT DISTINCT il.listid FROM '.acymailing_table('listcampaign').' AS ilc INNER JOIN '.acymailing_table('list').' AS il ON ilc.listid = il.listid WHERE il.published = 1 AND il.type = \'list\' AND ('.implode(' OR ', $possibleValues).')) AND l.published = 1 ORDER BY ordering ASC';
-		$this->database->setQuery($query);
-		return $this->database->loadObjectList($index);
+		return acymailing_loadObjectList($query, $index);
 	}
 
 	function get($listid, $default = null){
-		$query = 'SELECT a.*, b.name as creatorname, b.username, b.email FROM '.acymailing_table('list').' as a LEFT JOIN '.acymailing_table('users', false).' as b on a.userid = b.id WHERE listid = '.intval($listid).' LIMIT 1';
-		$this->database->setQuery($query);
-		return $this->database->loadObject();
+		$query = 'SELECT a.*, b.'.$this->cmsUserVars->name.' as creatorname, b.'.$this->cmsUserVars->username.' AS username, b.'.$this->cmsUserVars->email.' AS email FROM '.acymailing_table('list').' as a LEFT JOIN '.acymailing_table($this->cmsUserVars->table, false).' as b on a.userid = b.'.$this->cmsUserVars->id.' WHERE listid = '.intval($listid).' LIMIT 1';
+		return acymailing_loadObject($query);
 	}
 
 	function saveForm(){
@@ -115,7 +108,7 @@ class listClass extends acymailingClass{
 			}
 		}
 
-		$list->description = acymailing_getVar('string', 'editor_description', '', '', JREQUEST_ALLOWHTML);
+		$list->description = acymailing_getVar('string', 'editor_description', '', '', ACY_ALLOWHTML);
 		if(isset($list->published) && $list->published != 1) $list->published = 0;
 		$listid = $this->save($list);
 		if(!$listid) return false;
@@ -203,8 +196,7 @@ class listClass extends acymailingClass{
 
 		if(is_array($listid)) $listid = implode(',', $listid);
 		$query = 'SELECT  b.listid, b.campaignid FROM '.acymailing_table('list').' as a LEFT JOIN '.acymailing_table('listcampaign').' as b on a.listid = b.listid WHERE a.type = \'list\' AND b.listid IN ( '.$listid.') ORDER BY b.listid';
-		$this->database->setQuery($query);
-		$resSql = $this->database->loadObjectList();
+		$resSql = acymailing_loadObjectList($query);
 		$listCampaigns = array();
 		foreach($resSql as $oneList){
 			$listCampaigns[$oneList->listid][] = $oneList->campaignid;

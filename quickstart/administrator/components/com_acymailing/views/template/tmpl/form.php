@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
-	<form action="index.php" method="post" name="adminForm" id="adminForm" class="templateManagement" enctype="multipart/form-data">
+	<form action="<?php echo acymailing_completeLink('template'); ?>" method="post" name="adminForm" id="adminForm" class="templateManagement" enctype="multipart/form-data">
 		<div class="acyblockoptions" id="sendtest" style="float:none;<?php if(acymailing_getVar('cmd', 'task') != 'test') echo 'display:none;'; ?>">
 			<span class="acyblocktitle"><?php echo acymailing_translation('SEND_TEST'); ?></span>
 			<table>
@@ -24,7 +25,7 @@ defined('_JEXEC') or die('Restricted access');
 				<tr>
 					<td/>
 					<td>
-						<button type="submit" class="btn btn-primary" onclick="var val = document.getElementById('message_receivers').value; if(val != ''){ setUser(val); } submitbutton('test');return false;"><?php echo acymailing_translation('SEND_TEST') ?></button>
+						<button type="submit" class="acymailing_button" onclick="var val = document.getElementById('message_receivers').value; if(val != ''){ setUser(val); } acymailing.submitbutton('test');return false;"><?php echo acymailing_translation('SEND_TEST') ?></button>
 					</td>
 				</tr>
 			</table>
@@ -149,7 +150,6 @@ defined('_JEXEC') or die('Restricted access');
 
 		<div class="acyblockoptions">
 			<span class="acyblocktitle"><?php echo acymailing_translation('ACY_STYLES'); ?></span>
-			<div class="acytabsystem">
 			<?php
 			echo $this->tabs->startPane('template_css');
 			echo $this->tabs->startPanel(acymailing_translation('STYLE_IND'), 'template_css_classes'); ?>
@@ -238,8 +238,11 @@ defined('_JEXEC') or die('Restricted access');
 				<textarea onmouseover="document.getElementById('wysija').style.display = 'none'" name="data[template][stylesheet]" style="width:98%; min-width: 300px; min-height: 300px;" rows="25" id="acystylesheettextarea"><?php echo @$this->template->stylesheet; ?></textarea>
 			<?php }
 			echo $this->tabs->endPanel();
+			echo $this->tabs->startPanel(acymailing_translation('ACY_HEADER'), 'template_css_header'); ?>
+			<textarea name="data[template][header]" id="headertags" cols="10" rows="24" style="width: 98%; margin-top: 30px; font-size: 15px;"><?php echo $this->template->header ?></textarea>
+			<?php
+			echo $this->tabs->endPanel();
 			echo $this->tabs->endPane(); ?>
-			</div>
 		</div>
 		<?php if(acymailing_level(3)){
 			$acltype = acymailing_get('type.acl'); ?>

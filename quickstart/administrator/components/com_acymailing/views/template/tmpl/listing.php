@@ -1,16 +1,17 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
 	<?php $saveOrder = $this->pageInfo->filter->order->value == 'a.ordering' && strtolower($this->pageInfo->filter->order->dir) == 'asc';	?>
-	<form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>&amp;ctrl=template" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_completeLink('template'); ?>" method="post" name="adminForm" id="adminForm">
 		<table class="acymailing_table_options">
 			<tr>
 				<td width="100%">
@@ -53,8 +54,7 @@ defined('_JEXEC') or die('Restricted access');
 			<tr>
 				<td colspan="7">
 					<?php echo $this->pagination->getListFooter();
-					echo $this->pagination->getResultsCounter();
-					if(ACYMAILING_J30) echo '<br />'.$this->pagination->getLimitBox(); ?>
+					echo $this->pagination->getResultsCounter(); ?>
 				</td>
 			</tr>
 			</tfoot>
@@ -70,7 +70,7 @@ defined('_JEXEC') or die('Restricted access');
 				$publishedid = 'published_'.$row->tempid;
 				$premiumid = 'premium_'.$row->tempid;
 				?>
-				<tr class="<?php echo "row$k"; ?>" acyorder-id="<?php echo $row->tempid; ?>">
+				<tr class="<?php echo "row$k"; ?>" acyorderid="<?php echo $row->tempid; ?>">
 					<td align="center" style="text-align:center;">
 						<?php echo $this->pagination->getRowOffset($i); ?>
 					</td>

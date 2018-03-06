@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acyarchivelisting">
 	<?php if($this->values->show_page_heading){ ?>
@@ -25,7 +26,7 @@ defined('_JEXEC') or die('Restricted access');
 				<?php
 					if(!empty($this->manageableLists)){
 				?>
-					<p class="acynewbutton"><a class="btn" href="<?php echo acymailing_completeLink('frontnewsletter&task=add&listid='.$this->list->listid); ?>" title="<?php echo acymailing_translation('CREATE_NEWSLETTER',true); ?>" ><img class="icon16" src="<?php echo ACYMAILING_IMAGES; ?>icons/icon-16-add.png" alt="<?php echo acymailing_translation('CREATE_NEWSLETTER',true); ?>" /> <?php echo acymailing_translation('CREATE_NEWSLETTER'); ?></a></p>
+					<p class="acynewbutton"><a class="btn" href="<?php echo acymailing_completeLink('frontnewsletter&task=add&listid='.$this->list->listid); ?>" title="<?php echo acymailing_translation('CREATE_NEWSLETTER',true); ?>" ><img src="<?php echo ACYMAILING_IMAGES; ?>icons/icon-16-add.png" alt="<?php echo acymailing_translation('CREATE_NEWSLETTER',true); ?>" /> <?php echo acymailing_translation('CREATE_NEWSLETTER'); ?></a></p>
 				<?php } ?>
 					<?php echo $this->loadTemplate('newsletters'); ?>
 					<?php if(!empty($this->values->itemid)){ ?>
@@ -35,7 +36,7 @@ defined('_JEXEC') or die('Restricted access');
 				</td>
 			</tr>
 		</table>
-
+	
 		<?php if($this->values->show_receiveemail){ ?>
 			<div id="receiveemailbox" class="receiveemailbox receiveemailbox_hidden">
 				<fieldset class="acymailing_receiveemail">
@@ -64,15 +65,15 @@ defined('_JEXEC') or die('Restricted access');
 							?>
 						</tr>
 					</table>
-					<button class="btn btn-primary" type="submit" value="sendarchive" name="task"/><?php echo acymailing_translation('SEND'); ?></button>
-					<?php acymailing_formOptions($this->pageInfo->filter->order); ?>
+					<button class="btn btn-primary" type="submit"/><?php echo acymailing_translation('SEND'); ?></button>
+					<?php acymailing_formOptions($this->pageInfo->filter->order, 'sendarchive'); ?>
 				</fieldset>
 			</div>
-
+	
 		<?php }
 			if(!empty($this->manageableLists)){
 		?>
-			<p class="acynewbutton"><a class="btn" href="<?php echo acymailing_completeLink('frontnewsletter&task=add&listid='.$this->list->listid); ?>" title="<?php echo acymailing_translation('CREATE_NEWSLETTER',true); ?>" ><img class="icon16" src="<?php echo ACYMAILING_IMAGES; ?>icons/icon-16-add.png" alt="<?php echo acymailing_translation('CREATE_NEWSLETTER',true); ?>" /> <?php echo acymailing_translation('CREATE_NEWSLETTER'); ?></a></p>
+			<p class="acynewbutton"><a class="btn" href="<?php echo acymailing_completeLink('frontnewsletter&task=add&listid='.$this->list->listid); ?>" title="<?php echo acymailing_translation('CREATE_NEWSLETTER',true); ?>" ><img src="<?php echo ACYMAILING_IMAGES; ?>icons/icon-16-add.png" alt="<?php echo acymailing_translation('CREATE_NEWSLETTER',true); ?>" /> <?php echo acymailing_translation('CREATE_NEWSLETTER'); ?></a></p>
 		<?php } ?>
 	</form>
 </div>

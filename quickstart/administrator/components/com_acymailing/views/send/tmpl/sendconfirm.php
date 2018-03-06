@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
-	<form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>&amp;ctrl=send" method="post" name="adminForm" id="adminForm" autocomplete="off">
+	<form action="<?php echo acymailing_completeLink('send'); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off">
 		<div>
 			<?php $displayWarning = false;
 			$config = acymailing_config();
@@ -32,7 +33,7 @@ defined('_JEXEC') or die('Restricted access');
 									<td>
 										<?php
 										echo acymailing_tooltip($row->description, $row->name, 'tooltip.png', $row->name);
-										echo ' ( '.acymailing_translation_sprintf('SELECTED_USERS', $row->nbsub).' )';
+										echo ' ( '.acymailing_translation_sprintf('ACY_SELECTED_USERS', $row->nbsub).' )';
 										?>
 									</td>
 								</tr>
@@ -85,13 +86,12 @@ defined('_JEXEC') or die('Restricted access');
 				?>
 				<div style="text-align:center;font-size:14px;padding:20px;">
 					<?php if(empty($this->values->nbqueue)) echo acymailing_translation_sprintf('SENT_TO_NUMBER', '<span style="font-weight:bold;" id="nbreceivers" >'.$nbTotalReceivers.'</span>').'<br />'; ?>
-					<input onclick="document.adminForm.task.value='<?php echo empty($this->values->nbqueue) ? 'send' : 'continuesend'; ?>';" class="btn btn-primary" style="padding:10px 30px;margin:5px;font-size:14px;cursor:pointer;" type="submit" value="<?php echo empty($this->values->nbqueue) ? acymailing_translation('SEND') : acymailing_translation('CONTINUE') ?>"/>
+					<input onclick="document.adminForm.task.value='<?php echo empty($this->values->nbqueue) ? 'send' : 'continuesend'; ?>';" class="acymailing_button" style="padding:10px 30px;margin:5px;font-size:14px;cursor:pointer;" type="submit" value="<?php echo empty($this->values->nbqueue) ? acymailing_translation('SEND') : acymailing_translation('CONTINUE') ?>"/>
 				</div>
 			<?php } ?>
 		</div>
 		<div class="clr"></div>
 		<input type="hidden" name="cid[]" value="<?php echo $this->mail->mailid; ?>"/>
-		<input type="hidden" name="hidemainmenu" value="1"/>
 		<?php acymailing_formOptions(); ?>
 	</form>
 </div>

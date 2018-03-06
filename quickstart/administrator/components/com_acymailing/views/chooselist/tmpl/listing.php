@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<script language="javascript" type="text/javascript">
@@ -42,12 +43,25 @@ defined('_JEXEC') or die('Restricted access');
 			if (allElements == <?php echo count($this->rows);?>) tag = 'None';
 
 			<?php if(empty($this->popup)){ ?>
-			window.parent.document.getElementById('<?php echo $this->controlName.$this->fieldName; ?>').value = tag;
-			window.parent.displayLists();
+
+				window.parent.document.getElementById('<?php echo $this->controlName.$this->fieldName; ?>').value = tag;
+				window.parent.displayLists();
+
 			<?php }else{ ?>
-			window.top.document.getElementById('<?php echo $this->controlName.$this->fieldName; ?>').value = tag;
-			window.top.document.getElementById('link<?php echo $this->controlName.$this->fieldName; ?>').href = 'index.php?option=com_acymailing&tmpl=component&ctrl=chooselist&task=<?php echo $this->fieldName; ?>&control=<?php echo $this->controlName; ?>&values=' + tag;
-			acymailing.closeBox(true);
+
+				var textbox = window.top.document.getElementById('<?php echo $this->controlName.$this->fieldName; ?>');
+				textbox.value = tag;
+
+				<?php if('joomla' == 'wordpress'){ ?>
+					if(textbox.form && textbox.form.querySelector('input[type="submit"]')){
+						textbox.form.querySelector('input[type="submit"]').removeAttribute('disabled');
+						textbox.form.querySelector('input[type="submit"]').value = '<?php echo __('Save'); ?>';
+					}
+				<?php } ?>
+
+				parent.acymailing.setOnclickPopup('link<?php echo $this->controlName.$this->fieldName; ?>', '<?php echo htmlspecialchars_decode(acymailing_completeLink('chooselist&task='.$this->fieldName.'&control='.$this->controlName)); ?>&values='+tag, 650, 375);
+				acymailing.closeBox(true);
+
 			<?php } ?>
 		}
 		//-->
@@ -57,7 +71,7 @@ defined('_JEXEC') or die('Restricted access');
 			background-color: #f3f7fc;
 		}
 	</style>
-	<form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'chooselist'); ?>" method="post" name="adminForm" id="adminForm">
 		<div style="float:right;margin-bottom : 10px">
 			<button class="acymailing_button_grey" id="insertButton" onclick="insertTag(); return false;"><?php echo acymailing_translation('ACY_APPLY'); ?></button>
 		</div>

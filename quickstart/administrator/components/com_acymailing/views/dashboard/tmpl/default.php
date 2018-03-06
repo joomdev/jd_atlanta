@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
@@ -82,28 +83,28 @@ defined('_JEXEC') or die('Restricted access');
 
 			<!-- progress steps -->
 			<div class="acydashboard_progress_steps">
-				<a href="index.php?option=com_acymailing&ctrl=list">
+				<a href="<?php echo acymailing_completeLink('list'); ?>">
 					<div class="acydashboard_progress_block acydashboard_step1">
 						<div class="step_image"></div>
 						<div class="step_info"><span class="step_title"><?php echo acymailing_translation('MAILING_LISTS'); ?></span><?php echo acymailing_translation('ACY_MAILING_LIST_STEP_DESC'); ?></div>
 					</div>
 				</a>
 
-				<a href="index.php?option=com_acymailing&ctrl=subscriber">
+				<a href="<?php echo acymailing_completeLink('subscriber'); ?>">
 					<div class="acydashboard_progress_block acydashboard_step2">
 						<div class="step_image"></div>
 						<div class="step_info"><span class="step_title"><?php echo acymailing_translation('ACY_CONTACTS'); ?></span><?php echo acymailing_translation('ACY_MAILING_CONTACT_STEP_DESC'); ?>                        </div>
 					</div>
 				</a>
 
-				<a href="index.php?option=com_acymailing&ctrl=newsletter">
+				<a href="<?php echo acymailing_completeLink('newsletter'); ?>">
 					<div class="acydashboard_progress_block acydashboard_step3">
 						<div class="step_image"></div>
 						<div class="step_info"><span class="step_title"><?php echo acymailing_translation('NEWSLETTERS'); ?></span><?php echo acymailing_translation('ACY_MAILING_NEWSLETTER_STEP_DESC'); ?>                        </div>
 					</div>
 				</a>
 
-				<a href="index.php?option=com_acymailing&ctrl=queue">
+				<a href="<?php echo acymailing_completeLink('queue'); ?>">
 					<div class="acydashboard_progress_block acydashboard_step4">
 						<div class="step_image"></div>
 						<div class="step_info"><span class="step_title"><?php echo acymailing_translation('SEND_PROCESS'); ?></span><?php echo acymailing_translation('ACY_MAILING_SEND_PROCESS_STEP_DESC'); ?></div>

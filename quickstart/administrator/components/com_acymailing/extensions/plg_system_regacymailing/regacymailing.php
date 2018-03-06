@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -179,10 +180,8 @@ class plgSystemRegacymailing extends JPlugin{
 		if($option == 'com_rsform'){
 			$formId = acymailing_getVar('cmd', 'formId', '', 'GET');
 			if(empty($formId)) $formId = acymailing_getVar('cmd', 'formId');
-			$db = JFactory::getDBO();
-			if(!empty($formId) && in_array($db->getPrefix().'rsform_registration', $db->getTableList())){
-				$db->setQuery('SELECT * FROM #__rsform_registration WHERE form_id = '.intval($formId).' AND published = 1');
-				$registration = $db->loadObject();
+			if(!empty($formId) && in_array(acymailing_getPrefix().'rsform_registration', acymailing_getTableList())){
+				$registration = acymailing_loadObject('SELECT * FROM #__rsform_registration WHERE form_id = '.intval($formId).' AND published = 1');
 				if(!empty($registration)){
 					$regVar = empty($registration->reg_merge_vars) ? 'vars' : 'reg_merge_vars';
 					$registrationVars = unserialize($registration->$regVar);
@@ -708,7 +707,6 @@ class plgSystemRegacymailing extends JPlugin{
 		JResponse::setBody($body);
 	}
 
-
 	function onUserBeforeSave($user, $isnew, $new){
 		if($this->initAcy() === false) return true;
 
@@ -720,9 +718,7 @@ class plgSystemRegacymailing extends JPlugin{
 
 		$user = JFactory::getUser();
 
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT id FROM #__users WHERE email = '.$db->Quote($vars['user'][email]));
-		$id = $db->loadResult();
+		$id = acymailing_loadResult('SELECT id FROM #__users WHERE email = '.acymailing_escapeDB($vars['user'][email]));
 		if(empty($id)){
 			$isnew = true;
 			$user->id = 0;
@@ -776,7 +772,7 @@ class plgSystemRegacymailing extends JPlugin{
 
 		if(!isset($this->params)){
 			$plugin = JPluginHelper::getPlugin('system', 'regacymailing');
-			$this->params = new JParameter($plugin->params);
+			$this->params = new acyParameter($plugin->params);
 		}
 
 		if(!acymailing_getVar('cmd', 'acy_source')) acymailing_setVar('acy_source', 'joomla');
@@ -965,9 +961,7 @@ class plgSystemRegacymailing extends JPlugin{
 			if($this->params->get('deletebehavior', '0') == 0){
 				$userClass->delete($subid);
 			}else{
-				$db = JFactory::getDBO();
-				$db->setQuery('UPDATE #__acymailing_subscriber SET `userid` = 0 WHERE subid = '.intval($subid));
-				$db->query();
+				acymailing_query('UPDATE #__acymailing_subscriber SET `userid` = 0 WHERE subid = '.intval($subid));
 			}
 		}
 
@@ -983,10 +977,8 @@ class plgSystemRegacymailing extends JPlugin{
 		if(empty($userSubid)) return true;
 
 		if(!empty($er_user->approve)){
-			$db = JFactory::getDBO();
 			$query = 'UPDATE  #__acymailing_subscriber SET `enabled` = '.(int)$er_user->approve.' WHERE subid ='.intval($userSubid);
-			$db->setQuery($query);
-			$db->query();
+			acymailing_query($query);
 		}
 		$userClass->confirmSubscription($userSubid);
 		return true;
@@ -1000,10 +992,8 @@ class plgSystemRegacymailing extends JPlugin{
 		$userSubid = $userClass->subid($er_user->id);
 		if(empty($userSubid)) return true;
 
-		$db = JFactory::getDBO();
 		$query = 'UPDATE  #__acymailing_subscriber SET `enabled` = "1" WHERE subid ='.intval($userSubid);
-		$db->setQuery($query);
-		$db->query();
+		acymailing_query($query);
 
 		return true;
 	}

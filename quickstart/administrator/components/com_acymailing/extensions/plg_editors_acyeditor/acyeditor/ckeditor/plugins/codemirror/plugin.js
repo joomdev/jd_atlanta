@@ -1,10 +1,3 @@
-/*
-*  The "codemirror" plugin. It's indented to enhance the
-*  "sourcearea" editing mode, which displays the xhtml source code with
-*  syntax highlight and line numbers.
-* Licensed under the MIT license
-* CodeMirror Plugin: http://codemirror.net/ (MIT License)
-*/
 
 (function() {
     CKEDITOR.plugins.add('codemirror', {
@@ -40,11 +33,9 @@
                     useBeautify: false
                 };
             
-            // Get Config & Lang
             var config = CKEDITOR.tools.extend(defaultConfig, editor.config.codemirror || {}, true),
                 lang = editor.lang.codemirror;
             
-            // check for old config settings for legacy support
             if (editor.config.codemirror_theme) {
                 config.theme = editor.config.codemirror_theme;
             }
@@ -52,15 +43,12 @@
                 config.autoFormatOnStart = editor.config.codemirror_autoFormatOnStart;
             }
 
-            // automatically switch to bbcode mode if bbcode plugin is enabled
             if (editor.plugins.bbcode && config.mode.indexOf("bbcode") <= 0) {
                 config.mode = "bbcode";
             }
 
-            // Source mode isn't available in inline mode yet.
             if (editor.elementMode === CKEDITOR.ELEMENT_MODE_INLINE || editor.plugins.sourcedialog) {
                 
-                // Override Source Dialog
                 CKEDITOR.dialog.add('sourcedialog', function (editor) {
                     var size = CKEDITOR.document.getWindow().getViewPaneSize(),
                         width = Math.min(size.width - 70, 800),
@@ -87,7 +75,6 @@
                             showCursorWhenSelecting: true,
                             styleActiveLine: config.styleActiveLine,
                             viewportMargin: Infinity,
-                            //extraKeys: {"Ctrl-Space": "autocomplete"},
                             extraKeys: {
                                 "Ctrl-Q": function (codeMirror_Editor) {
                                     if (config.enableCodeFolding) {
@@ -116,9 +103,6 @@
                                     } else if (evt.type === "keydown" && evt.ctrlKey && evt.keyCode === 75 && !evt.shiftKey && evt.altKey) {
                                         window["codemirror_" + editor.id].autoFormatRange(range.from, range.to);
                                     }
-                                    /*else if (evt.type === "keydown") {
-                                        CodeMirror.commands.newlineAndIndentContinueMarkdownList(window["codemirror_" + editor.id]);
-                                    }*/
                                 }
                             }
                         });
@@ -126,7 +110,6 @@
                         var holderHeight = height + 'px';
                         var holderWidth = width + 'px';
 
-                        // Store config so we can access it within commands etc.
                         window["codemirror_" + editor.id].config = config;
                         
                         if (config.autoFormatOnStart) {
@@ -163,16 +146,13 @@
 
                         window["codemirror_" + editor.id].setSize(holderWidth, holderHeight);
 
-                        // Enable Code Folding (Requires 'lineNumbers' to be set to 'true')
                         if (config.lineNumbers && config.enableCodeFolding) {
                             window["codemirror_" + editor.id].on("gutterClick", window["foldFunc_" + editor.id]);
                         }
-                        // Run config.onLoad callback, if present.
                         if (typeof config.onLoad === 'function') {
                             config.onLoad(window["codemirror_" + editor.id], editor);
                         }
 
-                        // inherit blur event
                         window["codemirror_" + editor.id].on("blur", function () {
                             editor.fire('blur', this);
                         });
@@ -184,13 +164,11 @@
                         minHeight: height,
                         resizable : CKEDITOR.DIALOG_RESIZE_NONE,
                         onShow: function () {
-                            // Set Elements
                             this.getContentElement('main', 'data').focus();
                             this.getContentElement('main', 'AutoComplete').setValue(config.autoCloseTags, true);
                             
                             var textArea = this.getContentElement('main', 'data').getInputElement().$;
                             
-                            // Load the content
                             this.setValueOf('main', 'data', oldData = editor.getData());
 
                             if (!IsStyleSheetAlreadyLoaded(rootPath + 'css/codemirror.min.css')) {
@@ -212,11 +190,9 @@
 
 
                             } else {
-                                //loadCodeMirrorInline(editor, textArea);
                                 if (CodeMirror.prototype['autoFormatAll']) {
                                     loadCodeMirrorInline(editor, textArea);
                                 } else {
-                                    // loading the add-on scripts.
                                     CKEDITOR.scriptLoader.load(getCodeMirrorScripts(), function() {
                                         loadCodeMirrorInline(editor, textArea);
                                     });
@@ -227,7 +203,6 @@
                             if (event.data.hide) {
                                 window["codemirror_" + editor.id].toTextArea();
 
-                                // Free Memory
                                 window["codemirror_" + editor.id] = null;
                             }
                         },
@@ -239,7 +214,6 @@
                                 editor.setData(newData, function () {
                                     that.hide();
 
-                                    // Ensure correct selection.
                                     var range = editor.createRange();
                                     range.moveToElementEditStart(editor.editable());
                                     range.select();
@@ -249,21 +223,15 @@
                             return function () {
                                 window["codemirror_" + editor.id].toTextArea();
 
-                                // Free Memory
                                 window["codemirror_" + editor.id] = null;
 
-                                // Remove CR from input data for reliable comparison with editor data.
                                 var newData = this.getValueOf('main', 'data').replace(/\r/g, '');
 
-                                // Avoid unnecessary setData. Also preserve selection
-                                // when user changed his mind and goes back to wysiwyg editing.
                                 if (newData === oldData)
                                     return true;
 
-                                // Set data asynchronously to avoid errors in IE.
                                 CKEDITOR.env.ie ? CKEDITOR.tools.setTimeout(setData, 0, this, newData) : setData.call(this, newData);
 
-                                // Don't let the dialog close before setData is over.
                                 return false;
                             };
                         })(),
@@ -353,41 +321,9 @@
                     };
                 });
 
-               // return;
             }
             
-            /*
-            // Override Copy Button
-            if (editor.commands.copy) {
-                editor.commands.copy.modes = {
-                    wysiwyg: 1,
-                    source: 1
-                };
 
-                // TODO
-            }
-
-            // Override Paste Button
-            if (editor.commands.paste) {
-                editor.commands.paste.modes = {
-                    wysiwyg: 1,
-                    source: 1
-                };
-                // TODO
-
-            }
-
-            // Override Cut Button
-            if (editor.commands.cut) {
-                editor.commands.cut.modes = {
-                    wysiwyg: 1,
-                    source: 1
-                };
-
-                // TODO
-            }*/
-
-            // Override Find Button
             if (editor.commands.find) {
                 editor.commands.find.modes = {
                     wysiwyg: 1,
@@ -403,7 +339,6 @@
                 };
             }
             
-            // Override Replace Button
             if (editor.commands.replace) {
                 editor.commands.replace.modes = {
                     wysiwyg: 1,
@@ -421,7 +356,6 @@
             
             var sourcearea = CKEDITOR.plugins.sourcearea;
             
-            // check if sourcearea plugin is overrriden
             if (!sourcearea.commands.searchCode) {
 
                 CKEDITOR.plugins.sourcearea.commands = {
@@ -550,7 +484,6 @@
                         loadCodeMirror(editor);
                         callback();
                     } else {
-                        // loading the add-on scripts.
                         CKEDITOR.scriptLoader.load(getCodeMirrorScripts(), function() {
                             loadCodeMirror(editor);
                             callback();
@@ -619,7 +552,6 @@
 
                 textarea.setStyles(
                     CKEDITOR.tools.extend({
-                            // IE7 has overflow the <textarea> from wrapping table cell.
                             width: CKEDITOR.env.ie7Compat ? '99%' : '100%',
                             height: '100%',
                             resize: 'none',
@@ -639,7 +571,6 @@
                 textarea.addClass('cke_enable_context_menu');
                 editor.ui.space('contents').append(textarea);
                 window["editable_" + editor.id] = editor.editable(new sourceEditable(editor, textarea));
-                // Fill the textarea with the current editor data.
                 window["editable_" + editor.id].setData(editor.getData(1));
                 window["editable_" + editor.id].editorID = editor.id;
                 editor.fire('ariaWidget', this);
@@ -647,11 +578,7 @@
                 var sourceAreaElement = window["editable_" + editor.id],
                     holderElement = sourceAreaElement.getParent();
 
-                /*CodeMirror.commands.autocomplete = function(cm) {
-                    CodeMirror.showHint(cm, CodeMirror.htmlHint);
-                };*/
 
-                // Enable Code Folding (Requires 'lineNumbers' to be set to 'true')
                 if (config.lineNumbers && config.enableCodeFolding) {
                     window["foldFunc_" + editor.id] = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
                 }
@@ -725,7 +652,6 @@
                     showTrailingSpace: config.showTrailingSpace,
                     showCursorWhenSelecting: true,
                     styleActiveLine: config.styleActiveLine,
-                    //extraKeys: {"Ctrl-Space": "autocomplete"},
                     extraKeys: extraKeys,
                     foldGutter: true,
                     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
@@ -742,17 +668,13 @@
                                 }
                             } else if (evt.type === "keydown" && evt.ctrlKey && evt.keyCode === 75 && !evt.shiftKey && evt.altKey) {
                                 window["codemirror_" + editor.id].autoFormatRange(range.from, range.to);
-                            }/* else if (evt.type === "keydown") {
-                                CodeMirror.commands.newlineAndIndentContinueMarkdownList(window["codemirror_" + editor.id]);
-                            }*/
-                        }
+                            }                        }
                     }
                 });
 
                 var holderHeight = holderElement.$.clientHeight == 0 ? editor.ui.space('contents').getStyle('height') : holderElement.$.clientHeight + 'px';
                 var holderWidth = holderElement.$.clientWidth + 'px';
 
-                // Store config so we can access it within commands etc.
                 window["codemirror_" + editor.id].config = config;
                 if (config.autoFormatOnStart) {
                     if (config.useBeautify) {
@@ -788,17 +710,14 @@
 
                 window["codemirror_" + editor.id].setSize(null, holderHeight);
                 
-                // Enable Code Folding (Requires 'lineNumbers' to be set to 'true')
                 if (config.lineNumbers && config.enableCodeFolding) {
                     window["codemirror_" + editor.id].on("gutterClick", window["foldFunc_" + editor.id]);
                 }
 
-                // Run config.onLoad callback, if present.
                 if (typeof config.onLoad === 'function') {
                     config.onLoad(window["codemirror_" + editor.id], editor);
                 }
 
-                // inherit blur event
                 window["codemirror_" + editor.id].on("blur", function () {
                     editor.fire('blur', this);
                 });
@@ -823,13 +742,6 @@
                     if (config.showFormatButton || config.showCommentButton || config.showUncommentButton || config.showSearchButton) {
                         editor.ui.add('-', CKEDITOR.UI_SEPARATOR, { toolbar: 'mode,30' });
                     }
-                    /*if (config.showSearchButton && config.enableSearchTools) {
-                        editor.ui.addButton('searchCode', {
-                            label: lang.searchCode,
-                            command: 'searchCode',
-                            toolbar: 'mode,40'
-                        });
-                    }*/
                     if (config.showFormatButton) {
                         editor.ui.addButton('autoFormat', {
                             label: lang.autoFormat,
@@ -869,7 +781,6 @@
                     range.startOffset = LineChannelToOffSet(window["codemirror_" + editor.id], window["codemirror_" + editor.id].getCursor(true));
                     range.endOffset = LineChannelToOffSet(window["codemirror_" + editor.id], window["codemirror_" + editor.id].getCursor(false));
 
-                    // Fly the range when create bookmark. 
                     delete range.element;
                     range.createBookmark(editor);
                     sourceBookmark = true;
@@ -885,8 +796,6 @@
 
                     if (editor.plugins.textselection && textRange) {
 
-                        //textRange.element = new CKEDITOR.dom.element(editor._.editable.$);
-                        //textRange.select();
 
                         var start, end;
 
@@ -921,12 +830,10 @@
             
             editor.on('instanceReady', function (evt) {
 
-                // Fix native context menu
                 editor.container.getPrivate().events.contextmenu.listeners.splice(0, 1);
 
                 var selectAllCommand = editor.commands.selectAll;
 
-                // Replace Complete SelectAll command from the plugin, otherwise it will not work in IE10
                 if (selectAllCommand != null) {
                     selectAllCommand.exec = function () {
                         if (editor.mode === 'source') {
@@ -947,7 +854,6 @@
                                 range.select();
                             }
 
-                            // Force triggering selectionChange (#7008)
                             editor.forceNextSelectionCheck();
                             editor.selectionChange();
                         }
@@ -985,14 +891,12 @@
             getData: function() {
                 return this.getValue();
             },
-            // Insertions are not supported in source editable.
             insertHtml: function() {
             },
             insertElement: function() {
             },
             insertText: function() {
             },
-            // Read-only support for textarea.
             setReadOnly: function(isReadOnly) {
                 this[(isReadOnly ? 'set' : 'remove') + 'Attribute']('readOnly', 'readonly');
             },
@@ -1000,7 +904,6 @@
             detach: function() {
                 window["codemirror_" + this.editorID].toTextArea();
                 
-                // Free Memory on destroy
                 window["editable_" + this.editorID] = null;
                 window["codemirror_" + this.editorID] = null;
 

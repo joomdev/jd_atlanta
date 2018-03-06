@@ -1,11 +1,10 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-
 
 @font-face{
 	font-family: 'acyicon';
@@ -26,7 +25,6 @@
 	font-variant: normal;
 	text-transform: none;
 	line-height: 1;
-
 
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -315,4 +313,24 @@
 
 .acysortable-ghost{
 	opacity: 0;
+}
+
+.acyicon-first:before{
+	content: "\ea21";
+}
+
+.acyicon-last:before{
+	content: "\ea22";
+}
+
+.acyicon-backward:before{
+	content: "\ea1f";
+}
+
+.acyicon-forward:before{
+	content: "\ea20";
+}
+
+#acy_content td a img{
+	vertical-align: middle;
 }

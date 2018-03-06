@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -38,7 +39,7 @@ class SubscriberController extends acymailingController{
 		}
 
 
-		$this->setRedirect(acymailing_completeLink($redirection, false, true));
+		acymailing_redirect(acymailing_completeLink($redirection, false, true));
 	}
 
 	function store(){
@@ -106,10 +107,8 @@ class SubscriberController extends acymailingController{
 		$NameSearched = acymailing_getVar('string', 'search', '');
 		if(empty($NameSearched) || !acymailing_isAdmin() || !$this->isAllowed('subscriber', 'view')) exit;
 
-		$db = JFactory::getDBO();
 		$NameSearched = '\'%'.acymailing_getEscaped($NameSearched, true).'%\'';
-		$db->setQuery('SELECT name, email FROM #__acymailing_subscriber WHERE email LIKE '.$NameSearched.' OR name LIKE '.$NameSearched.' ORDER BY email ASC LIMIT 30');
-		$users = $db->loadObjectList();
+		$users = acymailing_loadObjectList('SELECT name, email FROM #__acymailing_subscriber WHERE email LIKE '.$NameSearched.' OR name LIKE '.$NameSearched.' ORDER BY email ASC LIMIT 30');
 		if(empty($users)) exit;
 
 		echo '<table style="width:100%;">';

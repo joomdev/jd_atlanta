@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -30,9 +31,9 @@ class UpdateViewUpdate extends acymailingView{
             var information = document.getElementById("information");
             progressbar.style.width = "10%";
             information.innerHTML = "'.htmlspecialchars(acymailing_translation('ACY_DOWNLOADING'), ENT_QUOTES, 'UTF-8').'";
-
+					
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", "index.php?option=com_acymailing&tmpl=component&ctrl=file&task=downloadAcySMS");
+            xhr.open("GET", "'.acymailing_prepareAjaxURL('file').'&task=downloadAcySMS");
             xhr.onload = function(){
                 if(xhr.responseText == "success") {
                     progressbar.style.width = "40%";
@@ -54,9 +55,9 @@ class UpdateViewUpdate extends acymailingView{
                     progressbar.style.width = progress + "%";
                 }
             }, 4000);
-
+					
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", "index.php?option=com_acymailing&tmpl=component&ctrl=file&task=installPackage");
+            xhr.open("GET", "'.acymailing_prepareAjaxURL('file').'&task=installPackage");
             xhr.onload = function(){
                 if(xhr.responseText == "success") {
                     progressbar.style.width = "100%";

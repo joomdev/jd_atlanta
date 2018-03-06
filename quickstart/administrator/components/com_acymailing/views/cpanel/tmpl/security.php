@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="page-security">
 	<?php if(acymailing_level(1)){
@@ -87,7 +88,7 @@ defined('_JEXEC') or die('Restricted access');
 				</td>
 				<td>
 					<?php $uploadfolder = $this->config->get('uploadfolder');
-					if(empty($uploadfolder)) $uploadfolder = 'media/com_acymailing/upload'; ?>
+					if(empty($uploadfolder)) $uploadfolder = ACYMAILING_MEDIA_FOLDER.'/upload'; ?>
 					<input class="inputbox" type="text" name="config[uploadfolder]" style="width:250px" value="<?php echo $this->escape($uploadfolder); ?>"/>
 				</td>
 			</tr>
@@ -96,8 +97,8 @@ defined('_JEXEC') or die('Restricted access');
 					<?php echo acymailing_tooltip(acymailing_translation('MEDIA_FOLDER_DESC'), acymailing_translation('MEDIA_FOLDER'), '', acymailing_translation('MEDIA_FOLDER')); ?>
 				</td>
 				<td>
-					<?php $mediafolder = $this->config->get('mediafolder', 'media/com_acymailing/upload');
-					if(empty($mediafolder)) $mediafolder = 'media/com_acymailing/upload'; ?>
+					<?php $mediafolder = $this->config->get('mediafolder', ACYMAILING_MEDIA_FOLDER.'/upload');
+					if(empty($mediafolder)) $mediafolder = ACYMAILING_MEDIA_FOLDER.'/upload'; ?>
 					<input class="inputbox" type="text" name="config[mediafolder]" style="width:250px" value="<?php echo $this->escape($mediafolder); ?>"/>
 				</td>
 			</tr>

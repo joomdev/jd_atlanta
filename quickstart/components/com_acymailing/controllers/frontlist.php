@@ -1,19 +1,17 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 $currentUserid = acymailing_currentUserId();
 if(empty($currentUserid)){
-	$usercomp = !ACYMAILING_J16 ? 'com_user' : 'com_users';
-	$uri = JFactory::getURI();
-	$url = 'index.php?option='.$usercomp.'&view=login&return='.base64_encode($uri->toString());
-	acymailing_redirect($url, acymailing_translation('ACY_NOTALLOWED'), 'error');
+	acymailing_askLog();
 	return false;
 }
 
@@ -39,12 +37,10 @@ class FrontlistController extends ListController{
 	function remove(){
 		$cids = acymailing_getVar('array', 'cid', array(), '');
 		acymailing_arrayToInteger($cids);
-		$db = JFactory::getDBO();
 
 		if(empty($cids)) acymailing_redirect('index.php?option=com_acymailing&ctrl=frontlist');
 
-		$db->setQuery('SELECT * FROM `#__acymailing_list` WHERE listid IN ('.implode(',', $cids).')');
-		$lists = $db->loadObjectList();
+		$lists = acymailing_loadObjectList('SELECT * FROM `#__acymailing_list` WHERE listid IN ('.implode(',', $cids).')');
 		foreach($lists as $list){
 			if(acymailing_currentUserId() != $list->userid){
 				acymailing_enqueueMessage(acymailing_translation_sprintf('ACY_NO_ACCESS_LIST', $list->listid), 'error');

@@ -1,16 +1,17 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<?php
 	if(empty($this->isData)) return;
-	if(!acymailing_isAdmin() && acymailing_getVar('string', 'tmpl') == 'component') include(dirname(__FILE__).DS.'menu.mailinglist.php'); ?>
+	if(!acymailing_isAdmin() && acymailing_isNoTemplate()) include(dirname(__FILE__).DS.'menu.mailinglist.php'); ?>
 	<style type="text/css">
 		.mailingListChart{
 			float: left;
@@ -234,10 +235,11 @@ defined('_JEXEC') or die('Restricted access');
 		<textarea cols="35" rows="9" id="exporteddata_clic" style="display:none;position:absolute;margin-top:-160px;z-index:2;width:300px;" class="donotprint"><?php echo $detailClic; ?></textarea>
 	</div>
 	<div class="acychart mailingListChart <?php echo($dataForward == false ? 'noDataChart' : ''); ?>" width="350px" height="350px">
-		<div id="chartForward">"></div>
+		<div id="chartForward"></div>
 		<img style="position:relative;cursor:pointer;margin-top:-30px;" onclick="showData('forward');" class="donotprint" src="<?php echo ACYMAILING_IMAGES.'smallexport.png'; ?>" alt="<?php echo acymailing_translation('VIEW_DETAILS', true) ?>" title="<?php echo acymailing_translation('VIEW_DETAILS', true) ?>" width="30px"/>
 		<textarea cols="35" rows="9" id="exporteddata_forward" style="display:none;position:absolute;margin-top:-160px;z-index:2;width:300px;" class="donotprint"><?php echo $detailClic; ?></textarea>
 	</div>
+
 	<?php echo($dataForward != false ? '<!--[if !IE]><!--><div style="page-break-after: always">&nbsp;</div><!--<![endif]-->' : ''); ?>
 	<div class="acychart mailingListChart" width="350px" height="350px">
 		<div id="chartBounce"></div>

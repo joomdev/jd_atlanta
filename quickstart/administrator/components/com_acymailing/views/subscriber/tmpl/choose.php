@@ -1,16 +1,17 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
 
-	<form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>&amp;ctrl=subscriber" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_completeLink('subscriber', true); ?>" method="post" name="adminForm" id="adminForm">
 		<table class="acymailing_table_options">
 			<tr>
 				<td width="100%">
@@ -47,8 +48,7 @@ defined('_JEXEC') or die('Restricted access');
 			<tr>
 				<td colspan="6">
 					<?php echo $this->pagination->getListFooter();
-					echo $this->pagination->getResultsCounter();
-					if(ACYMAILING_J30) echo '<br />'.$this->pagination->getLimitBox(); ?>
+					echo $this->pagination->getResultsCounter(); ?>
 				</td>
 			</tr>
 			</tfoot>
@@ -90,7 +90,6 @@ defined('_JEXEC') or die('Restricted access');
 		</table>
 
 		<input type="hidden" name="defaulttask" value="choose"/>
-		<input type="hidden" name="tmpl" value="component"/>
 		<?php if(acymailing_getVar('int', 'onlyreg')){ ?><input type="hidden" name="onlyreg" value="1"/><?php } ?>
 		<?php acymailing_formOptions($this->pageInfo->filter->order); ?>
 	</form>

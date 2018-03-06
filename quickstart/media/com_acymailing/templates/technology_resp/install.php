@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 $name = 'Technology';
-$thumb = 'media/com_acymailing/templates/technology_resp/thumb.jpg';
+$thumb = ACYMAILING_MEDIA_FOLDER.'/templates/technology_resp/thumb.jpg';
 $body = acymailing_fileGetContent(dirname(__FILE__).DS.'index.html');
 
 $styles['tag_h1'] = 'font-size:20px; margin:0px; margin-bottom:15px; padding:0px; font-weight:bold; color:#01bbe5 !important;';
@@ -64,6 +65,7 @@ p{margin:0px; padding:0px}
 	.w540 img {max-width:540px; height:auto !important}
 }
 ';
+
 
 
 

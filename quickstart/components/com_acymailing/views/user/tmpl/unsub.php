@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="unsubpage">
 	<?php echo $this->intro; ?>
-	<form action="<?php echo acymailing_route('index.php'); ?>" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_frontendLink('user', false, acymailing_isNoTemplate(), true); ?>" method="post" name="adminForm" id="adminForm">
 		<?php if($this->config->get('unsub_dispoptions', 1)){ ?>
 			<div class="unsuboptions">
 				<?php if(!empty($this->mailid)){ ?>
@@ -63,16 +64,13 @@ defined('_JEXEC') or die('Restricted access');
 				</div>
 			</div>
 		<?php } ?>
-		<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-		<input type="hidden" name="task" value="saveunsub"/>
-		<input type="hidden" name="ctrl" value="user"/>
 		<input type="hidden" name="subid" value="<?php echo $this->subscriber->subid; ?>"/>
 		<input type="hidden" name="key" value="<?php echo $this->subscriber->key; ?>"/>
 		<input type="hidden" name="mailid" value="<?php echo $this->mailid; ?>"/>
 		<input type="hidden" name="Itemid" value="<?php echo acymailing_getVar('int', 'Itemid'); ?>"/>
-		<?php if(acymailing_getVar('cmd', 'tmpl') == 'component'){ ?><input type="hidden" name="tmpl" value="component"/><?php } ?>
+		<?php acymailing_formOptions(); ?>
 		<div id="unsubbutton_div" class="unsubdiv">
-			<input class="button btn btn-primary" type="submit" value="<?php echo acymailing_translation('UNSUBSCRIBE', true) ?>"/>
+			<input class="acymailing_button_grey" onclick="acymailing.submitbutton('saveunsub');" type="submit" value="<?php echo acymailing_translation('UNSUBSCRIBE', true) ?>"/>
 		</div>
 	</form>
 </div>

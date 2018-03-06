@@ -1,20 +1,19 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
-	$db = JFactory::getDBO();
 	$config = acymailing_config();
 	$sobiproInfo = unserialize($config->get('sobipro_import'));
 
 	$query='SELECT a.fid, a.nid, fieldType, section, b.name, filter FROM #__sobipro_field as a JOIN #__sobipro_object as b ON a.section = b.id  WHERE (fieldType = "inbox" AND ( filter = "title" OR filter = "0" OR filter = "")) OR (fieldType = "inbox" AND filter = "email") ORDER BY `section`';
-	$db->setQuery($query);
-	$nidResult = $db->loadObjectList();
+	$nidResult = acymailing_loadObjectList($query);
 
 	$section = array();
 

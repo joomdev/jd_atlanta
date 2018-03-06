@@ -1,14 +1,12 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 @import url("component_default.css");
-
-
 
 
 
@@ -24,8 +22,7 @@
 	background-image: -moz-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%);
 	background-image: -webkit-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%);
 	background-image: -ms-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%);
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ebebeb',GradientType=0 ); 
-}
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ebebeb',GradientType=0 ); }
 
 
 #acyuserinfo .inputbox:hover, #acyarchivelisting .inputbox:hover{
@@ -34,7 +31,6 @@
 
 #acyuserinfo .inputbox:focus, #acyarchivelisting .inputbox:focus{
 	border:1px solid #bbb !important;}
-
 
 
 
@@ -50,8 +46,7 @@
 	background-image: -moz-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%);
 	background-image: -webkit-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%);
 	background-image: -ms-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%);
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ebebeb',GradientType=0 ); 
-}
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ebebeb',GradientType=0 ); }
 
 #acyarchivelisting .button:hover, #unsubbutton_div .button:hover, #acymodifyform .button:hover {
 	color:#000;
@@ -64,11 +59,7 @@
 	background-image: -moz-linear-gradient(bottom, rgb(255,255,255) 57%, rgb(238,237,237) 86%);
 	background-image: -webkit-linear-gradient(bottom, rgb(255,255,255) 57%, rgb(238,237,237) 86%);
 	background-image: -ms-linear-gradient(bottom, rgb(255,255,255) 57%, rgb(238,237,237) 86%);
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ebebeb', endColorstr='#ffffff',GradientType=0 ); 
-}
-
-
-
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ebebeb', endColorstr='#ffffff',GradientType=0 ); }
 
 
 
@@ -183,9 +174,6 @@
 }
 
 
-
-
-
 #acylistslisting .componentheading{
 	color:#000;
 	font-weight:bold;
@@ -238,9 +226,6 @@ div.acymailing_list:hover{
 }
 
 
-
-
-
 #acyusersubscription th{
 	color:#666;
 	padding: 4px 5px;
@@ -249,7 +234,7 @@ background-image: -o-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,2
 background-image: -moz-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%);
 background-image: -webkit-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%);
 background-image: -ms-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%);
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ebebeb',GradientType=0 ); ;
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ebebeb',GradientType=0 ); /* IE6-9 vertical */;
 border:1px solid #ccc;}
 
 
@@ -336,9 +321,6 @@ border:1px solid #ccc;}
 }
 
 
-
-
-
 #unsubpage{
 padding: 20px 20px 40px;
 font-size:11px;
@@ -408,7 +390,6 @@ border:1px solid #ccc;}
 #unsubbutton_div{
 	text-align:center;}
 
-
 #acyarchiveview{
 	border:1px solid #ccc;
 	padding:10px;}
@@ -421,4 +402,5 @@ border:1px solid #ccc;}
 
 #acyuserinfo .invalid{
 border:1px solid #999 !important;}
+
 

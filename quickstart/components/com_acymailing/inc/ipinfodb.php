@@ -6,8 +6,8 @@
  * @copyright	(C) 2009-2012 De Anima Consulting Ltd. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-defined('_JEXEC') or die('Restricted access');
 
+acymailing_cmsLoaded();
 
 class ipinfodbInc{
 	var $errors = array();

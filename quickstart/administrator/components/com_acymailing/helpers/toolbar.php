@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -27,9 +28,8 @@ class acytoolbarHelper{
 
 	function custom($task, $text, $class, $listSelect = true, $onClick = '', $title = ''){
 
-		$confirm = !ACYMAILING_J16 ? acymailing_translation_sprintf('PLEASE MAKE A SELECTION FROM THE LIST TO', strtolower(acymailing_translation('ACY_'.strtoupper($task)))) : acymailing_translation('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST');
-		$submit = !ACYMAILING_J16 ? "submitbutton('".$task."')" : "Joomla.submitbutton('".$task."')";
-		$js = !empty($listSelect) ? "if(document.adminForm.boxchecked.value==0){alert('".str_replace(array("'", '"'), array("\'", '\"'), $confirm)."');return false;}else{".$submit."}" : $submit;
+		$submit = "acymailing.submitbutton('".$task."')";
+		$js = !empty($listSelect) ? "if(document.adminForm.boxchecked.value==0){alert('".str_replace(array("'", '"'), array("\'", '\"'), acymailing_translation('ACY_SELECT_ELEMENT'))."');return false;}else{".$submit."}" : $submit;
 
 		$onClick = !empty($onClick) ? $onClick : $js;
 		if(empty($title)) $title = $text;
@@ -55,10 +55,11 @@ class acytoolbarHelper{
 	}
 
 	function display(){
+		acymailing_addScript(false, ACYMAILING_JS.'acytoolbar.js?v='.filemtime(ACYMAILING_MEDIA.'js'.DS.'acytoolbar.js'));
 		acymailing_addStyle(true, '#system-message-container, #system-message{display:none;}');
-
+		
 		$classCtrl = acymailing_getVar('cmd', 'ctrl', '');
-		echo '<div '.(empty($this->topfixed) ? '' : 'id="acymenu_top"').' class="acytoolbarmenu donotprint '.(empty($this->topfixed) ? '' : 'acyaffix-top ').(!empty($classCtrl) ? 'acytopmenu_'.$classCtrl.' ' : '').$this->htmlclass.'" >';
+		echo '<div id="acymenu_top" class="acytoolbarmenu donotprint '.(empty($this->topfixed) ? '' : 'acyaffix-top ').(!empty($classCtrl) ? 'acytopmenu_'.$classCtrl.' ' : '').$this->htmlclass.'" >';
 		echo '<table cellspacing="0" border="0" cellpadding="0" style="width: 100%;height: 40px;">
 				<colgroup>
 					<col width="100%" />
@@ -74,7 +75,8 @@ class acytoolbarHelper{
 		echo implode(' ', $this->buttons);
 		echo '</td></tr></table></div>';
 
-		acymailing_displayMessages();
+		acymailing_displayMessages();  
+		if(!empty($this->topfixed)) acymailing_navigationTabs();
 	}
 
 	function add(){
@@ -86,12 +88,11 @@ class acytoolbarHelper{
 	}
 
 	function delete(){
-		$selectMessage = ACYMAILING_J16 ? acymailing_translation('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST') : acymailing_translation_sprintf('PLEASE MAKE A SELECTION FROM THE LIST TO', strtolower(acymailing_translation('ACY_DELETE')));
 		$onClick = 'if(document.adminForm.boxchecked.value==0){
-						alert(\''.str_replace("'", "\\'", $selectMessage).'\');
+						alert(\''.str_replace("'", "\\'", acymailing_translation('ACY_SELECT_ELEMENT')).'\');
 					}else{
 						if(confirm(\''.str_replace("'", "\\'", acymailing_translation('ACY_VALIDDELETEITEMS', true)).'\')){
-							'.(ACYMAILING_J16 ? 'Joomla.' : '').'submitbutton(\'remove\');
+							acymailing.submitbutton(\'remove\');
 						}
 					}';
 		$this->custom('remove', acymailing_translation('ACY_DELETE'), 'delete', true, $onClick);
@@ -193,9 +194,8 @@ class acytoolbarHelper{
 
 	function addButtonOption($task, $text, $class, $listSelect, $onClick = ''){
 
-		$confirm = !ACYMAILING_J16 ? 'PLEASE MAKE A SELECTION FROM THE LIST TO' : 'JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST';
-		$submit = !ACYMAILING_J16 ? "submitbutton('".$task."')" : "Joomla.submitbutton('".$task."')";
-		$js = !empty($listSelect) ? "if(document.adminForm.boxchecked.value==0){alert('".str_replace(array("'", '"'), array("\'", '\"'), acymailing_translation($confirm))."');return false;}else{".$submit."}" : $submit;
+		$submit = "acymailing.submitbutton('".$task."')";
+		$js = !empty($listSelect) ? "if(document.adminForm.boxchecked.value==0){alert('".str_replace(array("'", '"'), array("\'", '\"'), acymailing_translation('ACY_SELECT_ELEMENT'))."');return false;}else{".$submit."}" : $submit;
 
 		$onClick = !empty($onClick) ? $onClick : $js;
 

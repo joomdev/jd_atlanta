@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -18,13 +19,21 @@ class FilterController extends acymailingController{
 	}
 
 	function countresults(){
-		$filterClass = acymailing_get('class.filter');
 		$num = acymailing_getVar('int', 'num');
 		$filters = acymailing_getVar('none', 'filter');
+
+		foreach($filters['type'] as $block => $oneType){
+			if(!empty($oneType[$num])){
+				$currentType = $oneType[$num];
+				break;
+			}
+		}
+		if(empty($currentType)) die('No filter type found for the num '.intval($num));
+		if(empty($filters[$num][$currentType])) die('No filter parameters found for the num '.intval($num));
+
+		$filterClass = acymailing_get('class.filter'); // Keep it, it loads the acyQuery class
 		$query = new acyQuery();
-		if(empty($filters['type'][$num])) die('No filter type found for the num '.intval($num));
-		$currentType = $filters['type'][$num];
-		if(empty($filters[$num][$currentType])) die('No filter parameters founds for the num '.intval($num));
+
 		$currentFilterData = $filters[$num][$currentType];
 		acymailing_importPlugin('acymailing');
 		$messages = acymailing_trigger('onAcyProcessFilterCount_'.$currentType, array(&$query,$currentFilterData,$num));
@@ -52,14 +61,11 @@ class FilterController extends acymailingController{
 
 		$filterClass = acymailing_get('class.filter');
 		$filterClass->subid = acymailing_getVar('string', 'subid');
-		$filterClass->execute(acymailing_getVar('none', 'filter'),acymailing_getVar('none', 'action'));
+		$filterClass->execute(acymailing_getVar('none', 'filter'),acymailing_getVar('none', 'action'), 100000);
 
 		if(!empty($filterClass->report)){
-			if(acymailing_getVar('cmd', 'tmpl') == 'component'){
-				echo acymailing_display($filterClass->report,'info');
-				if(acymailing_getVar('string', 'tmpl', '') != 'component') {
-					acymailing_addScript(true, "setTimeout('redirect()',2000); function redirect(){window.top.location.href = 'index.php?option=com_acymailing&ctrl=subscriber'; }");
-				}
+			if(acymailing_isNoTemplate()){
+				acymailing_display($filterClass->report,'info');
 				return;
 			}else{
 				foreach($filterClass->report as $oneReport){

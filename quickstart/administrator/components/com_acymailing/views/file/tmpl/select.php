@@ -1,20 +1,21 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="maincontent" style="border: 1px solid rgb(233, 233, 233);">
-	<form action="index.php?tmpl=component&amp;option=<?php echo ACYMAILING_COMPONENT ?>" method="post" name="adminForm" id="adminForm" enctype="multipart/form-data" style="margin:0px;">
+	<form action="<?php echo acymailing_completeLink('file', true); ?>" method="post" name="adminForm" id="adminForm" enctype="multipart/form-data" style="margin:0px;">
 		<div id="folderarea" style="box-shadow: 0px 4px 4px -4px rgba(0, 0, 0, 0.3);padding:15px;">
 			<button style="float: right;" class="btn" onclick="changeDisplay(event);" id="btn_change_display" title="<?php echo acymailing_translation('ACY_DISPLAY_NOICON'); ?>"><i id="iconTypeDisplay" class="acyicon-list_view"></i></button>
 			<?php
 			$folders = acymailing_generateArborescence($this->uploadFolders);
 			$filetreeType = acymailing_get('type.filetree');
-			$filetreeType->display($folders, $this->uploadFolder, 'currentFolder', 'submitbutton("select")');
+			$filetreeType->display($folders, $this->uploadFolder, 'currentFolder', 'changeFolder(path)');
 			?>
 		</div>
 		<script type="text/javascript">
@@ -22,6 +23,34 @@ defined('_JEXEC') or die('Restricted access');
 			document.addEventListener("DOMContentLoaded", function(){
 				display(document.getElementById('displayType').value);
 			});
+			function changeFolder(folderName){
+				var url = window.location.href;
+				if (url.indexOf('?') > -1){
+					var lastParam = url.substring(url.lastIndexOf('&') + 1);
+					if(url.indexOf('pictName') > -1){
+						var temp = url.split('&');
+						for(var i=0;i<temp.length;i++){
+							if(temp[i].indexOf('pictName') > -1){
+							temp.splice(i, 1);
+								i--;
+							}
+						}
+						url = temp.join('&');
+						lastParam = url.substring(url.lastIndexOf('&') + 1);
+					}
+					if(lastParam == 'task=createFolder')url = url.replace(lastParam,'task=browse&e_name=ACY_NAME_AREA');
+					lastParam = lastParam.split('=');
+					if(lastParam=='selected_folder')
+					url = url.replace(lastParam, 'selected_folder='+folderName);
+					else
+
+					url += '&currentFolder='+folderName;
+				}else{
+					url += '?currentFolder='+folderName;
+				}
+				window.location.href = url;
+			}
+
 			function changeDisplay(event){
 				event.preventDefault();
 				if(document.getElementById('displayPict').style.display == ''){
@@ -62,6 +91,7 @@ defined('_JEXEC') or die('Restricted access');
 					event.preventDefault();
 					deleteFile(fileName);
 				};
+
 				var divConfirm = document.getElementById('confirmBoxAttach');
 				divConfirm.style.display = 'inline';
 			}
@@ -75,9 +105,9 @@ defined('_JEXEC') or die('Restricted access');
 					urlFile = urlFile.substring(0, urlFile.indexOf('filename=') - 1);
 				}
 				if(urlFile.indexOf('?') > -1){
-					window.location.href = urlFile + '&filename=' + fileName;
+					window.location.href = urlFile + '&task=<?php echo acymailing_getVar('cmd', 'task', ''); ?>&id=<?php echo acymailing_getVar('cmd', 'id', ''); ?>&filename=' + fileName;
 				}else{
-					window.location.href = urlFile + '?filename=' + fileName;
+					window.location.href = urlFile + '?task=<?php echo acymailing_getVar('cmd', 'task', ''); ?>&id=<?php echo acymailing_getVar('cmd', 'id', ''); ?>&filename=' + fileName;
 				}
 			}
 		</script>
@@ -114,6 +144,7 @@ defined('_JEXEC') or die('Restricted access');
 						$linkStart .= "parent.document.getElementById('".$this->map."preview').src = '".acymailing_rootURI().str_replace(DS, '/', $this->uploadFolder)."/$file'; ";
 					}else{
 						$linkStart .= "parent.document.getElementById('".$this->map."selection').innerHTML = '$file'; ";
+						$linkStart .= "parent.document.getElementById('".$this->map."suppr').style.display = 'inline';";
 					}
 					$linkStart .= 'window.parent.acymailing.closeBox();}">';
 
@@ -130,11 +161,11 @@ defined('_JEXEC') or die('Restricted access');
 					if(in_array($ext, $imageExtensions)){
 						$imgPath = ACYMAILING_LIVE.$this->uploadFolder.'/'.$file;
 					}else{
-						$imgPath = ACYMAILING_LIVE.'media/com_acymailing/images/file.png';
+						$imgPath = ACYMAILING_LIVE.ACYMAILING_MEDIA_FOLDER.'/images/file.png';
 					}
 					$structPict .= '<br /><img src="'.$imgPath.'" style="margin-top:5px;max-width:150px;"/>';
 					$structPict .= '</div>';
-					$structPict .= '<img class="acy_attachment_delete" id="acy_attachment_delete_'.$k.'" src="'.ACYMAILING_LIVE.'media'.DS.ACYMAILING_COMPONENT.DS.'images'.DS.'editor'.DS.'delete.png" onclick="confirmDeleteFile(event, \''.$file.'\')" style="display: none;"/>';
+					$structPict .= '<img class="acy_attachment_delete" id="acy_attachment_delete_'.$k.'" src="'.ACYMAILING_LIVE.ACYMAILING_MEDIA_FOLDER.DS.'images'.DS.'editor'.DS.'delete.png" onclick="confirmDeleteFile(event, \''.$file.'\')" style="display: none;"/>';
 					$structPict .= '</div>';
 
 					echo $structPict;
@@ -143,7 +174,7 @@ defined('_JEXEC') or die('Restricted access');
 
 					$displayList .= '<tr><td width="30" style="padding-left: 10px;">'.$linkStart.'<img src="'.$imgPath.'" style="max-width:24px;"/></a></td>';
 					$displayList .= '<td>'.$linkStart.$file.'</a></td>';
-					$displayList .= '<td><img class="acy_attachment_delete" src="'.ACYMAILING_LIVE.'media'.DS.ACYMAILING_COMPONENT.DS.'images'.DS.'editor'.DS.'delete.png" onclick="confirmDeleteFile(event, \''.$file.'\')"/></td></tr>';
+					$displayList .= '<td><img class="acy_attachment_delete" src="'.ACYMAILING_LIVE.ACYMAILING_MEDIA_FOLDER.DS.'images'.DS.'editor'.DS.'delete.png" onclick="confirmDeleteFile(event, \''.$file.'\')"/></td></tr>';
 					$k++;
 				}
 				$displayList .= '</table>';
@@ -170,10 +201,10 @@ defined('_JEXEC') or die('Restricted access');
 		<div id="uploadarea" style="text-align: center;box-shadow: 0px -4px 4px -4px rgba(0, 0, 0, 0.3);padding: 10px 0px 10px 0px;">
 			<input type="file" style="width:auto;" name="uploadedFile"/><br/>
 			<input type="hidden" id="displayType" name="displayType" value="<?php echo $this->displayType; ?>"/>
-			<input type="hidden" name="selected_folder" value="<?php echo htmlspecialchars($this->uploadFolder, ENT_COMPAT, 'UTF-8'); ?>"/>
-			<input type="hidden" name="id" value="<?php echo $this->map; ?>"/>
+			<input type="hidden" name="currentFolder" value="<?php echo htmlspecialchars($this->uploadFolder, ENT_COMPAT, 'UTF-8'); ?>"/>
+			<input type="hidden" name="id" value="<?php echo htmlspecialchars($this->map, ENT_COMPAT, 'UTF-8'); ?>"/>
 			<?php acymailing_formOptions(); ?>
-			<button class="btn btn-primary" type="button" onclick="document.adminForm.task.value='select';submit();"> <?php echo acymailing_translation('IMPORT'); ?> </button>
+			<button class="acymailing_button_grey" type="button" onclick="document.adminForm.task.value='select';submit();"> <?php echo acymailing_translation('IMPORT'); ?> </button>
 		</div>
 	</form>
 </div>

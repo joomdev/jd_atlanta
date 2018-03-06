@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="page-subscription">
 	<div class="onelineblockoptions">
@@ -34,7 +35,7 @@ defined('_JEXEC') or die('Restricted access');
 				</td>
 				<td>
 					<input class="inputbox" id="configautosub" name="config[autosub]" type="text" style="width:100px" value="<?php echo $this->escape($this->config->get('autosub', 'None')); ?>">
-					<?php echo acymailing_popup('index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=chooselist&amp;task=autosub&amp;values='.$this->config->get('autosub', 'None').'&amp;control=config', '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('SELECT').'</button>', '', 650, 375, 'linkconfigautosub'); ?>
+					<?php echo acymailing_popup(acymailing_completeLink('chooselist', true).'&amp;task=autosub&amp;values='.$this->config->get('autosub', 'None').'&amp;control=config', '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('SELECT').'</button>', '', 650, 375, 'linkconfigautosub'); ?>
 				</td>
 			</tr>
 			<tr>
@@ -184,7 +185,7 @@ defined('_JEXEC') or die('Restricted access');
 				window.document.getElementById(id).className = 'onload';
 
 				var xhr = new XMLHttpRequest();
-				xhr.open('GET', 'index.php?option=com_acymailing&tmpl=component&ctrl=toggle&task=' + id + '&value=' + newvalue);
+				xhr.open('GET', '<?php echo acymailing_prepareAjaxURL('toggle'); ?>&task=' + id + '&value=' + newvalue);
 				xhr.onload = function(){
 					window.document.getElementById(id).innerHTML = xhr.responseText;
 					window.document.getElementById(id).className = 'loading';
@@ -217,6 +218,14 @@ defined('_JEXEC') or die('Restricted access');
 							<i class="acyicon-location"></i>
 							<a style="color:#666;text-decoration:none;" href="javascript:void(0);" onclick="testAPI('testApiKey',window.document.getElementById('geoloc_api_key').value)"><?php echo acymailing_translation('GEOLOC_TEST_API_KEY'); ?></a>
 						</span>
+					</td>
+				</tr>
+				<tr>
+					<td class="acykey">
+						<a href="https://www.acyba.com/acymailing/350-acymailing-geolocation.html#accountsetup" target="_blank"><?php echo acymailing_tooltip(acymailing_translation('ACY_GOOGLE_MAP_KEY_DESC'), acymailing_translation('ACY_GOOGLE_MAP_KEY'), '', acymailing_translation('ACY_GOOGLE_MAP_KEY')) ?></a>
+					</td>
+					<td>
+						<?php echo $this->elements->google_map_api_key; ?>
 					</td>
 				</tr>
 			<?php } ?>

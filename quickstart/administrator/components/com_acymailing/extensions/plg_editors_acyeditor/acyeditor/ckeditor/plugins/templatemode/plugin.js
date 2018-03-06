@@ -83,14 +83,12 @@
 				SetAnchorNodeIE()
 				if (parent.SetStateForSelection)
 				{
-					// refresh the buttons states
 					parent.SetStateForSelection();
 				}
 			});
 		}
 	});
 
-	// Remove all areas (classes) from the template
 	function initAreas(){
 		var removeConfirm = confirm(parent.confirmInitAreas);
 		if(removeConfirm){
@@ -123,7 +121,6 @@
 				&& acyframe.contentWindow != undefined
 				&& acyframe.contentWindow.getSelection)
 		{
-			// MOZILLA/NETSCAPE
 			var sel = acyframe.contentWindow.getSelection();
 			if (sel.anchorNode) {
 				node = parent.GetParentForClass(sel.anchorNode, classe);
@@ -195,7 +192,6 @@
 				&& acyframe.contentWindow != null
 				&& acyframe.contentWindow != undefined
 				&& acyframe.contentWindow.getSelection){
-			// MOZILLA/NETSCAPE
 			var sel = acyframe.contentWindow.getSelection();
 			if (sel.anchorNode){
 				node = sel.anchorNode;
@@ -210,3 +206,4 @@
 		parent.SetStateForSelection();
 	}
 })();
+

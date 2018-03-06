@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -88,14 +89,18 @@ class archiveViewArchive extends acymailingView{
 	private function addFeed(){
 
 		$config = acymailing_config();
+		$feedType = $config->get('acyrss_format', '');
+
+		if(empty($feedType)) return;
+
 		$document = JFactory::getDocument();
 
 		$link = '&format=feed&limitstart=';
-		if($config->get('acyrss_format') == 'rss' || $config->get('acyrss_format') == 'both'){
+		if($feedType == 'rss' || $feedType == 'both'){
 			$attribs = array('type' => 'application/rss+xml', 'title' => 'RSS 2.0');
 			$document->addHeadLink(acymailing_route($link.'&type=rss'), 'alternate', 'rel', $attribs);
 		}
-		if($config->get('acyrss_format') == 'atom' || $config->get('acyrss_format') == 'both'){
+		if($feedType == 'atom' || $feedType == 'both'){
 			$attribs = array('type' => 'application/atom+xml', 'title' => 'Atom 1.0');
 			$document->addHeadLink(acymailing_route($link.'&type=atom'), 'alternate', 'rel', $attribs);
 		}
@@ -104,23 +109,13 @@ class archiveViewArchive extends acymailingView{
 	function listing(){
 		global $Itemid;
 
-		$app = JFactory::getApplication();
-
 		$values = new stdClass();
-		$jsite = JFactory::getApplication('site');
-		$menus = $jsite->getMenu();
-		$menu = $menus->getActive();
-
-		if(empty($menu) AND !empty($Itemid)){
-			$menus->setActive($Itemid);
-			$menu = $menus->getItem($Itemid);
-		}
+		$menu = acymailing_getMenu();
 
 		$myItem = empty($Itemid) ? '' : '&Itemid='.$Itemid;
 		$this->item = $myItem;
 
 		if(is_object($menu)){
-			jimport('joomla.html.parameter');
 			$menuparams = new acyParameter($menu->params);
 		}
 
@@ -143,7 +138,7 @@ class archiveViewArchive extends acymailingView{
 		$listClass = acymailing_get('class.list');
 		$listid = acymailing_getCID('listid');
 
-		if(empty($listid) AND !empty($menuparams)){
+		if(empty($listid) && !empty($menuparams)){
 			$listid = $menuparams->get('listid');
 		}
 
@@ -159,9 +154,7 @@ class archiveViewArchive extends acymailingView{
 
 		if(empty($allLists)){
 			if(empty($currentUserid)){
-				$usercomp = ACYMAILING_J16 ? 'com_users' : 'com_user';
-				$uri = JFactory::getURI();
-				acymailing_redirect('index.php?option='.$usercomp.'&view=login&return='.base64_encode($uri->toString()), acymailing_translation('ACY_NOTALLOWED'));
+				acymailing_askLog();
 			}else{
 				acymailing_enqueueMessage(acymailing_translation('ACY_NOTALLOWED'), 'error');
 				acymailing_redirect(acymailing_completeLink('lists', false, true));
@@ -169,8 +162,6 @@ class archiveViewArchive extends acymailingView{
 			return false;
 		}
 
-		$db = JFactory::getDBO();
-		$pathway = $app->getPathway();
 		$config = acymailing_config();
 
 		if(!empty($menuparams)){
@@ -192,17 +183,17 @@ class archiveViewArchive extends acymailingView{
 		if(empty($values->page_heading)) $values->page_heading = (count($allLists) > 1 || empty($listid)) ? acymailing_translation('NEWSLETTERS') : $allLists[$listid]->name;
 
 		if(empty($menuparams)){
-			$pathway->addItem(acymailing_translation('MAILING_LISTS'), acymailing_completeLink('lists'));
-			$pathway->addItem($values->page_title);
+			acymailing_addBreadcrumb(acymailing_translation('MAILING_LISTS'), acymailing_completeLink('lists'));
+			acymailing_addBreadcrumb($values->page_title);
 		}elseif(!$menuparams->get('listid')){
-			$pathway->addItem($values->page_title);
+			acymailing_addBreadcrumb($values->page_title);
 		}
 
 		acymailing_setPageTitle($values->page_title);
 
 		$this->addFeed();
 
-		$searchMap = array('a.mailid', 'a.subject', 'a.alias');
+		$searchMap = array('a.mailid', 'a.subject', 'a.alias', 'a.body');
 		$filters = array();
 		if(!empty($pageInfo->search)){
 			$searchVal = '\'%'.acymailing_getEscaped($pageInfo->search, true).'%\'';
@@ -239,8 +230,7 @@ class archiveViewArchive extends acymailingView{
 		$query .= ' GROUP BY c.mailid';
 		$query .= ' ORDER BY a.'.acymailing_secureField($pageInfo->filter->order->value).' '.acymailing_secureField($pageInfo->filter->order->dir).', c.mailid DESC';
 
-		$db->setQuery($query, $pageInfo->limit->start, $pageInfo->limit->value);
-		$rows = $db->loadObjectList();
+		$rows = acymailing_loadObjectList($query, '', $pageInfo->limit->start, $pageInfo->limit->value);
 		$pageInfo->elements->page = count($rows);
 
 		if($pageInfo->limit->value > $pageInfo->elements->page){
@@ -269,18 +259,9 @@ class archiveViewArchive extends acymailingView{
 			}
 		}
 
-		jimport('joomla.html.pagination');
-		$pagination = new JPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
+		$pagination = new acyPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
 
-		$js = 'function tableOrdering( order, dir, task ){
-			var form = document.adminForm;
-
-			form.filter_order.value 	= order;
-			form.filter_order_Dir.value	= dir;
-			document.adminForm.submit( task );
-		}
-
-		function changeReceiveEmail(checkedbox){
+		$js = 'function changeReceiveEmail(checkedbox){
 			var form = document.adminForm;
 			if(checkedbox){
 				form.nbreceiveemail.value++;
@@ -339,29 +320,16 @@ class archiveViewArchive extends acymailingView{
 	}
 
 	function view(){
-		global $Itemid;
-		$app = JFactory::getApplication();
-
 		$this->addFeed();
-
-		$pathway = $app->getPathway();
 
 		$frontEndManagement = false;
 		$listid = acymailing_getCID('listid');
 
 		$values = new stdClass();
 		$values->suffix = '';
-		$jsite = JFactory::getApplication('site');
-		$menus = $jsite->getMenu();
-		$menu = $menus->getActive();
-
-		if(empty($menu) AND !empty($Itemid)){
-			$menus->setActive($Itemid);
-			$menu = $menus->getItem($Itemid);
-		}
+		$menu = acymailing_getMenu();
 
 		if(is_object($menu)){
-			jimport('joomla.html.parameter');
 			$menuparams = new acyParameter($menu->params);
 		}
 
@@ -388,7 +356,7 @@ class archiveViewArchive extends acymailingView{
 			$listClass = acymailing_get('class.list');
 			$oneList = $listClass->get($listid);
 			if(!empty($oneList->visible) && $oneList->published && (empty($menuparams) || !$menuparams->get('listid'))){
-				$pathway->addItem($oneList->name, acymailing_completeLink('archive&listid='.$oneList->listid.':'.$oneList->alias));
+				acymailing_addBreadcrumb($oneList->name, acymailing_completeLink('archive&listid='.$oneList->listid.':'.$oneList->alias));
 			}
 
 			$currentUserid = acymailing_currentUserId();
@@ -406,12 +374,11 @@ class archiveViewArchive extends acymailingView{
 
 		$mailid = acymailing_getVar('string', 'mailid', 'nomailid');
 		if(empty($mailid)){
-			die('This is a Newsletter-template... and you can not access the online version of a Newsletter-template!<br />Please <a href="administrator/index.php?option=com_acymailing&ctrl=newsletter&task=edit" >create a Newsletter</a> using your template and then try again your "view it online" link!');
+			die('This is a Newsletter-template... and you can not access the online version of a Newsletter-template!<br />Please create a Newsletter using your template and then try again your "view it online" link!');
 			exit;
 		}
 
 		if($mailid == 'nomailid'){
-			$db = JFactory::getDBO();
 			$query = 'SELECT m.`mailid` FROM `#__acymailing_list` as l JOIN `#__acymailing_listmail` as lm ON l.listid=lm.listid JOIN `#__acymailing_mail` as m on lm.mailid = m.mailid';
 			$query .= ' WHERE l.`visible` = 1 AND l.`published` = 1 AND m.`visible`= 1 AND m.`published` = 1 AND m.`type` = "news" AND l.`type` = "list"';
 			if(!empty($listid)) $query .= ' AND l.`listid` = '.(int)$listid;
@@ -454,7 +421,7 @@ class archiveViewArchive extends acymailingView{
 			acymailing_addMetadata('og:image', $fshare);
 		}
 
-		acymailing_addMetadata('og:url', acymailing_frontendLink('index.php?option=com_acymailing&ctrl=archive&task=view&mailid='.$oneMail->mailid, false, acymailing_getVar('cmd', 'tmpl') == 'component' ? true : false));
+		acymailing_addMetadata('og:url', acymailing_frontendLink('archive&task=view&mailid='.$oneMail->mailid, false, acymailing_isNoTemplate(), true));
 		acymailing_addMetadata('og:title', $oneMail->subject);
 		if(!empty($oneMail->metadesc)) acymailing_addMetadata('og:description', $oneMail->metadesc);
 
@@ -479,7 +446,12 @@ class archiveViewArchive extends acymailingView{
 		$oneMail->sendHTML = true;
 		acymailing_trigger('acymailing_replaceusertags', array(&$oneMail, &$receiver, false));
 
-		$pathway->addItem($oneMail->subject);
+		acymailing_addBreadcrumb($oneMail->subject);
+
+		preg_match('@href="{unsubscribe:(.*)}"@', $oneMail->body, $match);//we get the tag unsubscribe
+		if(!empty($match)){
+			$oneMail->body = str_replace($match[0], 'href="'.$match[1].'"', $oneMail->body);
+		}
 
 		acymailing_setPageTitle($oneMail->subject);
 

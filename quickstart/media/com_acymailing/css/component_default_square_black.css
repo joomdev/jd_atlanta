@@ -1,14 +1,12 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 @import url("component_default.css");
-
-
 
 
 
@@ -22,8 +20,7 @@
 	background-image: -moz-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%) !important;
 	background-image: -webkit-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%) !important;
 	background-image: -ms-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%) !important;
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ebebeb',GradientType=0 ) !important; 
-}
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ebebeb',GradientType=0 ) !important; }
 
 
 #acyarchivelisting .inputbox:hover, #acyuserinfo .inputbox:hover{
@@ -44,7 +41,6 @@ box-shadow: 0 0 3px 2px #eee!important;
 
 
 
-
 #acyarchivelisting .button, #acymodifyform .button, #unsubbutton_div .button{
 	color:#666 !important;
 	border:1px solid #ddd !important;
@@ -59,10 +55,8 @@ background-image: -moz-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255
 background-image: -webkit-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%) !important;
 background-image: -ms-linear-gradient(bottom, rgb(235,235,235) 21%, rgb(255,255,255) 58%) !important;
 
-	background: -ms-linear-gradient(top, ellipse cover, #e3eff3 0%,#5a99ab 100%); 
-	background: radial-gradient(top, ellipse cover, #e3eff3 0%,#5a99ab 100%);
+	background: -ms-linear-gradient(top, ellipse cover, #e3eff3 0%,#5a99ab 100%); 	background: radial-gradient(top, ellipse cover, #e3eff3 0%,#5a99ab 100%);
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ebebeb',GradientType=0 ) !important; 
-
 }
 
 #acyarchivelisting .button:hover, #acymodifyform .button:hover, #unsubbutton_div .button:hover {
@@ -73,14 +67,10 @@ background-image: -o-linear-gradient(bottom, rgb(255,255,255) 57%, rgb(238,237,2
 background-image: -moz-linear-gradient(bottom, rgb(255,255,255) 57%, rgb(238,237,237) 86%) !important;
 background-image: -webkit-linear-gradient(bottom, rgb(255,255,255) 57%, rgb(238,237,237) 86%) !important;
 background-image: -ms-linear-gradient(bottom, rgb(255,255,255) 57%, rgb(238,237,237) 86%) !important;
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ebebeb', endColorstr='#ffffff',GradientType=0 ) !important; 
-box-shadow: 0 0 3px 2px #eee !important;
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ebebeb', endColorstr='#ffffff',GradientType=0 ) !important; box-shadow: 0 0 3px 2px #eee !important;
 -moz-box-shadow: 0 0 3px 2px #eee !important;
 -webkit-box-shadow: 0 0 3px 2px #eee !important;
 }
-
-
-
 
 
 
@@ -195,9 +185,6 @@ box-shadow: 0 0 3px 2px #eee !important;
 
 
 
-
-
-
 #acylistslisting .componentheading{
 	color:#000;
 	font-weight:bold;
@@ -248,9 +235,6 @@ div.acymailing_list:hover{
 		margin: 0px;
 		padding-top: 10px;
 }
-
-
-
 
 
 #acyusersubscription th{
@@ -347,9 +331,6 @@ border:1px solid #ccc;}
 }
 
 
-
-
-
 #unsubpage{
 padding: 20px 20px 40px;
 font-size:11px;
@@ -422,7 +403,6 @@ border:1px solid #ccc;}
 }
 
 
-
 #acyarchiveview{
 	border:1px solid #ccc;
 	padding:10px;}
@@ -435,4 +415,5 @@ border:1px solid #ccc;}
 
 #acyuserinfo .invalid{
 border:1px solid #999 !important;}
+
 

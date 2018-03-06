@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="page-mail">
 	<div class="onelineblockoptions">
@@ -70,7 +71,7 @@ defined('_JEXEC') or die('Restricted access');
 			if(!in_array($mailerMethod, array('elasticemail', 'smtp', 'qmail', 'sendmail', 'phpmail'))) $mailerMethod = 'phpmail';
 			?>
 			<?php
-			if(!ACYMAILING_J30){
+			if(!ACYMAILING_J30 || ACYMAILING_J40 || 'joomla' == 'wordpress'){
 				?>
 				<div class="acyblockoptions" style="float: left;">
 					<span class="acyblocktitle" style="font-size:13px;"><?php echo acymailing_translation('SEND_SERVER'); ?></span>
@@ -85,7 +86,14 @@ defined('_JEXEC') or die('Restricted access');
 				</div>
 				<?php
 			}else{
-				$values = array('<div class="acyblockoptions" style="padding:10px;"><span class="acyblocktitle" style="font-size:13px;">'.acymailing_translation('SEND_SERVER').'</span>', acymailing_selectOption('phpmail', 'PHP Mail Function'), acymailing_selectOption('sendmail', 'SendMail'), acymailing_selectOption('qmail', 'QMail'), '</div><div class="acyblockoptions" style="padding:10px;"><span class="acyblocktitle" style="font-size:13px;">'.acymailing_translation('SEND_EXTERNAL').'</span>', acymailing_selectOption('smtp', 'SMTP Server'), acymailing_selectOption('elasticemail', 'Elastic Email'), '</div>');
+				$values = array('<div class="acyblockoptions" style="padding:10px;"><span class="acyblocktitle" style="font-size:13px;">'.acymailing_translation('SEND_SERVER').'</span>',
+					acymailing_selectOption('phpmail', 'PHP Mail Function'),
+					acymailing_selectOption('sendmail', 'SendMail'),
+					acymailing_selectOption('qmail', 'QMail'),
+					'</div><div class="acyblockoptions" style="padding:10px;"><span class="acyblocktitle" style="font-size:13px;">'.acymailing_translation('SEND_EXTERNAL').'</span>',
+					acymailing_selectOption('smtp', 'SMTP Server'),
+					acymailing_selectOption('elasticemail', 'Elastic Email'),
+					'</div>');
 				echo acymailing_radio($values, 'config[mailer_method]', 'onchange="updateMailer(this.value)"', 'value', 'text', $mailerMethod);
 			}
 			?>
@@ -214,7 +222,7 @@ defined('_JEXEC') or die('Restricted access');
 			<tr>
 				<td width="50%" valign="top">
 					<table class="acymailing_table" cellspacing="1">
-						<?php if(version_compare(JVERSION, '3.1.2', '>=')){ ?>
+						<?php if(!empty($this->elements->special_chars)){ ?>
 						<tr>
 							<td class="acykey">
 								<?php echo acymailing_tooltip(acymailing_translation('ACY_SPECIAL_CHARS_DESC'), acymailing_translation('ACY_SPECIAL_CHARS'), '', acymailing_translation('ACY_SPECIAL_CHARS')); ?>
@@ -361,7 +369,6 @@ defined('_JEXEC') or die('Restricted access');
 							<?php }else{
 								if($this->config->get('dkim_private', '') == '' || $this->config->get('dkim_public', '') == ''){
 									echo 'Please save your AcyMailing configuration page first';
-									$doc = JFactory::getDocument();
 									acymailing_addScript(false, 'https://www.acyba.com/index.php?option=com_updateme&ctrl=generatedkim');
 									?>
 									<input type="hidden" id="dkim_private" name="config[dkim_private]"/>

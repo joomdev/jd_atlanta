@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content" class="acynewsletterlisting">
 	<div id="iframedoc"></div>
-	<form action="<?php echo acymailing_route('index.php?option=com_acymailing&ctrl='.acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_completeLink(acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm">
 		<table class="acymailing_table_options">
 			<?php if(acymailing_isAdmin()){ ?>
 			<tr>
@@ -87,8 +88,7 @@ defined('_JEXEC') or die('Restricted access');
 			<tr>
 				<td colspan="11">
 					<?php echo $this->pagination->getListFooter();
-					echo $this->pagination->getResultsCounter();
-					if(ACYMAILING_J30) echo '<br />'.$this->pagination->getLimitBox(); ?>
+					echo $this->pagination->getResultsCounter(); ?>
 				</td>
 			</tr>
 			</tfoot>
@@ -134,7 +134,7 @@ defined('_JEXEC') or die('Restricted access');
 					</td>
 					<td>
 						<?php
-						$row->subject = Emoji::Decode($row->subject);
+						$row->subject = acyEmoji::Decode($row->subject);
 						$subjectLine = acymailing_dispSearch($row->subject, $this->pageInfo->search);
 						echo acymailing_tooltip('<b>'.acymailing_translation('JOOMEXT_ALIAS').' : </b>'.acymailing_dispSearch($row->alias, $this->pageInfo->search), '', '', $subjectLine, acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'newsletter&task=edit&mailid='.$row->mailid));
 						?>
@@ -155,7 +155,7 @@ defined('_JEXEC') or die('Restricted access');
 						if(!empty($row->countqueued) && acymailing_isAllowed($this->config->get('acl_queue_delete', 'all'))){ ?>
 							<br/>
 							<button class="acymailing_button"
-									onclick="if(confirm('<?php echo str_replace("'", "\'", acymailing_translation_sprintf('ACY_VALID_DELETE_FROM_QUEUE', $row->countqueued)); ?>')){ window.location.href = '<?php echo acymailing_baseURI(); ?>index.php?option=com_acymailing&ctrl=<?php if(!acymailing_isAdmin()) echo 'front'; ?>newsletter&task=cancelNewsletter&<?php echo acymailing_getFormToken(); ?>&mailid=<?php echo $row->mailid; ?>'; } return false;"><?php echo acymailing_translation('ACY_CANCEL'); ?></button>
+									onclick="if(confirm('<?php echo str_replace("'", "\'", acymailing_translation_sprintf('ACY_VALID_DELETE_FROM_QUEUE', $row->countqueued)); ?>')){ window.location.href = '<?php echo acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'newsletter&task=cancelNewsletter&'.acymailing_getFormToken().'&mailid='.$row->mailid); ?>'; } return false;"><?php echo acymailing_translation('ACY_CANCEL'); ?></button>
 						<?php } ?>
 					</td>
 					<td align="center" style="text-align:center">
@@ -180,7 +180,7 @@ defined('_JEXEC') or die('Restricted access');
 							$text .= '<br /><b>'.acymailing_translation('ACY_USERNAME').' : </b>'.$row->username;
 							$text .= '<br /><b>'.acymailing_translation('JOOMEXT_EMAIL').' : </b>'.$row->email;
 							$text .= '<br /><b>'.acymailing_translation('ACY_ID').' : </b>'.$row->userid;
-							echo acymailing_tooltip($text, $row->name, '', $row->name, 'index.php?option=com_users&task=edit&cid[]='.$row->userid);
+							echo acymailing_tooltip($text, $row->name, '', $row->name, acymailing_isAdmin() ? acymailing_userEditLink().$row->userid : '');
 						}
 						?>
 					</td>

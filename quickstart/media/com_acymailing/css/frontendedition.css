@@ -1,8 +1,8 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -127,7 +127,6 @@ table.adminform td { padding: 3px; text-align: left; }
 	margin:0px;
 }
 
-
 #acy_content th.title{
 	font-size:100%;
 }
@@ -139,7 +138,6 @@ table.adminform td { padding: 3px; text-align: left; }
 .icon-32-apply {background-image:url(../images/icons/icon-32-apply.png) !important; background-position:0% 0% !important}
 .icon-32-delete {background-image:url(../images/icons/icon-32-delete.png) !important; background-position:0% 0% !important}
 .icon-32-new {background-image:url(../images/icons/icon-32-new.png) !important; background-position:0% 0% !important}
-
 
 
 .tree{

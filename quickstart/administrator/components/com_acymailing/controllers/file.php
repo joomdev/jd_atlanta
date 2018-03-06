@@ -1,15 +1,17 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
 class FileController extends acymailingController{
+	
 	function language(){
 		acymailing_setVar('layout', 'language');
 		return parent::display();
@@ -34,7 +36,7 @@ class FileController extends acymailingController{
 		$type = $result[1];
 		$fileName = $result[2];
 
-
+		
 
 		$path = ACYMAILING_MEDIA.'css'.DS.$type.'_'.$fileName.'.css';
 		$csscontent = acymailing_getVar('string', 'csscontent');
@@ -83,7 +85,7 @@ class FileController extends acymailingController{
 
 		if(empty($code)) return;
 
-
+		
 
 		$config = acymailing_config();
 		$mailer = acymailing_get('helper.mailer');
@@ -91,7 +93,7 @@ class FileController extends acymailingController{
 		$mailer->Body = 'The website '.ACYMAILING_LIVE.' using AcyMailing '.$config->get('level').' '.$config->get('version').' sent a language file : '.$code;
 		$mailer->Body .= "\n"."\n"."\n".$bodyEmail;
 
-		$extrafile = acymailing_getLanguagePath(ACYMAILING_ROOT).DS.$code.DS.$code.'.com_acymailing_custom.ini';
+		$extrafile = acymailing_getLanguagePath(ACYMAILING_ROOT, $code).DS.$code.'.com_acymailing_custom.ini';
 
 		if(file_exists($extrafile)){
 			$mailer->Body .= "\n"."\n"."\n".'Custom content:'."\n".file_get_contents($extrafile);
@@ -100,7 +102,7 @@ class FileController extends acymailingController{
 		$mailer->AddAddress('translate@acyba.com', 'Acyba Translation Team');
 		$mailer->report = false;
 
-		$path = acymailing_cleanPath(acymailing_getLanguagePath(ACYMAILING_ROOT).DS.$code.DS.$code.'.com_acymailing.ini');
+		$path = acymailing_cleanPath(acymailing_getLanguagePath(ACYMAILING_ROOT, $code).DS.$code.'.com_acymailing.ini');
 		$mailer->AddAttachment($path);
 
 		$result = $mailer->Send();
@@ -127,16 +129,15 @@ class FileController extends acymailingController{
 	function _savelanguage(){
 		if(!$this->isAllowed('configuration', 'manage')) return;
 		acymailing_checkToken();
-
-
+		
 		$code = acymailing_getVar('cmd', 'code');
 		acymailing_setVar('code', $code);
-		$content = acymailing_getVar('string', 'content', '', '', JREQUEST_ALLOWHTML);
+		$content = acymailing_getVar('string', 'content', '', '', ACY_ALLOWHTML);
 		$content = str_replace('</textarea>', '', $content);
 
-		if(empty($code) OR empty($content)) return;
+		if(empty($code) || empty($content)) return;
 
-		$path = acymailing_getLanguagePath(ACYMAILING_ROOT).DS.$code.DS.$code.'.com_acymailing.ini';
+		$path = acymailing_getLanguagePath(ACYMAILING_ROOT, $code).DS.$code.'.com_acymailing.ini';
 		$result = acymailing_writeFile($path, $content);
 		if($result){
 			acymailing_enqueueMessage(acymailing_translation('JOOMEXT_SUCC_SAVED'), 'success');
@@ -149,29 +150,33 @@ class FileController extends acymailingController{
 			acymailing_enqueueMessage(acymailing_translation_sprintf('FAIL_SAVE', $path), 'error');
 		}
 
-		$customcontent = acymailing_getVar('string', 'customcontent', '', '', JREQUEST_ALLOWHTML);
+		$customcontent = acymailing_getVar('string', 'customcontent', '', '', ACY_ALLOWHTML);
 		$customcontent = str_replace('</textarea>', '', $customcontent);
-		$custompath = acymailing_getLanguagePath(ACYMAILING_ROOT).DS.$code.DS.$code.'.com_acymailing_custom.ini';
+		$custompath = acymailing_getLanguagePath(ACYMAILING_ROOT, $code).DS.$code.'.com_acymailing_custom.ini';
 		$customresult = acymailing_writeFile($custompath, $customcontent);
 		if(!$customresult) acymailing_enqueueMessage(acymailing_translation_sprintf('FAIL_SAVE', $custompath), 'error');
+
+		if($code == acymailing_getLanguageTag()) acymailing_loadLanguage();
 
 		return $result;
 	}
 
-	function installLanguages(){
+	function installLanguages($ajax = true){
+		$messagesMethod = $ajax ? 'acymailing_display' : 'acymailing_enqueueMessage';
+
 		$languages = acymailing_getVar('string', 'languages');
 		ob_start();
 		$languagesContent = acymailing_fileGetContent(ACYMAILING_UPDATEURL.'loadLanguages&json=1&codes='.$languages);
 		$warnings = ob_get_clean();
-		if(!empty($warnings) && defined('JDEBUG') && JDEBUG) echo $warnings;
+		if(!empty($warnings) && acymailing_isDebug()) echo $warnings;
 
 		if(empty($languagesContent)){
-			acymailing_display('Could not load the language files from our server, you can update them in the AcyMailing configuration page, tab "Languages" or start your own translation and share it', 'error');
-			exit;
+			$messagesMethod('Could not load the language files from our server, you can update them in the AcyMailing configuration page, tab "Languages" or start your own translation and share it', 'error');
+			if($ajax) exit;
+			else return;
 		}
 
 		$decodedLanguages = json_decode($languagesContent, true);
-
 
 		$updateHelper = acymailing_get('helper.update');
 		$success = array();
@@ -183,7 +188,7 @@ class FileController extends acymailingController{
 				continue;
 			}
 
-			if(acymailing_writeFile(JPATH_SITE.DS.'language'.DS.$code.DS.$code.'.com_acymailing.ini', $content)){
+			if(acymailing_writeFile(acymailing_getLanguagePath(ACYMAILING_ROOT, $code).DS.$code.'.com_acymailing.ini', $content)){
 				$updateHelper->installMenu($code);
 				$success[] = 'Successfully installed language: '.$code;
 			}else{
@@ -191,9 +196,9 @@ class FileController extends acymailingController{
 			}
 		}
 
-		if(!empty($success)) acymailing_display($success, 'success');
-		if(!empty($error)) acymailing_display($error, 'error');
-		exit;
+		if(!empty($success)) $messagesMethod($success, 'success');
+		if(!empty($error)) $messagesMethod($error, 'error');
+		if($ajax) exit;
 	}
 
 	function select(){
@@ -206,22 +211,19 @@ class FileController extends acymailingController{
 		$package = acymailing_fileGetContent('https://www.acyba.com/download-area/download/component-acysms/level-express.html');
 		if(empty($headers['Content-Disposition']) || empty($package)) exit;
 
-
-		jimport('joomla.filesystem.archive');
-
 		$fileName = strpos($headers['Content-Disposition'], '.zip') === false ? 'com_acysms.tar.gz' : 'com_acysms.zip';
-		if(acymailing_writeFile(JPATH_SITE.DS.'tmp'.DS.'acysms'.DS.$fileName, $package) && acymailing_extractArchive(JPATH_SITE.DS.'tmp'.DS.'acysms'.DS.$fileName, JPATH_SITE.DS.'tmp'.DS.'acysms')) echo 'success';
+		if(acymailing_writeFile(ACYMAILING_ROOT.'tmp'.DS.'acysms'.DS.$fileName, $package) && acymailing_extractArchive(ACYMAILING_ROOT.'tmp'.DS.'acysms'.DS.$fileName, ACYMAILING_ROOT.'tmp'.DS.'acysms')) echo 'success';
 
 		exit;
 	}
 
 	function installPackage(){
-		if(!ACYMAILING_J16) include_once(JPATH_SITE.DS.'libraries'.DS.'joomla'.DS.'installer'.DS.'installer.php');
-
+		if(!ACYMAILING_J16) include_once(ACYMAILING_ROOT.'libraries'.DS.'joomla'.DS.'installer'.DS.'installer.php');
+		
 		$installer = JInstaller::getInstance();
 
-		if($installer->install(JPATH_SITE.DS.'tmp'.DS.'acysms')){
-			acymailing_deleteFolder(JPATH_SITE.DS.'tmp'.DS.'acysms');
+		if($installer->install(ACYMAILING_ROOT.'tmp'.DS.'acysms')){
+			acymailing_deleteFolder(ACYMAILING_ROOT.'tmp'.DS.'acysms');
 			echo 'success';
 		}
 

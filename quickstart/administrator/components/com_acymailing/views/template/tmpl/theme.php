@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><style type="text/css">
 	div.templatedescription{
@@ -104,7 +105,7 @@ defined('_JEXEC') or die('Restricted access');
 	}
 
 </style>
-<form action="index.php?tmpl=component&amp;option=<?php echo ACYMAILING_COMPONENT ?>" method="post" name="adminForm" id="adminForm">
+<form action="<?php echo acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'template', true); ?>" method="post" name="adminForm" id="adminForm">
 	<?php if($this->pageInfo->elements->total > $this->pageInfo->elements->page || !empty($this->pageInfo->search) || !empty($this->pageInfo->category)){ ?>
 		<table class="acymailing_table_options" cellpadding="1" style="width:100%;">
 			<tr>
@@ -141,7 +142,7 @@ defined('_JEXEC') or die('Restricted access');
 	}
 	for($i = 0, $a = count($this->rows); $i < $a; $i++){
 		$row =& $this->rows[$i];
-		$row->subject = Emoji::Decode($row->subject);
+		$row->subject = acyEmoji::Decode($row->subject);
 		$num++;
 		?>
 		<div class="templatearea" onclick="applyTemplate(<?php echo $row->tempid?>);">
@@ -177,3 +178,4 @@ defined('_JEXEC') or die('Restricted access');
 	<input type="hidden" name="defaulttask" value="theme"/>
 	<?php acymailing_formOptions($this->pageInfo->filter->order); ?>
 </form>
+

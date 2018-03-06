@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -13,10 +14,9 @@ class EditorController extends acymailingController{
 
 	function __construct($config = array()){
 		parent::__construct($config);
-		acymailing_setVar('tmpl', 'component');
-
-
-		jimport('joomla.filesystem.path');
+		acymailing_setNoTemplate();
+		
+		
 		if(!acymailing_isAdmin()){
 			acymailing_addStyle(false, ACYMAILING_CSS.'acyicon.css?v='.filemtime(ACYMAILING_MEDIA.'css'.DS.'acyicon.css'));
 		}
@@ -225,7 +225,6 @@ class EditorController extends acymailingController{
 			.acy_media_browser_images img.acy_media_browser_delete{height:24px; width:24px; vertical-align:top; position:absolute; right:0px; top:0px; z-index:990; cursor: pointer;}
 			#acy_media_browser_list .acy_media_browser_image_size{color: #666; text-shadow:1px 1px 1px #ffffff; font-weight:normal}
 
-
 			#confirmBoxMM{
 				width: 370px;
 				background: rgba(255, 255, 255, 0.8);
@@ -269,7 +268,7 @@ class EditorController extends acymailingController{
 	private function _setJs(){
 		$websiteurl = rtrim(acymailing_rootURI(), '/').'/';
 
-		acymailing_addScript(false, $websiteurl.'media/com_acymailing/js/jquery/jquery-1.9.1.min.js?v='.@filemtime(ACYMAILING_ROOT.'media'.DS.'com_acymailing'.DS.'js'.DS.'jquery'.DS.'jquery-1.9.1.min.js'));
+		acymailing_addScript(false, $websiteurl.ACYMAILING_MEDIA_FOLDER.'/js/jquery/jquery-1.9.1.min.js?v='.@filemtime(ACYMAILING_ROOT.str_replace('/', DS, ACYMAILING_MEDIA_FOLDER).DS.'js'.DS.'jquery'.DS.'jquery-1.9.1.min.js'));
 
 		$imageZone = acymailing_getVar('array', 'image_zone', array(), '');
 		if(empty($imageZone)){
@@ -307,7 +306,7 @@ class EditorController extends acymailingController{
 			$imgMaxHeight = 190;
 			$slideValue = -522;
 		}
-
+		
 		$js = "
 				var previousSelection = window.parent.getPreviousSelection();
 
@@ -369,7 +368,7 @@ class EditorController extends acymailingController{
 
 						if(!parsedSelection)
 							return false;
-
+							
 						if(parsedSelection[0].tagName == 'IMG'){
 							var name = parsedSelection[0].src.substr(parsedSelection[0].src.lastIndexOf('/') + 1);
 							var width = parsedSelection[0].width;
@@ -412,20 +411,20 @@ class EditorController extends acymailingController{
 					for(var i = 0; i < elements.length; i++) {
 						var element = elements[i];
 						element = removeAllListener(element);
-
+						
 						if(navigator.userAgent.indexOf('Firefox') > 0) {
 							var currentlyDrag = false;
 							element.addEventListener('mousedown', function(event) {
 								currentlyDrag = true;
 							});
-
+	
 							element.addEventListener('mousemove', function(event) {
 								if(!currentlyDrag) return;
 								var scaleValue = event.offsetX;
 								if(scaleValue < 0) return false;
 								preloadCanvas(src, scaleValue+50);
 							});
-
+							
 							document.addEventListener('mouseup', function(event) {
 								currentlyDrag = false;
 							});
@@ -435,7 +434,7 @@ class EditorController extends acymailingController{
 								if(scaleValue < 0) return false;
 								preloadCanvas(src, scaleValue);
 							});
-
+	
 							element.addEventListener('dragstart', function(event) {
 								if(typeof event.dataTransfer.setDragImage === 'function'){
 									var dragIcon = document.createElement('img');
@@ -459,7 +458,7 @@ class EditorController extends acymailingController{
 								var coords = {x: event.offsetX, y: event.offsetY, screenX: event.screenX, screenY: event.screenY};
 								this.setAttribute('initial-click', JSON.stringify(coords));
 							});
-
+	
 							element.addEventListener('mousemove', function(event) {
 								if(!currentlyCrop) return;
 								var coords = JSON.parse(this.getAttribute('initial-click'));
@@ -467,11 +466,11 @@ class EditorController extends acymailingController{
 								var height = (event.screenY - coords.screenY);
 								drawRectangle(src, coords.x, coords.y, width, height);
 							});
-
+							
 							document.addEventListener('mouseup', function(event) {
 								if(!currentlyCrop) return;
 								currentlyCrop = false;
-
+								
 								var coords = JSON.parse(element.getAttribute('initial-click'));
 								element.removeAttribute('initial-click');
 								var width = (event.screenX - coords.screenX);
@@ -484,7 +483,7 @@ class EditorController extends acymailingController{
 									height = Math.abs(height);
 									coords.y = coords.y - height;
 								}
-
+	
 								cropImage(src, coords.x, coords.y, width, height)
 							});
 						}else{
@@ -501,20 +500,20 @@ class EditorController extends acymailingController{
 									height = Math.abs(height);
 									coords.y = coords.y - height;
 								}
-
+	
 								cropImage(src, coords.x, coords.y, width, height)
 							});
-
+	
 							element.addEventListener('dragstart', function(event) {
 								var coords = {x: event.offsetX, y: event.offsetY, screenX: event.screenX, screenY: event.screenY};
 								this.setAttribute('initial-click', JSON.stringify(coords));
-
+								
 								if(typeof event.dataTransfer.setDragImage === 'function'){
 									var dragIcon = document.createElement('img');
 									event.dataTransfer.setDragImage(dragIcon, 0, 0);
 								}
 							});
-
+	
 							element.addEventListener('drag', function(event) {
 								var coords = JSON.parse(this.getAttribute('initial-click'));
 								var width = (event.screenX - coords.screenX);
@@ -565,7 +564,7 @@ class EditorController extends acymailingController{
 				function cancelModification() {
 					var selectedImage = document.getElementById('acy_media_browser_selected_image');
 					var imageWidth = document.getElementById('acy_media_browser_image_width').value;
-
+						
 					if(typeof selectedImage == 'undefined') return false;
 					preloadCanvas(selectedImage.src, imageWidth);
 				}
@@ -594,11 +593,11 @@ class EditorController extends acymailingController{
 					var canvas = document.getElementById('edition-canvas');
 					var dataURL = canvas.toDataURL('image/png');
 					document.getElementById('imagedata').value = dataURL;
-
+					
 					var form = document.getElementById('form-edition');
 					var queryString = form.action;
 					var dataString = form.toQueryString();
-
+					
 					var xhr = new XMLHttpRequest();
 					xhr.open('POST', queryString);
 					xhr.setRequestHeader(\"Content-type\", \"application/x-www-form-urlencoded\");
@@ -607,7 +606,7 @@ class EditorController extends acymailingController{
 						window.location.href = window.location.href;
 					};
 					xhr.send(dataString);
-
+					
 					return false;
 				}
 
@@ -622,10 +621,10 @@ class EditorController extends acymailingController{
 					var parent = machin.parentElement;
 					parent.removeChild(machin);
 					parent.appendChild(canvas);
-
+					
 					canvas = document.getElementById('edition-canvas');
-
-
+					
+					
 					var ctx = canvas.getContext('2d');
 					var image = new Image();
 					image.src = src;
@@ -808,7 +807,7 @@ class EditorController extends acymailingController{
 
 				function _getUriObject(u){
 					var bits = u.match(/^(?:([^:\/?#.]+):)?(?:\/\/)?(([^:\/?#]*)(?::(\d*))?)((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[\?#]|$)))*\/?)?([^?#\/]*))?(?:\?([^#]*))?(?:#(.*))?/);
-
+					
 					return (bits)
 						? {uri: bits[0], scheme: bits[1], authority: bits[2], domain: bits[3], port: bits[4], path: bits[5], directory: bits[6], file: bits[7], query: bits[8], fragment: bits[9]}
 						: null;
@@ -1005,11 +1004,8 @@ class EditorController extends acymailingController{
 				$pictToDelete = $originalName;
 			}
 			if(!empty($pictToDelete) && file_exists($uploadPath.DS.$pictToDelete)){
-				$db = JFactory::getDBO();
-				$db->setQuery('SELECT mailid FROM #__acymailing_mail WHERE body LIKE \'%src="'.ACYMAILING_LIVE.$defaultFolder.'/'.$pictToDelete.'"%\'');
-				$checkPictNews = acymailing_loadResultArray($db);
-				$db->setQuery('SELECT tempid FROM #__acymailing_template WHERE body LIKE \'%src="'.ACYMAILING_LIVE.$defaultFolder.'/'.$pictToDelete.'"%\'');
-				$checkPictTemplate = acymailing_loadResultArray($db);
+				$checkPictNews = acymailing_loadResultArray('SELECT mailid FROM #__acymailing_mail WHERE body LIKE \'%src="'.ACYMAILING_LIVE.$defaultFolder.'/'.$pictToDelete.'"%\'');
+				$checkPictTemplate = acymailing_loadResultArray('SELECT tempid FROM #__acymailing_template WHERE body LIKE \'%src="'.ACYMAILING_LIVE.$defaultFolder.'/'.$pictToDelete.'"%\'');
 
 				if(!empty($checkPictNews) || !empty($checkPictTemplate)){
 					foreach($checkPictNews as $k => $oneNews){
@@ -1050,7 +1046,7 @@ class EditorController extends acymailingController{
 						$filetreeType = acymailing_get('type.filetree');
 
 						echo '<div style="display:inline-block;width:100%;">';
-						echo '<form method="post" action="index.php?option=com_acymailing&ctrl='.(acymailing_isAdmin() ? '' : 'front').'editor&task=createFolder" style="margin: 0;">';
+						echo '<form method="post" action="'.acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'editor&task=createFolder').'" style="margin: 0;">';
 						echo '<div id="acy_media_browser_path_dropdown" >';
 						$filetreeType->display($folders, $defaultFolder, 'acy_media_browser_files_path', 'changeFolder(path)');
 						echo '</div>';
@@ -1076,7 +1072,7 @@ class EditorController extends acymailingController{
 
 
 						acymailing_createDir($uploadPath);
-
+						
 						$files = acymailing_getFiles($uploadPath);
 
 						echo '<div id="displayPict"><ul id="acy_media_browser_list">';
@@ -1109,7 +1105,7 @@ class EditorController extends acymailingController{
 								<a href="#" onclick="displayImageFromUrl('<?php echo ACYMAILING_LIVE.$defaultFolder.'/'.$file; ?>', 'success', '<?php echo $file; ?>', <?php echo empty($imageSize[0]) ? "null,null" : "'".$imageSize[0]."', '".$imageSize[1]."'"; ?>); return false;">
 									<div id="acy_media_browser_image_info_<?php echo $k; ?>"
 										 style="box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2); text-shadow:1px 1px 1px #ffffff; border:2px solid #fff; padding-top:40px; text-align:center; vertical-align:middle; color:#333; font-weight:bold; position:absolute; top:0px; left:0px; bottom:0px; right:0px; display:none; background-color: rgba(255,255,255,0.8);">
-										<img class="acy_media_browser_delete" id="acy_media_browser_delete_<?php echo $k; ?>" src="<?php echo ACYMAILING_LIVE.'media'.DS.ACYMAILING_COMPONENT.DS.'images'.DS.'editor'.DS.'delete.png'; ?>" onclick="confirmBox('delete', '<?php echo $file; ?>')"/>
+										<img class="acy_media_browser_delete" id="acy_media_browser_delete_<?php echo $k; ?>" src="<?php echo ACYMAILING_LIVE.ACYMAILING_MEDIA_FOLDER.DS.'images'.DS.'editor'.DS.'delete.png'; ?>" onclick="confirmBox('delete', '<?php echo $file; ?>')"/>
 										<?php echo $file; ?><br/>
 										<span class="acy_media_browser_image_size"><?php echo empty($imageSize[0]) ? 0 : $imageSize[0].'x'.$imageSize[1]; ?> - <?php echo round((filesize($uploadPath.DS.$file) * 0.0009765625), 2).' ko'; ?><br/></span>
 									</div>
@@ -1155,12 +1151,11 @@ class EditorController extends acymailingController{
 											<input type="hidden" name="selected_folder" value="<?php echo htmlspecialchars($defaultFolder, ENT_COMPAT, 'UTF-8'); ?>"/>
 											<?php echo acymailing_formToken(); ?>
 										</form>
-										<button class="acymailing_button" type="button" onclick="submitbutton();"> <?php echo acymailing_translation('IMPORT'); ?> </button>
+										<button class="acymailing_button" type="button" onclick="acymailing.submitbutton();"> <?php echo acymailing_translation('IMPORT'); ?> </button>
 										<span style="position:absolute; top:5px; left:5px;" id="acy_back_from_upload" onclick="displayAppropriateField(this.id)"><a href="javascript:void(0);">&#8592 <?php echo acymailing_translation('MEDIA_BACK'); ?></a></span>
 									</div>
 									<div id="import_from_url" style="padding-top:9px; position:relative; ">
 										<input type="text" id="acy_media_browser_url_input" class="inputbox" oninput="testImage(this.value, displayImageFromUrl)" value="http://"/>
-										<?php  ?>
 										<div id="acy_media_browser_insert_message"></div>
 										<span style="position:absolute; top:5px; left:5px;" id="acy_back_from_url" onclick="displayAppropriateField(this.id)"><a href="javascript:void(0);">&#8592 <?php echo acymailing_translation('MEDIA_BACK'); ?></a></span>
 									</div>
@@ -1216,7 +1211,7 @@ class EditorController extends acymailingController{
 					<button style="width:100%;" type="button" class="acymailing_button_grey" onclick="changeToScale()"><?php echo acymailing_translation('ACY_EFFECT_SCALE') ?></button>
 					<button style="width:100%;" type="button" class="acymailing_button_grey" onclick="cancelModification()"><?php echo acymailing_translation('ACY_CANCEL') ?></button>
 					<br/><br/>
-					<?php $formAction = 'index.php?option=com_acymailing&ctrl='.(acymailing_isAdmin() ? '' : 'front').'editor&task=saveImage' ?>
+					<?php $formAction = acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'editor&task=saveImage'); ?>
 					<form style="text-align: center;" id="form-edition" method="post" action="<?php echo $formAction ?>" onsubmit="return false;">
 						<input style="width:176px;padding:5px;border-radius:4px;" type="text" name="imagename" id="imagename" value="" placeholder="<?php echo acymailing_translation('ACY_IMAGE_NAME') ?>">
 						<input type="hidden" name="imagedata" id="imagedata" value="">

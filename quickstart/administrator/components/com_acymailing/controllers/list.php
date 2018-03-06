@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -27,7 +28,7 @@ class ListController extends acymailingController{
 			acymailing_enqueueMessage(acymailing_translation('JOOMEXT_SUCC_SAVED'), 'message');
 			if($listClass->newlist && acymailing_isAdmin()){
 				$listid = acymailing_getVar('int', 'listid');
-				acymailing_enqueueMessage('<a href="index.php?option=com_acymailing&ctrl=filter&listid='.$listid.'">'.acymailing_translation_sprintf('SUBSCRIBE_LIST').'</a>', 'message');
+				acymailing_enqueueMessage('<a href="'.acymailing_completeLink('filter&listid='.$listid).'">'.acymailing_translation_sprintf('SUBSCRIBE_LIST').'</a>', 'message');
 			}
 		}else{
 			acymailing_enqueueMessage(acymailing_translation('ERROR_SAVING'), 'error');

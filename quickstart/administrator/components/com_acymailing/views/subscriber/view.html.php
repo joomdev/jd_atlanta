@@ -1,20 +1,27 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
-
 class SubscriberViewSubscriber extends acymailingView{
 
-	var $searchFields = array('a.name', 'a.email', 'a.subid', 'a.userid', 'b.username');
-	var $selectedFields = array('a.*', 'b.username');
+	var $searchFields = array('a.name', 'a.email', 'a.subid', 'a.userid');
+	var $selectedFields = array('a.*');
 	var $ctrl = 'subscriber';
+
+	function __construct($config = array()){
+		parent::__construct($config);
+
+		$this->searchFields[] = 'b.'.$this->cmsUserVars->username;
+		$this->selectedFields[] = 'b.'.$this->cmsUserVars->username.' AS username';
+	}
 
 	function display($tpl = null){
 		$function = $this->getLayout();
@@ -24,7 +31,6 @@ class SubscriberViewSubscriber extends acymailingView{
 	}
 
 	function listing(){
-
 		$pageInfo = new stdClass();
 		$pageInfo->elements = new stdClass();
 		$config = acymailing_config();
@@ -45,7 +51,6 @@ class SubscriberViewSubscriber extends acymailingView{
 		$pageInfo->limit->value = acymailing_getUserVar($paramBase.'.list_limit', 'limit', acymailing_getCMSConfig('list_limit'), 'int');
 		$pageInfo->limit->start = acymailing_getUserVar($paramBase.'.limitstart', 'limitstart', 0, 'int');
 
-		$database = JFactory::getDBO();
 		$filters = array();
 		$customFields = acymailing_get('class.fields');
 
@@ -92,7 +97,7 @@ class SubscriberViewSubscriber extends acymailingView{
 		if(empty($selectedList) || ($selectedStatusList == -2 && acymailing_isAdmin())){
 			if(empty($selectedList) && $selectedStatusList == -2) $selectedStatusList = 0;
 			$fromQuery = ' FROM '.acymailing_table('subscriber').' as a ';
-			$leftJoinQuery[] = acymailing_table('users', false).' as b ON a.userid = b.id';
+			$leftJoinQuery[] = acymailing_table($this->cmsUserVars->table, false).' as b ON a.userid = b.'.$this->cmsUserVars->id;
 
 			if($selectedStatusList == -2){
 				$leftJoinQuery[] = acymailing_table('listsub').' AS c on a.subid = c.subid AND listid IN ('.$selection.')';
@@ -103,7 +108,7 @@ class SubscriberViewSubscriber extends acymailingView{
 			$fromQuery = ' FROM '.acymailing_table('listsub').' as c';
 			$countField = "c.subid";
 			$joinQuery[] = acymailing_table('subscriber').' as a ON a.subid = c.subid';
-			$leftJoinQuery[] = acymailing_table('users', false).' as b ON a.userid = b.id';
+			$leftJoinQuery[] = acymailing_table($this->cmsUserVars->table, false).' as b ON a.userid = b.'.$this->cmsUserVars->id;
 			$filters[] = 'c.listid IN ('.$selection.')';
 
 			if(!in_array($selectedStatusList, array(-1, 1, 2))) $selectedStatusList = 1;
@@ -134,8 +139,7 @@ class SubscriberViewSubscriber extends acymailingView{
 			$query .= ' ORDER BY '.$pageInfo->filter->order->value.' '.$pageInfo->filter->order->dir;
 		}
 
-		$database->setQuery($query, $pageInfo->limit->start, empty($pageInfo->limit->value) ? 500 : $pageInfo->limit->value);
-		$rows = $database->loadObjectList('subid');
+		$rows = acymailing_loadObjectList($query, 'subid', $pageInfo->limit->start, empty($pageInfo->limit->value) ? 500 : $pageInfo->limit->value);
 
 		$pageInfo->elements->page = count($rows);
 
@@ -153,8 +157,7 @@ class SubscriberViewSubscriber extends acymailingView{
 
 
 		if(!empty($rows)){
-			$database->setQuery('SELECT * FROM `#__acymailing_listsub` WHERE `subid` IN (\''.implode('\',\'', array_keys($rows)).'\')');
-			$subscriptions = $database->loadObjectList();
+			$subscriptions = acymailing_loadObjectList('SELECT * FROM `#__acymailing_listsub` WHERE `subid` IN (\''.implode('\',\'', array_keys($rows)).'\')');
 			if(!empty($subscriptions)){
 				foreach($subscriptions as $onesub){
 					$sublistid = $onesub->listid;
@@ -171,8 +174,7 @@ class SubscriberViewSubscriber extends acymailingView{
 			$pageInfo->limit->value = 100;
 		}
 
-		jimport('joomla.html.pagination');
-		$pagination = new JPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
+		$pagination = new acyPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
 
 		$filters = new stdClass();
 		$statusType = acymailing_get('type.statusfilter');
@@ -199,7 +201,7 @@ class SubscriberViewSubscriber extends acymailingView{
 
 		if(acymailing_isAdmin()){
 			$acyToolbar = acymailing_get('helper.toolbar');
-			if(acymailing_isAllowed($config->get('acl_lists_filter', 'all'))) $acyToolbar->popup('action', acymailing_translation('ACTIONS'), 'index.php?option=com_acymailing&ctrl=filter&tmpl=component', 700, 500);
+			if(acymailing_isAllowed($config->get('acl_lists_filter', 'all'))) $acyToolbar->popup('action', acymailing_translation('ACTIONS'), acymailing_completeLink('filter', true), 700, 500);
 			if(acymailing_isAllowed($config->get('acl_subscriber_import', 'all'))) $acyToolbar->link(acymailing_completeLink('data&task=import&filter_lists='.$selectedList), acymailing_translation('IMPORT'), 'import');
 			if(acymailing_isAllowed($config->get('acl_lists_filter', 'all')) || acymailing_isAllowed($config->get('acl_subscriber_import', 'all')) || acymailing_isAllowed($config->get('acl_subscriber_export', 'all'))) $acyToolbar->custom('export', acymailing_translation('ACY_EXPORT'), 'export', false);
 			if(acymailing_isAllowed($config->get('acl_subscriber_export', 'all'))) $acyToolbar->divider();
@@ -227,7 +229,6 @@ class SubscriberViewSubscriber extends acymailingView{
 	}
 
 	function choose(){
-
 		$pageInfo = new stdClass();
 
 		$paramBase = ACYMAILING_COMPONENT.'.'.$this->getName().'_'.$this->getLayout().acymailing_getVar('int', 'onlyreg', 0);
@@ -246,8 +247,6 @@ class SubscriberViewSubscriber extends acymailingView{
 
 		if(empty($pageInfo->limit->value)) $pageInfo->limit->value = 100;
 
-		$db = JFactory::getDBO();
-
 		$filters = array();
 		if(!empty($pageInfo->search)){
 			$searchVal = '\'%'.acymailing_getEscaped($pageInfo->search, true).'%\'';
@@ -259,27 +258,25 @@ class SubscriberViewSubscriber extends acymailingView{
 		}
 
 		$query = 'SELECT '.implode(',', $this->selectedFields).' FROM #__acymailing_subscriber as a';
-		$query .= ' LEFT JOIN #__users as b on a.userid = b.id';
+		$query .= ' LEFT JOIN #__'.$this->cmsUserVars->table.' as b on a.userid = b.'.$this->cmsUserVars->id;
 		if(!empty($filters)){
 			$query .= ' WHERE ('.implode(') AND (', $filters).')';
 		}
 		if(!empty($pageInfo->filter->order->value)){
 			$query .= ' ORDER BY '.$pageInfo->filter->order->value.' '.$pageInfo->filter->order->dir;
 		}
-		$db->setQuery($query, $pageInfo->limit->start, $pageInfo->limit->value);
-		$rows = $db->loadObjectList();
+		$rows = acymailing_loadObjectList($query, '', $pageInfo->limit->start, $pageInfo->limit->value);
 
 		$queryWhere = 'SELECT COUNT(a.subid) FROM #__acymailing_subscriber as a';
 		if(!empty($filters)){
-			$queryWhere .= ' LEFT JOIN #__users as b on a.userid = b.id';
+			$queryWhere .= ' LEFT JOIN #__'.$this->cmsUserVars->table.' as b on a.userid = b.'.$this->cmsUserVars->id;
 			$queryWhere .= ' WHERE ('.implode(') AND (', $filters).')';
 		}
 
 		$pageInfo->elements->total = acymailing_loadResult($queryWhere);
 		$pageInfo->elements->page = count($rows);
 
-		jimport('joomla.html.pagination');
-		$pagination = new JPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
+		$pagination = new acyPagination($pageInfo->elements->total, $pageInfo->limit->start, $pageInfo->limit->value);
 
 		$this->rows = $rows;
 		$this->pageInfo = $pageInfo;
@@ -288,7 +285,6 @@ class SubscriberViewSubscriber extends acymailingView{
 
 	function form(){
 		$subid = acymailing_getCID('subid');
-		$db = JFactory::getDBO();
 		$config = acymailing_config();
 
 		if(!empty($subid)){
@@ -329,13 +325,11 @@ class SubscriberViewSubscriber extends acymailingView{
 			$query .= ' FROM `#__acymailing_userstats` as a';
 			$query .= ' JOIN '.acymailing_table('mail').' as b on a.mailid = b.mailid';
 			$query .= ' WHERE a.subid = '.intval($subid).' ORDER BY a.senddate DESC LIMIT 30';
-			$db->setQuery($query);
-			$open = $db->loadObjectList();
+			$open = acymailing_loadObjectList($query);
 			$this->open = $open;
 
 			if(acymailing_level(3)){
-				$db->setQuery('SELECT DISTINCT `mailid` FROM `#__acymailing_urlclick` WHERE `subid` = '.intval($subid));
-				$clickedNews = $db->loadObjectList('mailid');
+				$clickedNews = acymailing_loadObjectList('SELECT DISTINCT `mailid` FROM `#__acymailing_urlclick` WHERE `subid` = '.intval($subid), 'mailid');
 				$this->clickedNews = $clickedNews;
 			}
 
@@ -343,18 +337,15 @@ class SubscriberViewSubscriber extends acymailingView{
 			$query .= ' FROM `#__acymailing_queue` as a';
 			$query .= ' JOIN '.acymailing_table('mail').' as b on a.mailid = b.mailid';
 			$query .= ' WHERE a.subid = '.intval($subid).' ORDER BY a.senddate ASC LIMIT 60';
-			$db->setQuery($query);
-			$queue = $db->loadObjectList();
+			$queue = acymailing_loadObjectList($query);
 			$this->queue = $queue;
 
 			$query = 'SELECT h.*,m.subject FROM #__acymailing_history as h LEFT JOIN #__acymailing_mail as m ON h.mailid = m.mailid WHERE h.subid = '.intval($subid).' ORDER BY h.`date` DESC LIMIT 30';
-			$db->setQuery($query);
-			$history = $db->loadObjectList();
+			$history = acymailing_loadObjectList($query);
 			$this->history = $history;
 
 			$query = 'SELECT * FROM #__acymailing_geolocation WHERE geolocation_subid='.intval($subid).' ORDER BY geolocation_created DESC LIMIT 100';
-			$db->setQuery($query);
-			$geoloc = $db->loadObjectList();
+			$geoloc = acymailing_loadObjectList($query);
 			if(!empty($geoloc)){
 				$markCities = array();
 				$diffCountries = false;
@@ -387,8 +378,7 @@ class SubscriberViewSubscriber extends acymailingView{
 
 			if(!empty($subscriber->ip)){
 				$query = 'SELECT * FROM #__acymailing_subscriber WHERE ip='.acymailing_escapeDB($subscriber->ip).' AND subid != '.intval($subid).' LIMIT 30';
-				$db->setQuery($query);
-				$neighbours = $db->loadObjectList();
+				$neighbours = acymailing_loadObjectList($query);
 				if(!empty($neighbours)){
 					$this->neighbours = $neighbours;
 				}
@@ -404,14 +394,7 @@ class SubscriberViewSubscriber extends acymailingView{
 			$acyToolbar->save();
 
 			if(!empty($subscriber->userid)){
-				if(file_exists(ACYMAILING_ROOT.'components'.DS.'com_comprofiler'.DS.'comprofiler.php')){
-					$editLink = 'index.php?option=com_comprofiler&task=edit&cid[]=';
-				}elseif(!ACYMAILING_J16){
-					$editLink = 'index.php?option=com_users&task=edit&cid[]=';
-				}else{
-					$editLink = 'index.php?option=com_users&task=user.edit&id=';
-				}
-				$acyToolbar->link($editLink.$subscriber->userid, acymailing_translation('EDIT_JOOMLA_USER'), 'edit');
+				$acyToolbar->link(acymailing_userEditLink().$subscriber->userid, acymailing_translation('EDIT_JOOMLA_USER'), 'edit');
 			}
 			$acyToolbar->cancel();
 			$acyToolbar->divider();
@@ -436,3 +419,4 @@ class SubscriberViewSubscriber extends acymailingView{
 		$this->isAdmin = $isAdmin;
 	}
 }
+

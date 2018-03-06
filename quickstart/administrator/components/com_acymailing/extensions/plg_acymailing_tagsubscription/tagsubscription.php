@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -24,7 +25,6 @@ class plgAcymailingTagsubscription extends JPlugin{
 			$plugin = JPluginHelper::getPlugin('acymailing', 'tagsubscription');
 			$this->params = new acyParameter($plugin->params);
 		}
-		$this->db = JFactory::getDBO();
 		$this->acypluginsHelper = acymailing_get('helper.acyplugins');
 	}
 
@@ -108,8 +108,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 				<div class="onelineblockoptions">
 					<span class="acyblocktitle">'.acymailing_translation('SUBSCRIPTION').'</span>
 					<table class="acymailing_table" cellpadding="1">';
-		$this->db->setQuery('SELECT 0 AS id, "- - -" AS title UNION SELECT id, title FROM #__menu WHERE link LIKE "%com_acymailing%" AND client_id = 0 AND published = 1');
-		$menus = $this->db->loadObjectList();
+		$menus = acymailing_loadObjectList('SELECT 0 AS id, "- - -" AS title UNION SELECT id, title FROM #__menu WHERE link LIKE "%com_acymailing%" AND client_id = 0 AND published = 1');
 		$text .= '<tr>
 					<td><label for="tagtext">'.acymailing_translation('FIELD_TEXT').': </label><input type="text" name="tagtext" id="tagtext" onchange="setSubscriptionTag();"></td>
 					<td><label for="tagmenu">'.acymailing_translation('ACY_MENU').': </label>'.acymailing_select($menus, "tagmenu", 'class="inputbox" size="1" onchange="setSubscriptionTag();"', 'id', 'title', '').'</td>
@@ -175,9 +174,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 		$otherlists = array();
 		$onChange = '';
 		if(acymailing_level(3)){
-			$db = JFactory::getDBO();
-			$db->setQuery('SELECT b.listid, b.name FROM #__acymailing_listcampaign as a JOIN #__acymailing_list as b on a.listid = b.listid GROUP BY b.listid ORDER BY b.ordering ASC');
-			$otherlists = $db->loadObjectList('listid');
+			$otherlists = acymailing_loadObjectList('SELECT b.listid, b.name FROM #__acymailing_listcampaign as a JOIN #__acymailing_list as b on a.listid = b.listid GROUP BY b.listid ORDER BY b.ordering ASC', 'listid');
 			$onChange = 'onchange="onAcyDisplayAction_list(__num__);"';
 
 			$js = "function onAcyDisplayAction_list(num){
@@ -272,7 +269,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 			}
 			$listsdrop[] = acymailing_selectOption('</OPTGROUP>');
 		}
-
+		
 		$dates = array();
 		$dates[] = acymailing_selectOption(0, acymailing_translation('SUBSCRIPTION_DATE'));
 		$dates[] = acymailing_selectOption(1, acymailing_translation('UNSUBSCRIPTION_DATE'));
@@ -336,9 +333,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 				$query = 'INSERT IGNORE INTO '.acymailing_table('listsub').' (listid,subid,subdate,status) ';
 				$query .= $cquery->getQuery(array($listid, 'sub.subid', time(), 1));
 			}
-			$cquery->db->setQuery($query);
-			$cquery->db->query();
-			$nbsubscribed = $cquery->db->getAffectedRows();
+			$nbsubscribed = acymailing_query($query);
 
 			if(empty($action['status'])){
 				return acymailing_translation_sprintf('IMPORT_REMOVE', $nbsubscribed, '<b><i>'.$myList->name.'</i></b>');
@@ -371,8 +366,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 		if(!empty($cquery->where)) $query .= ' AND ('.implode(') AND (', $cquery->where).')';
 		if(!empty($cquery->orderBy)) $query .= ' ORDER BY '.$cquery->orderBy;
 		if(!empty($cquery->limit)) $query .= ' LIMIT '.intval($cquery->limit);
-		$cquery->db->setQuery($query);
-		$subids = acymailing_loadResultArray($cquery->db);
+		$subids = acymailing_loadResultArray($query);
 
 		if(!empty($subids)){
 			$listsubClass = acymailing_get('class.listsub');
@@ -423,9 +417,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 
 		if(empty($user->key) && !empty($user->subid)){
 			$user->key = acymailing_generateKey(14);
-			$db = JFactory::getDBO();
-			$db->setQuery('UPDATE '.acymailing_table('subscriber').' SET `key`= '.$db->Quote($user->key).' WHERE subid = '.(int)$user->subid.' LIMIT 1');
-			$db->query();
+			acymailing_query('UPDATE '.acymailing_table('subscriber').' SET `key`= '.acymailing_escapeDB($user->key).' WHERE subid = '.(int)$user->subid.' LIMIT 1');
 		}
 
 		if(!isset($user->key)) $user->key = '';
@@ -433,22 +425,8 @@ class plgAcymailingTagsubscription extends JPlugin{
 		if($this->unsubscribeLink && !$this->listunsubscribe && $this->params->get('listunsubscribe', 0) && method_exists($email, 'addCustomHeader')){
 			$lang = empty($email->language) ? '' : '&lang='.$email->language;
 			$myLink = 'index.php?subid='.intval($user->subid).'&option=com_acymailing&ctrl=user&task=out&mailid='.$email->mailid.'&key='.urlencode($user->key).$this->unsubscribeItem.$lang;
-
-			static $mainurl = '';
-			static $otherarguments = false;
-			if(empty($mainurl)){
-				$urls = parse_url(ACYMAILING_LIVE);
-				if(isset($urls['path']) AND strlen($urls['path']) > 0){
-					$mainurl = substr(ACYMAILING_LIVE, 0, strrpos(ACYMAILING_LIVE, $urls['path'])).'/';
-					$otherarguments = trim(str_replace($mainurl, '', ACYMAILING_LIVE), '/');
-					if(strlen($otherarguments) > 0) $otherarguments .= '/';
-				}else{
-					$mainurl = ACYMAILING_LIVE;
-				}
-			}
-
-			if($otherarguments && strpos($myLink, $otherarguments) === false) $myLink = $otherarguments.$myLink;
-
+			
+			$mainurl = acymailing_mainURL($myLink);
 			$myLink = $mainurl.$myLink;
 			if((bool)$this->params->get('unsubscribetemplate', false)) $myLink .= '&tmpl=component';
 
@@ -464,6 +442,8 @@ class plgAcymailingTagsubscription extends JPlugin{
 	}
 
 	function acymailing_replacetags(&$email, $send = true){
+		if(acymailing_getVar('none', 'task', '') == 'replacetags') return;
+		
 		$this->_replacesubscriptiontags($email);
 		$this->_replacemailtags($email);
 	}
@@ -540,10 +520,8 @@ class plgAcymailingTagsubscription extends JPlugin{
 		if(isset($this->lists[$mailid][$subid])) return $this->lists[$mailid][$subid];
 
 
-		$db = JFactory::getDBO();
-
 		if($type == 'followup'){
-			$db->setQuery('SELECT a.listid
+			$listid = acymailing_loadResult('SELECT a.listid
 							FROM #__acymailing_listsub AS a
 							JOIN #__acymailing_listcampaign AS b
 								ON a.listid = b.listid
@@ -552,7 +530,6 @@ class plgAcymailingTagsubscription extends JPlugin{
 							WHERE a.subid = '.intval($subid).'
 								AND c.mailid = '.intval($mailid).'
 							ORDER BY a.status DESC LIMIT 1');
-			$listid = $db->loadResult();
 			if(!empty($listid)){
 				$this->lists[$mailid][$subid] = $listid;
 				return $listid;
@@ -561,16 +538,14 @@ class plgAcymailingTagsubscription extends JPlugin{
 
 		if(in_array($type, array('news', 'autonews'))){
 			if(!empty($subid)){
-				$db->setQuery('SELECT a.listid FROM #__acymailing_listsub as a JOIN #__acymailing_listmail as b ON a.listid = b.listid WHERE a.subid = '.intval($subid).' AND b.mailid = '.intval($mailid).' ORDER BY a.status DESC LIMIT 1');
-				$listid = $db->loadResult();
+				$listid = acymailing_loadResult('SELECT a.listid FROM #__acymailing_listsub as a JOIN #__acymailing_listmail as b ON a.listid = b.listid WHERE a.subid = '.intval($subid).' AND b.mailid = '.intval($mailid).' ORDER BY a.status DESC LIMIT 1');
 				if(!empty($listid)){
 					$this->lists[$mailid][$subid] = $listid;
 					return $listid;
 				}
 			}
 
-			$db->setQuery('SELECT a.listid FROM #__acymailing_listmail as a JOIN #__acymailing_list as b ON a.listid = b.listid WHERE a.mailid = '.intval($mailid).' ORDER BY b.published DESC , b.visible DESC LIMIT 1');
-			$listid = $db->loadResult();
+			$listid = acymailing_loadResult('SELECT a.listid FROM #__acymailing_listmail as a JOIN #__acymailing_list as b ON a.listid = b.listid WHERE a.mailid = '.intval($mailid).' ORDER BY b.published DESC , b.visible DESC LIMIT 1');
 			if(!empty($listid)){
 				$this->lists[$mailid][$subid] = $listid;
 				return $listid;
@@ -578,8 +553,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 		}
 
 		if($type == 'welcome' && !empty($subid)){
-			$db->setQuery('SELECT a.listid FROM #__acymailing_list as a JOIN #__acymailing_listsub as b ON a.listid = b.listid WHERE a.welmailid = '.intval($mailid).' AND b.subid = '.intval($subid).' ORDER BY b.subdate DESC LIMIT 1');
-			$listid = $db->loadResult();
+			$listid = acymailing_loadResult('SELECT a.listid FROM #__acymailing_list as a JOIN #__acymailing_listsub as b ON a.listid = b.listid WHERE a.welmailid = '.intval($mailid).' AND b.subid = '.intval($subid).' ORDER BY b.subdate DESC LIMIT 1');
 			if(!empty($listid)){
 				$this->lists[$mailid][$subid] = $listid;
 				return $listid;
@@ -587,8 +561,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 		}
 
 		if($type == 'unsub' && !empty($subid)){
-			$db->setQuery('SELECT a.listid FROM #__acymailing_list as a JOIN #__acymailing_listsub as b ON a.listid = b.listid WHERE a.unsubmailid = '.intval($mailid).' AND b.subid = '.intval($subid).' ORDER BY b.unsubdate DESC LIMIT 1');
-			$listid = $db->loadResult();
+			$listid = acymailing_loadResult('SELECT a.listid FROM #__acymailing_list as a JOIN #__acymailing_listsub as b ON a.listid = b.listid WHERE a.unsubmailid = '.intval($mailid).' AND b.subid = '.intval($subid).' ORDER BY b.unsubdate DESC LIMIT 1');
 			if(!empty($listid)){
 				$this->lists[$mailid][$subid] = $listid;
 				return $listid;
@@ -603,15 +576,13 @@ class plgAcymailingTagsubscription extends JPlugin{
 
 		if(!empty($allLists) && in_array($type, array('unsub', 'welcome'))){
 			acymailing_arrayToInteger($allLists);
-			$db->setQuery('SELECT a.listid FROM #__acymailing_list as a WHERE (a.welmailid = '.intval($mailid).' OR unsubmailid = '.intval($mailid).') AND listid IN ('.implode(',', $allLists).') ORDER BY a.published DESC, a.visible DESC LIMIT 1');
-			$listid = $db->loadResult();
+			$listid = acymailing_loadResult('SELECT a.listid FROM #__acymailing_list as a WHERE (a.welmailid = '.intval($mailid).' OR unsubmailid = '.intval($mailid).') AND listid IN ('.implode(',', $allLists).') ORDER BY a.published DESC, a.visible DESC LIMIT 1');
 			if(!empty($listid)){
 				$this->lists[$mailid][$subid] = $listid;
 				return $listid;
 			}
 
-			$db->setQuery('SELECT a.listid FROM #__acymailing_list as a WHERE (a.welmailid = '.intval($mailid).' OR unsubmailid = '.intval($mailid).') ORDER BY a.published DESC, a.visible DESC LIMIT 1');
-			$listid = $db->loadResult();
+			$listid = acymailing_loadResult('SELECT a.listid FROM #__acymailing_list as a WHERE (a.welmailid = '.intval($mailid).' OR unsubmailid = '.intval($mailid).') ORDER BY a.published DESC, a.visible DESC LIMIT 1');
 			if(!empty($listid)){
 				$this->lists[$mailid][$subid] = $listid;
 				return $listid;
@@ -628,8 +599,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 		}
 
 		if(!empty($subid)){
-			$db->setQuery('SELECT a.listid FROM #__acymailing_listsub as a JOIN #__acymailing_list as b ON a.listid = b.listid WHERE a.subid = '.intval($subid).' ORDER BY b.published DESC , b.visible DESC LIMIT 1');
-			$listid = $db->loadResult();
+			$listid = acymailing_loadResult('SELECT a.listid FROM #__acymailing_listsub as a JOIN #__acymailing_list as b ON a.listid = b.listid WHERE a.subid = '.intval($subid).' ORDER BY b.published DESC , b.visible DESC LIMIT 1');
 			if(!empty($listid)){
 				$this->lists[$mailid][$subid] = $listid;
 				return $listid;
@@ -645,14 +615,11 @@ class plgAcymailingTagsubscription extends JPlugin{
 			$listid = $parameter->listid;
 		}
 
-		$db = JFactory::getDBO();
 		if(empty($listid)){
-			$db->setQuery('SELECT COUNT(subid) FROM #__acymailing_subscriber');
+			return acymailing_loadResult('SELECT COUNT(subid) FROM #__acymailing_subscriber');
 		}else{
-			$db->setQuery('SELECT COUNT(subid) FROM #__acymailing_listsub WHERE listid = '.intval($listid).' AND status = 1');
+			return acymailing_loadResult('SELECT COUNT(subid) FROM #__acymailing_listsub WHERE listid = '.intval($listid).' AND status = 1');
 		}
-
-		return $db->loadResult();
 	}
 
 	private function _listsubscription(&$email, &$user, &$parameter){
@@ -698,9 +665,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 		}
 		if(empty($allLists)) return array();
 
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT name FROM #__acymailing_list WHERE listid IN ('.implode(',', $allLists).')');
-		return acymailing_loadResultArray($db);
+		return acymailing_loadResultArray('SELECT name FROM #__acymailing_list WHERE listid IN ('.implode(',', $allLists).')');
 	}
 
 	private function _listowner(&$email, &$user, &$parameter){
@@ -709,9 +674,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 		if(empty($listid)) return "";
 
 		if(!isset($this->listsowner[$listid])){
-			$db = JFactory::getDBO();
-			$db->setQuery('SELECT u.* FROM #__acymailing_list as list JOIN #__users as u ON u.id = list.userid WHERE list.listid = '.intval($listid));
-			$this->listsowner[$listid] = $db->loadObject();
+			$this->listsowner[$listid] = acymailing_loadObject('SELECT u.* FROM #__acymailing_list as list JOIN #__users as u ON u.id = list.userid WHERE list.listid = '.intval($listid));
 		}
 
 		if(!in_array($parameter->field, array('username', 'name', 'email'))) return 'Field not found : '.$parameter->field;
@@ -721,9 +684,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 	private function _loadlist($listid){
 		if(isset($this->listsinfo[$listid])) return;
 
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT * FROM #__acymailing_list WHERE listid = '.intval($listid));
-		$this->listsinfo[$listid] = $db->loadObject();
+		$this->listsinfo[$listid] = acymailing_loadObject('SELECT * FROM #__acymailing_list WHERE listid = '.intval($listid));
 	}
 
 	private function _listname(&$email, &$user, &$parameter){
@@ -759,9 +720,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 		$listid = $this->_getattachedlistid($email, $user->subid);
 		if(empty($listid)) return array();
 
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT s.email, s.name FROM #__acymailing_listsub AS l JOIN #__acymailing_subscriber AS s ON s.subid=l.subid WHERE l.listid='.intval($listid).' AND l.status=1 AND s.enabled=1 AND s.accept=1');
-		return $db->loadObjectList();
+		return acymailing_loadObjectList('SELECT s.email, s.name FROM #__acymailing_listsub AS l JOIN #__acymailing_subscriber AS s ON s.subid=l.subid WHERE l.listid='.intval($listid).' AND l.status=1 AND s.enabled=1 AND s.accept=1');
 	}
 
 	private function _replacesubscriptiontags(&$email){
@@ -807,7 +766,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 		}elseif($parameters->id == 'modify'){ //modify your subscription link
 			$myLink = acymailing_frontendLink('index.php?subid={subtag:subid}&option=com_acymailing&ctrl=user&task=modify&key={subtag:key|urlencode}'.$item.$lang, true, (bool)$this->params->get('modifytemplate', false));
 			if(empty($allresults[2][$i])) return $myLink;
-			return '<a style="text-decoration:none;" target="_blank" href="'.$myLink.'"><span class="acymailing_unsub">'.$allresults[2][$i].'</span></a>';
+			return '<a style="text-decoration:none;" target="_blank" href="'.$myLink.'"><span class="acymailing_modify">'.$allresults[2][$i].'</span></a>';
 		}elseif($parameters->id == 'subscribe'){ //add a direct subscription link
 			if(empty($parameters->lists)) return 'You must select at least one list';
 			$lists = explode(',', $parameters->lists);
@@ -815,7 +774,7 @@ class plgAcymailingTagsubscription extends JPlugin{
 			$captchaKey = $config->get('captcha_enabled') ? '&seckey='.$config->get('security_key', '') : '';
 			$myLink = acymailing_frontendLink('index.php?option=com_acymailing&ctrl=sub&task=optin&hiddenlists='.implode(',', $lists).'&user[email]={subtag:email|urlencode}'.$item.$lang.$captchaKey);
 			if(empty($allresults[2][$i])) return $myLink;
-			return '<a style="text-decoration:none;" target="_blank" href="'.$myLink.'"><span class="acymailing_unsub">'.$allresults[2][$i].'</span></a>';
+			return '<a style="text-decoration:none;" target="_blank" href="'.$myLink.'"><span class="acymailing_sub">'.$allresults[2][$i].'</span></a>';
 		}//unsubscribe link
 		$myLink = acymailing_frontendLink('index.php?subid={subtag:subid}&option=com_acymailing&ctrl=user&task=out&mailid='.$email->mailid.'&key={subtag:key|urlencode}'.$item.$lang, true, (bool)$this->params->get('unsubscribetemplate', false));
 

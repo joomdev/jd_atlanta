@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -22,16 +23,14 @@ class templateClass extends acymailingClass{
 
 	function get($tempid, $default = null){
 		$column = is_numeric($tempid) ? 'tempid' : 'name';
-		$this->database->setQuery('SELECT * FROM '.acymailing_table('template').' WHERE '.$column.' = '.$this->database->Quote($tempid).' LIMIT 1');
-		$template = $this->database->loadObject();
+		$template = acymailing_loadObject('SELECT * FROM '.acymailing_table('template').' WHERE '.$column.' = '.acymailing_escapeDB($tempid).' LIMIT 1');
 		return $this->_prepareTemplate($template);
 	}
 
 	function getTemplates($key = null, $contains = null){
 		$query = 'SELECT * FROM '.acymailing_table('template');
-		if(!empty($contains)) $query .= ' WHERE body LIKE '.$this->database->quote('%'.$contains.'%');
-		$this->database->setQuery($query);
-		$templates = $this->database->loadObjectList($key);
+		if(!empty($contains)) $query .= ' WHERE body LIKE '.acymailing_escapeDB('%'.$contains.'%');
+		$templates = acymailing_loadObjectList($query, $key);
 		foreach($templates as &$template){
 			$template = $this->_prepareTemplate($template);
 		}
@@ -49,9 +48,8 @@ class templateClass extends acymailingClass{
 			$queryDefaultTemp = 'SELECT * FROM '.acymailing_table('template').' WHERE premium = 1 AND published = 1  AND (access = \'all\' '.$condGroup.') ORDER BY ordering ASC LIMIT 1';
 		}
 
-		$this->database->setQuery($queryDefaultTemp);
-		$template = $this->database->loadObject();
-		if(!empty($template->subject)) $template->subject = Emoji::Decode($template->subject);
+		$template = acymailing_loadObject($queryDefaultTemp);
+		if(!empty($template->subject)) $template->subject = acyEmoji::Decode($template->subject);
 		return $this->_prepareTemplate($template);
 	}
 
@@ -64,7 +62,7 @@ class templateClass extends acymailingClass{
 			$template->styles = unserialize($template->styles);
 		}
 
-		$template->subject = Emoji::Decode($template->subject);
+		$template->subject = acyEmoji::Decode($template->subject);
 
 		return $template;
 	}
@@ -79,10 +77,14 @@ class templateClass extends acymailingClass{
 		if(!empty($formData['template']['category']) && $formData['template']['category'] == -1){
 			$formData['template']['category'] = acymailing_getVar('string', 'newcategory', '');
 		}
-		$formData['template']['subject'] = Emoji::Encode($formData['template']['subject']);
+		$formData['template']['subject'] = acyEmoji::Encode($formData['template']['subject']);
 
 		foreach($formData['template'] as $column => $value){
 			acymailing_secureField($column);
+			if($column == 'header'){
+				$template->$column = $value;
+				continue;
+			}
 			$template->$column = strip_tags($value);
 		}
 
@@ -115,8 +117,8 @@ class templateClass extends acymailingClass{
 			$template->readmore = '';
 		}
 
-		$template->body = acymailing_getVar('string', 'editor_body', '', '', JREQUEST_ALLOWRAW);
-		if(ACYMAILING_J25) $template->body = JComponentHelper::filterText($template->body);
+		$template->body = acymailing_getVar('string', 'editor_body', '', '', ACY_ALLOWRAW);
+		$template->body = acymailing_filterText($template->body);
 
 		if(!empty($styles['color_bg'])){
 			$pat1 = '#^([^<]*<[^>]*background-color:)([^;">]{1,30})#i';
@@ -138,7 +140,7 @@ class templateClass extends acymailingClass{
 		$acypluginsHelper = acymailing_get('helper.acyplugins');
 		$acypluginsHelper->cleanHtml($template->body);
 
-		$template->description = acymailing_getVar('string', 'editor_description', '', '', JREQUEST_ALLOWHTML);
+		$template->description = acymailing_getVar('string', 'editor_description', '', '', ACY_ALLOWHTML);
 
 		$tempid = $this->save($template);
 		if(!$tempid) return false;
@@ -161,7 +163,7 @@ class templateClass extends acymailingClass{
 			if(empty($element->namekey)) $element->namekey = time().acymailing_cleanSlug($element->name);
 		}else{
 			if(file_exists(ACYMAILING_TEMPLATE.'css'.DS.'template_'.intval($element->tempid).'.css')){
-
+				
 				if(!acymailing_deleteFile(ACYMAILING_TEMPLATE.'css'.DS.'template_'.intval($element->tempid).'.css')){
 					echo acymailing_display('Could not delete the file '.ACYMAILING_TEMPLATE.'css'.DS.'template_'.intval($element->tempid).'.css', 'error');
 				}
@@ -239,7 +241,7 @@ class templateClass extends acymailingClass{
 
 		if(empty($css)) return '';
 
-
+		
 
 		acymailing_createDir(ACYMAILING_TEMPLATE.'css');
 
@@ -282,7 +284,19 @@ class templateClass extends acymailingClass{
 			$indexFile = '<html><body bgcolor="#FFFFFF"></body></html>';
 			acymailing_writeFile(ACYMAILING_TEMPLATE.$newTemplateFolder.DS.'index.html', $indexFile);
 		}
-		$fileContent = preg_replace('#(src|background)[ ]*=[ ]*\"(?!(https?://|/))(?:\.\./|\./)?#', '$1="media/com_acymailing/templates/'.$newTemplateFolder.'/', $fileContent);
+
+		$fileContent = str_replace(
+								array(
+									'src="./',
+									'src="../',
+									'src="images/'),
+								array(
+									'src="'.ACYMAILING_MEDIA_URL.'templates/'.$newTemplateFolder.'/',
+									'src="'.ACYMAILING_MEDIA_URL.'templates/',
+									'src="'.ACYMAILING_MEDIA_URL.'templates/'.$newTemplateFolder.'/images/'),
+								$fileContent);
+
+		$fileContent = preg_replace('#(src|background)[ ]*=[ ]*\"(?!(https?://|/))(?:\.\./|\./)?#', '$1="'.ACYMAILING_MEDIA_FOLDER.'/templates/'.$newTemplateFolder.'/', $fileContent);
 
 		if(preg_match('#< *body[^>]*>(.*)< */ *body *>#Uis', $fileContent, $results)){
 			$newTemplate->body = $results[1];
@@ -351,9 +365,9 @@ class templateClass extends acymailingClass{
 			foreach($pictfolders as $onePict){
 				if(!preg_match('#\.(jpg|gif|png|jpeg|ico|bmp)$#i', $onePict)) continue;
 				if(preg_match('#(thumbnail|screenshot|muestra)#i', $onePict)){
-					$newTemplate->thumb = 'media/com_acymailing/templates/'.str_replace(DS, '/', $folder).'/'.$onePict;
+					$newTemplate->thumb = ACYMAILING_MEDIA_FOLDER.'/templates/'.str_replace(DS, '/', $folder).'/'.$onePict;
 				}elseif(preg_match('#(readmore|lirelasuite)#i', $onePict)){
-					$newTemplate->readmore = 'media/com_acymailing/templates/'.str_replace(DS, '/', $folder).'/'.$onePict;
+					$newTemplate->readmore = ACYMAILING_MEDIA_FOLDER.'/templates/'.str_replace(DS, '/', $folder).'/'.$onePict;
 				}
 			}
 		}
@@ -508,7 +522,7 @@ class templateClass extends acymailingClass{
 					if(existingTitle.length == 0){
 						head.appendChild(title1);
 					}
-
+					
 					var meta1 = d.createElement('meta');
 					meta1.name = 'viewport';
 					meta1.content = 'width=device-width, initial-scale=1';
@@ -519,7 +533,7 @@ class templateClass extends acymailingClass{
 			$js .= "var link1 = d.createElement(\"link\");
 					link1.type = \"text/css\";
 					link1.rel = \"stylesheet\";
-					link1.href =  '".(rtrim(acymailing_rootURI(), '/').'/')."media/com_acymailing/templates/css/template_".$tempid.".css?v=".@filemtime(ACYMAILING_MEDIA.'templates'.DS.'css'.DS.'template_'.$tempid.'.css')."';
+					link1.href =  '".(rtrim(acymailing_rootURI(), '/').'/').ACYMAILING_MEDIA_FOLDER."/templates/css/template_".$tempid.".css?v=".@filemtime(ACYMAILING_MEDIA.'templates'.DS.'css'.DS.'template_'.$tempid.'.css')."';
 					head.appendChild(link1);
 				";
 		}
@@ -601,7 +615,7 @@ class templateClass extends acymailingClass{
 		if(empty($template->body)) return false;
 		if(strpos($template->body, 'acyeditor_')) return false;
 
-		$messages = array('<a href="index.php?option=com_acymailing&ctrl=template&task=applyareas&tempid='.$tempid.(acymailing_getVar('cmd', 'tmpl') == 'component' ? '&tmpl=component' : '').'">'.acymailing_translation('ACYEDITOR_ADDAREAS').'</a>');
+		$messages = array('<a href="'.acymailing_completeLink('template&task=applyareas&tempid='.$tempid).'">'.acymailing_translation('ACYEDITOR_ADDAREAS').'</a>');
 		if($addextrawarning) $messages[] = acymailing_translation('ACYEDITOR_ADDAREAS_ONLYFINISHED');
 		acymailing_enqueueMessage($messages, 'warning');
 		return true;
@@ -700,18 +714,12 @@ class templateClass extends acymailingClass{
 					return false;
 			}
 		}
-
 		if(empty($importFile['name'])){
 			acymailing_enqueueMessage(acymailing_translation('BROWSE_FILE'), 'error');
 			return false;
 		}
-
-
-
-		jimport('joomla.filesystem.archive');
-		jimport('joomla.filesystem.path');
-
-		$uploadPath = acymailing_cleanPath(ACYMAILING_ROOT.'media'.DS.ACYMAILING_COMPONENT.DS.'templates');
+		
+		$uploadPath = acymailing_cleanPath(ACYMAILING_ROOT.ACYMAILING_MEDIA_FOLDER.DS.'templates');
 
 		if(!is_writable($uploadPath)){
 			@chmod($uploadPath, '0755');
@@ -738,8 +746,7 @@ class templateClass extends acymailingClass{
 			return false;
 		}
 
-		$joomConfig = JFactory::getConfig();
-		$jpath = ACYMAILING_J30 ? $joomConfig->get('tmp_path') : $joomConfig->getValue('config.tmp_path');
+		$jpath = acymailing_getCMSConfig('tmp_path', ACYMAILING_MEDIA.'tmp'.DS);
 		$tmp_dest = acymailing_cleanPath($jpath.DS.$filename);
 		$tmp_src = $importFile['tmp_name'];
 
@@ -789,10 +796,7 @@ class templateClass extends acymailingClass{
 			acymailing_raiseError(E_WARNING, 'SOME_ERROR_CODE', acymailing_translation('WARNINSTALLZLIB'));
 			return false;
 		}
-
-
-		jimport('joomla.filesystem.archive');
-
+		
 		$template = $this->get($tempid);
 		$fileDeb = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -836,7 +840,7 @@ class templateClass extends acymailingClass{
 </html>';
 
 		$tmpdir = preg_replace('#[^a-z0-9]#i', '_', strtolower($template->name));
-		$jpathURL = ACYMAILING_LIVE.'media/'.ACYMAILING_COMPONENT.'/tmp';
+		$jpathURL = ACYMAILING_LIVE.ACYMAILING_MEDIA_FOLDER.'/tmp';
 		$tmp_url_dest = $jpathURL.DS.$tmpdir;
 		$jpath = ACYMAILING_MEDIA.'tmp';
 		$tmp_dest = acymailing_cleanPath($jpath.DS.$tmpdir);

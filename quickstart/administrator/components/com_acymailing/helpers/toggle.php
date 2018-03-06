@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -44,9 +45,9 @@ class acytoggleHelper{
 			$jsincluded = true;
 			$js = "function joomToggleText(id,newvalue,table){
 				window.document.getElementById(id).className = 'onload';
-
+					
 				var xhr = new XMLHttpRequest();
-				xhr.open('GET', 'index.php?option=com_acymailing&tmpl=component&ctrl=toggle&task='+id+'&value='+newvalue+'&table='+table+'&".acymailing_getFormToken()."');
+				xhr.open('GET', '".acymailing_prepareAjaxURL('toggle')."&task='+id+'&value='+newvalue+'&table='+table+'&".acymailing_getFormToken()."');
 				xhr.onload = function(){
 					document.getElementById(id).innerHTML = xhr.responseText;
 					window.document.getElementById(id).className = 'loading';
@@ -73,7 +74,7 @@ class acytoggleHelper{
 				$js = "function joomTogglePicture(id,newvalue,table){
 					window.document.getElementById(id).className = 'onload';
 					var xhr = new XMLHttpRequest();
-					xhr.open('GET', 'index.php?option=com_acymailing&tmpl=component&ctrl=toggle&task='+id+'&value='+newvalue+'&table='+table+'&".acymailing_getFormToken()."');
+					xhr.open('GET', '".acymailing_prepareAjaxURL('toggle')."&task='+id+'&value='+newvalue+'&table='+table+'&".acymailing_getFormToken()."');
 					xhr.onload = function(){
 						document.getElementById(id).innerHTML = xhr.responseText;
 						window.document.getElementById(id).className = 'loading';
@@ -103,9 +104,9 @@ class acytoggleHelper{
 					var mydiv = document.getElementById(id);
 					mydiv.innerHTML = '';
 					mydiv.className = 'onload';
-
+					
 					var xhr = new XMLHttpRequest();
-					xhr.open('GET', 'index.php?option=com_acymailing&tmpl=component&ctrl=toggle&task='+id+'&value='+newvalue+'&table='+table+'&".acymailing_getFormToken()."&extra[color]='+extra);
+					xhr.open('GET', '".acymailing_prepareAjaxURL('toggle')."&task='+id+'&value='+newvalue+'&table='+table+'&".acymailing_getFormToken()."&extra[color]='+extra);
 					xhr.onload = function(){
 						document.getElementById(id).innerHTML = xhr.responseText;
 						window.document.getElementById(id).className = 'loading';
@@ -114,7 +115,7 @@ class acytoggleHelper{
 				}";
 				acymailing_addScript(true, $js);
 			}
-
+			
 			$desc = empty($params->description[$value]) ? '' : $params->description[$value];
 			$return = '<a href="javascript:void(0);" onclick="joomToggleClass(\''.$id.'\',\''.$newValue.'\',\''.$table.'\',\''.htmlspecialchars(urlencode($extra['color']), ENT_COMPAT, 'UTF-8').'\');" title="'.str_replace('"', '\"', $desc).'"><div class="'.$params->class[$value].'" style="background-color:'.htmlspecialchars($extra['color'], ENT_COMPAT, 'UTF-8').';border-color:'.htmlspecialchars($extra['color'], ENT_COMPAT, 'UTF-8').'">';
 			if(!empty($extra['tooltip'])) $return .= acymailing_tooltip($extra['tooltip'], @$extra['tooltiptitle'], '', '&nbsp;&nbsp;&nbsp;&nbsp;');
@@ -145,9 +146,9 @@ class acytoggleHelper{
 				if(reqconfirm){
 					if(!confirm('".acymailing_translation('ACY_VALIDDELETEITEMS', true)."')) return false;
 				}
-
+					
 				var xhr = new XMLHttpRequest();
-				xhr.open('GET', 'index.php?option=com_acymailing&tmpl=component&ctrl=".$this->ctrl.$this->extra."&task=delete&value='+elementids+'&table='+table+'&".acymailing_getFormToken()."');
+				xhr.open('GET', '".acymailing_prepareAjaxURL($this->ctrl).$this->extra."&task=delete&value='+elementids+'&table='+table+'&".acymailing_getFormToken()."');
 				xhr.onload = function(){
 					window.document.getElementById(lineid).style.display = 'none';
 				};
@@ -161,9 +162,10 @@ class acytoggleHelper{
 			if(acymailing_isAdmin()){
 				$text = '<span class="hasTooltip acyicon-delete" data-original-title="'.acymailing_translation('ACY_DELETE').'" title="'.acymailing_translation('ACY_DELETE').'"/>';
 			}else{
-				$text = '<img src="media/com_acymailing/images/delete.png" title="Delete">';
+				$text = '<img src="'.ACYMAILING_MEDIA_FOLDER.'/images/delete.png" title="Delete">';
 			}
 		}
 		return '<a href="javascript:void(0);" onclick="joomDelete(\''.$lineId.'\',\''.$elementids.'\',\''.$table.'\','.($confirm ? 'true' : 'false').'); '.$extraJsOnClick.'">'.$text.'</a>';
 	}
 }
+

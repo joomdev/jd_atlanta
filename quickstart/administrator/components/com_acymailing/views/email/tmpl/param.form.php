@@ -1,14 +1,14 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
-?><div class="acytabsystem">
-	<?php echo $this->tabs->startPane('mail_tab'); ?>
+?>	<?php echo $this->tabs->startPane('mail_tab'); ?>
 	<?php echo $this->tabs->startPanel(acymailing_translation('INFOS'), 'mail_infos'); ?>
 	<br style="font-size:1px"/>
 
@@ -51,6 +51,80 @@ defined('_JEXEC') or die('Restricted access');
 			<?php } ?>
 		</table>
 	</div>
+	<?php if($this->mail->type == 'article'){ ?>
+		<div class="onelineblockoptions">
+			<span class="acyblocktitle"><?php echo acymailing_translation('ACY_INSERT_TAG_ARTICLE'); ?></span>
+			<table class="acymailing_smalltable">
+				<tr>
+					<td>
+						<?php echo acymailing_translation('DISPLAY'); ?>
+					</td>
+					<td colspan="2">
+						<?php echo acymailing_radio($this->contenttype, 'contenttype', 'size="1" onclick="updateTag();"', 'value', 'text', 'intro'); ?>
+					</td>
+					<td>
+						<?php $jflanguages = acymailing_get('type.jflanguages');
+						$jflanguages->onclick = 'onchange="updateTag();"';
+						echo $jflanguages->display('lang', ''); ?>
+					</td>
+				</tr>
+				<tr id="format" class="acyplugformat">
+					<td valign="top">
+						<?php echo acymailing_translation('FORMAT'); ?>
+					</td>
+					<td valign="top">
+						<?php echo $this->acypluginsHelper->getFormatOption('tagcontent'); ?>
+					</td>
+					<td valign="top"><?php echo acymailing_translation('DISPLAY_PICTURES'); ?></td>
+					<td valign="top"><?php echo acymailing_radio($this->picts, 'pict', 'size="1" onclick="updateTag();"', 'value', 'text', '1'); ?>
+						<span id="pictsize" style="display:none;"><br/><?php echo acymailing_translation('CAPTCHA_WIDTH') ?>
+							<input name="pictwidth" type="text" onchange="updateTag();" value="150" style="width:30px;"/>
+								x <?php echo acymailing_translation('CAPTCHA_HEIGHT') ?>
+							<input name="pictheight" type="text" onchange="updateTag();" value="150" style="width:30px;"/>
+						</span>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<?php echo acymailing_translation('CLICKABLE_TITLE'); ?>
+					</td>
+					<td>
+						<?php echo acymailing_radio($this->titlelink, 'titlelink', 'size="1" onclick="updateTag();"', 'value', 'text', 'link'); ?>
+					</td>
+					<td>
+						<?php echo acymailing_translation('AUTHOR_NAME'); ?>
+					</td>
+					<td>
+						<?php echo acymailing_radio($this->authorname, 'author', 'size="1" onclick="updateTag();"', 'value', 'text', '0'); ?>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<?php echo acymailing_translation('SHARE'); ?>
+					</td>
+					<?php
+					$socialMedias = array('facebook' => 'Facebook', 'linkedin' => 'LinkedIn', 'twitter' => 'Twitter', 'google' => 'Google+');
+
+					$cpt = 1;
+					foreach($socialMedias as $key => $oneSocial){
+						if($cpt == 4){
+							$cpt = 1;
+							echo '</tr><tr><td/>';
+						}
+						echo '<td><input value="'.$key.'" name="socialshare" id="'.$key.'" type="checkbox" onclick="updateTag();" /> ';
+						echo '<label for="'.$key.'">'.$oneSocial.'</label></td>';
+						$cpt++;
+					}
+					while($cpt != 4){
+						$cpt++;
+						echo '<td/>';
+					}
+					?>
+				</tr>
+			</table>
+			<a class="acymailing_button" style="width: 95%; text-align: center" onclick="insertTagCurrent(); return false;"><?php echo acymailing_translation('INSERT_TAG'); ?></a>
+		</div>
+	<?php } ?>
 	<?php echo $this->tabs->endPanel(); ?>
 	<?php echo $this->tabs->startPanel(acymailing_translation('ATTACHMENTS'), 'mail_attachments'); ?>
 	<br style="font-size:1px"/>
@@ -72,7 +146,7 @@ defined('_JEXEC') or die('Restricted access');
 			<?php
 			$uploadfileType = acymailing_get('type.uploadfile');
 			for($i = 0; $i < 10; $i++){
-				echo '<div'.($i == 0 ? '' : ' style="display:none;"').' id="attachmentsdiv'.$i.'">'.$uploadfileType->display(false, 'attachments', $i).'</div>';
+				echo '<div'.($i == 0 ? '' : ' style="display:none;"').' id="attachmentsdiv'.$i.'">'.$uploadfileType->display(false, 'attachments', $i).'<a style="display:none" href="javascript:void(0);" id="attachments'.$i.'suppr" onclick="deleteAttachment('.$i.');"><span class="hasTooltip acyicon-delete" title="Delete" ></span></a></div>';
 			}
 			?>
 		</div>
@@ -124,6 +198,5 @@ defined('_JEXEC') or die('Restricted access');
 
 	echo $this->tabs->endPanel();
 	$this->config = acymailing_config();
-	if(acymailing_level(3) && acymailing_isAllowed($this->config->get('acl_newsletters_inbox_actions', 'all')) && JPluginHelper::isEnabled('acymailing', 'plginboxactions')) include(ACYMAILING_BACK.'views'.DS.'newsletter'.DS.'tmpl'.DS.'inboxactions.php');
+	if(acymailing_level(3) && acymailing_isAllowed($this->config->get('acl_newsletters_inbox_actions', 'all')) && acymailing_isPluginEnabled('acymailing', 'plginboxactions')) include(ACYMAILING_BACK.'views'.DS.'newsletter'.DS.'tmpl'.DS.'inboxactions.php');
 	echo $this->tabs->endPane(); ?>
-</div>

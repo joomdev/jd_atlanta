@@ -24,6 +24,7 @@
             <option value="jss">jSocialSuite</option>
             <option value="kunena">Kunena</option>
             <option value="mightyreg">Mighty Registration</option>
+			<option value="seblod">Seblod</option>
             <option value="vm">VirtueMart</option>
         </param>
         <param name="birthdayfield" type="text" size="20" label="Birthday field" description="Enter the name of the table field used to save the birthdate. If you leave this field empty, AcyMailing will take the default one" default="" />
@@ -54,6 +55,7 @@
                 <option value="jss">jSocialSuite</option>
                 <option value="kunena">Kunena</option>
                 <option value="mightyreg">Mighty Registration</option>
+				<option value="seblod">Seblod</option>
                 <option value="vm">VirtueMart</option>
             </field>
             <field name="birthdayfield" type="text" size="20" label="Birthday field" description="Enter the name of the table field used to save the birthdate. If you leave this field empty, AcyMailing will take the default one" default="" />

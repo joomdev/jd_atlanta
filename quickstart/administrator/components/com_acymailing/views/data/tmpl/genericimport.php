@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
-	<form action="<?php echo acymailing_route('index.php?option='.ACYMAILING_COMPONENT); ?>" method="post" name="adminForm" enctype="multipart/form-data" id="adminForm">
+	<form action="<?php echo acymailing_completeLink(acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" enctype="multipart/form-data" id="adminForm">
 		<input type="hidden" name="import_type" id="import_type" value="<?php echo $this->type; ?>"/>
 		<input type="hidden" name="filename" id="filename" value="<?php echo acymailing_getVar('cmd', 'filename'); ?>"/>
 		<input type="hidden" name="import_columns" id="import_columns" value=""/>
@@ -102,82 +103,82 @@ defined('_JEXEC') or die('Restricted access');
 	</form>
 	<script language="javascript" type="text/javascript">
 		<!--
-		<?php if(ACYMAILING_J16){ ?>
-		Joomla.submitbutton = function(pressbutton){
-		<?php }else{ echo 'function submitbutton(pressbutton){'; } ?>
-		if(pressbutton == 'finalizeimport'){
-			var subval = true;
-			var errors = "";
-			var string = "";
-			var emailField = false;
-			var columns = "";
-			var selectedFields = Array();
-			var fieldNb = <?php echo $nbColumns; ?>;
-			if(isNaN(fieldNb)) fieldNb = 1;
+		document.addEventListener("DOMContentLoaded", function(){
+			acymailing.submitbutton = function(pressbutton){
+				if(pressbutton == 'finalizeimport'){
+					var subval = true;
+					var errors = "";
+					var string = "";
+					var emailField = false;
+					var columns = "";
+					var selectedFields = Array();
+					var fieldNb = <?php echo $nbColumns; ?>;
+					if(isNaN(fieldNb)) fieldNb = 1;
 
-			for(var i = 0; i < fieldNb; i++){
-				if(document.getElementById("newcustom" + i).required){
-					string = document.getElementById("newcustom" + i).value;
-					if(string == ""){
-						subval = false;
-						errors += "\nNew custom field's name (column " + (i + 1) + ")";
-					}else{
-						if(!string.match(/^[A-Za-z][A-Za-z0-9_]+$/)){
-							subval = false;
-							errors += "\nPlease enter a valid field name for the column n°" + (i + 1) + ": spaces, uppercase and special characters are not allowed";
-						}else{
-							if(string != 1 && selectedFields.indexOf(string) != -1){
+					for(var i = 0; i < fieldNb; i++){
+						if(document.getElementById("newcustom" + i).required){
+							string = document.getElementById("newcustom" + i).value;
+							if(string == ""){
 								subval = false;
-								errors += "\nDuplicate field \"" + string + "\" for the column n°" + (i + 1);
+								errors += "\nNew custom field's name (column " + (i + 1) + ")";
 							}else{
-								if(string != 0){
-									selectedFields.push(string);
+								if(!string.match(/^[A-Za-z][A-Za-z0-9_]+$/)){
+									subval = false;
+									errors += "\nPlease enter a valid field name for the column n°" + (i + 1) + ": spaces, uppercase and special characters are not allowed";
+								}else{
+									if(string != 1 && selectedFields.indexOf(string) != -1){
+										subval = false;
+										errors += "\nDuplicate field \"" + string + "\" for the column n°" + (i + 1);
+									}else{
+										if(string != 0){
+											selectedFields.push(string);
+										}
+									}
+									columns += "," + string;
 								}
 							}
+						}else{
+							string = document.getElementById("fieldAssignment" + i).value;
+							if(string == 0){
+								subval = false;
+								errors += "\nAssign the column " + (i + 1) + " to a field";
+							}
+
+							if(string == 'email'){
+								emailField = true;
+							}
+
+							if(string != 1 && selectedFields.indexOf(string) != -1){
+								subval = false;
+								errors += "\nDuplicate field \"" + string + "\" for the column " + (i + 1);
+							}else{
+								selectedFields.push(string);
+							}
+
 							columns += "," + string;
 						}
 					}
-				}else{
-					string = document.getElementById("fieldAssignment" + i).value;
-					if(string == 0){
+
+					if(!emailField){
 						subval = false;
-						errors += "\nAssign the column " + (i + 1) + " to a field";
+						errors += "\nPlease assign a column for the e-mail field";
 					}
 
-					if(string == 'email'){
-						emailField = true;
+					if(subval == false){
+						alert("<?php echo acymailing_translation('FILL_ALL'); ?>:\n" + errors);
+						return false;
 					}
 
-					if(string != 1 && selectedFields.indexOf(string) != -1){
-						subval = false;
-						errors += "\nDuplicate field \"" + string + "\" for the column " + (i + 1);
-					}else{
-						selectedFields.push(string);
+					if(columns.substr(0, 1) == ","){
+						columns = columns.substring(1);
 					}
 
-					columns += "," + string;
+					document.getElementById("import_columns").value = columns;
 				}
+
+				acymailing.submitform(pressbutton, document.adminForm);
 			}
-
-			if(!emailField){
-				subval = false;
-				errors += "\nPlease assign a column for the e-mail field";
-			}
-
-			if(subval == false){
-				alert("<?php echo acymailing_translation('FILL_ALL'); ?>:\n" + errors);
-				return false;
-			}
-
-			if(columns.substr(0, 1) == ","){
-				columns = columns.substring(1);
-			}
-
-			document.getElementById("import_columns").value = columns;
-		}
-
-		<?php if(ACYMAILING_J16){ echo 'Joomla.submitform(pressbutton,document.adminForm);'; }else{ echo 'submitform(pressbutton);'; } ?>
-		}
+		});
 
 		function checkNewCustom(key){
 			if(document.getElementById("fieldAssignment" + key).value == 2){
@@ -190,7 +191,7 @@ defined('_JEXEC') or die('Restricted access');
 		}
 
 		function changeCharset(){
-			var URL = "index.php?option=com_acymailing&ctrl=<?php if(!acymailing_isAdmin()){ echo 'front'; } ?>data&encoding=" + document.getElementById("charsetconvert").value + "&tmpl=component&task=ajaxencoding&filename=<?php echo urlencode($filename); ?>";
+			var URL = "<?php echo acymailing_prepareAjaxURL((acymailing_isAdmin() ? 'front' : '').'data'); ?>&encoding=" + document.getElementById("charsetconvert").value + "&task=ajaxencoding&filename=<?php echo urlencode($filename); ?>";
 			var selectedDropdowns = "";
 			var fieldNb = <?php echo $nbColumns; ?>;
 			if(isNaN(fieldNb)) fieldNb = 1;

@@ -1,15 +1,17 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
 class EmailController extends acymailingController{
+	
 	function test(){
 
 		$this->store();
@@ -62,4 +64,35 @@ class EmailController extends acymailingController{
 			acymailing_enqueueMessage(acymailing_translation('ERROR_SAVING'), 'error');
 		}
 	}//endfct store
+
+	function chooseListBeforeSend(){
+		return $this->listing();
+	}
+
+	function sendArticle(){
+		$mailClass = acymailing_get('class.mail');
+		$listmailClass = acymailing_get('class.listmail');
+		$mailerHelper = acymailing_get('helper.mailer');
+
+		$query = 'SELECT * FROM #__acymailing_mail WHERE type = \'article\'';
+		$mail = acymailing_loadObject($query);
+
+		$listsids = acymailing_getVar('array', 'cid', array(), '');
+		acymailing_arrayToInteger($listsids);
+
+		$newMailId = $mailClass->copyOneNewsletter($mail->mailid);
+		$newMail = $mailClass->get($newMailId);
+		$newMail->alias = '';
+		$newMail->senddate = time();
+		$newMail->published = 2;
+		$newMail->type = 'news';
+		$mailerHelper->triggerTagsWithRightLanguage($newMail, false); //We replace the tags in the mail
+		$mailid = $mailClass->save($newMail);
+
+		$listmailClass->save($mailid, $listsids);
+
+		$schedHelper = acymailing_get('helper.schedule');
+		$schedHelper->queueScheduled();
+		if(!empty($schedHelper->messages)) acymailing_enqueueMessage($schedHelper->messages);
+	}
 }//endclass

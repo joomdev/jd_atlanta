@@ -1,8 +1,8 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.8.1
+ * @version    5.9.1
  * @author     acyba.com
- * @copyright  (C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
@@ -11,16 +11,11 @@
 
 
 
-
-
 #acyarchivelisting .button:hover, #acymodifyform .button:hover, #unsubbutton_div .button:hover {
     color:#5a99af !important;
 }
 
-
-
-
-
+	
 
 #acyarchivelisting .contentheading{
 	color:#39616f;
@@ -42,8 +37,8 @@
 
 #acyarchivelisting .sectiontableheader a:hover{
 	color:#39616f;}
-
-
+	
+	
 #acyarchivelisting .contentpane tbody .sectiontableentry1{
 	background-color:#ecf2f5;}
 #acyarchivelisting .contentpane tbody .sectiontableentry1:hover{
@@ -54,14 +49,10 @@
 	background-color:#f4f8f9;}
 #acyarchivelisting .contentpane tbody .sectiontableentry2:hover{
 	background-color:#e3e9ec;}
-
-
+	
 
 #acyarchiveview .contentheading{
 	color:#5a99af;}
-
-
-
 
 
 
@@ -83,9 +74,6 @@ div.acymailing_list:hover{
 
 
 
-
-
-
 #acymodifyform legend{
 	color:#39616f;
 	border-bottom:1px solid #39616f;
@@ -94,10 +82,7 @@ div.acymailing_list:hover{
 #acyusersubscription .list_name{
     color: #5a99af;
 }
-
-
-
-
+	
 
 #unsubpage .unsubintro{
 	color:#5a99af;
@@ -108,5 +93,6 @@ div.acymailing_list:hover{
     border-bottom: 1px solid #5a99af;
     color: #5a99af;
 }
+
 
 

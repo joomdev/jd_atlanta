@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -22,7 +23,7 @@ class SubController extends acymailingController{
 		}else{
 			$redirectUrl = urldecode(acymailing_getVar('string', 'redirect', '', ''));
 			$this->_checkRedirectUrl($redirectUrl);
-			$this->setRedirect($redirectUrl,'Please enable the Javascript to be able to subscribe','notice');
+			acymailing_redirect($redirectUrl,'Please enable the Javascript to be able to subscribe','notice');
 		}
 		return false;
 	}
@@ -82,9 +83,7 @@ class SubController extends acymailingController{
 				echo '{"message":"'.str_replace('"','\"',acymailing_translation('ONLY_LOGGED')).'","type":"error","code":"0"}';
 				exit;
 			}else{
-				acymailing_enqueueMessage(acymailing_translation('ONLY_LOGGED'),'error');
-				$usercomp = !ACYMAILING_J16 ? 'com_user' : 'com_users';
-				acymailing_redirect('index.php?option='.$usercomp.'&view=login');
+				acymailing_askLog(false, 'ONLY_LOGGED');
 				return;
 			}
 		}
@@ -338,13 +337,15 @@ class SubController extends acymailingController{
 
 		$this->_closepop($redirectUrl);
 
-		$this->setRedirect($redirectUrl);
+		if(!empty($redirectUrl)) acymailing_redirect($redirectUrl);
+		if('joomla' == 'wordpress') acymailing_redirect(acymailing_rootURI());
 		return true;
 	}
 
 	private function _closepop($redirectUrl){
 		$this->_checkRedirectUrl($redirectUrl);
-		if(empty($redirectUrl) OR !acymailing_getVar('int', 'closepop')) return;
+		if(empty($redirectUrl)) return;
+		if(!acymailing_getVar('int', 'closepop')) acymailing_redirect($redirectUrl);
 
 		echo '<script type="text/javascript" language="javascript">
 					window.parent.document.location.href=\''.str_replace('&amp;','&',$redirectUrl).'\';
@@ -374,7 +375,6 @@ class SubController extends acymailingController{
 
 
 		$redirectUrl = urldecode(acymailing_getVar('string', 'redirectunsub'));
-		if(!empty($redirectUrl)) $this->setRedirect($redirectUrl);
 
 		$formData = acymailing_getVar('array',  'user', array(), '');
 

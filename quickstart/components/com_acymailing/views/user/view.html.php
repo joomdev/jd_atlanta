@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -19,27 +20,15 @@ class UserViewUser extends acymailingView{
 	}
 
 	function modify(){
-		global $Itemid;
-
-		$app = JFactory::getApplication();
-		$pathway = $app->getPathway();
 		$values = new stdClass();
 		$values->show_page_heading = 0;
 
 		$listsClass = acymailing_get('class.list');
 		$subscriberClass = acymailing_get('class.subscriber');
 
-		$jsite = JFactory::getApplication('site');
-		$menus = $jsite->getMenu();
-		$menu = $menus->getActive();
-
-		if(empty($menu) AND !empty($Itemid)){
-			$menus->setActive($Itemid);
-			$menu = $menus->getItem($Itemid);
-		}
+		$menu = acymailing_getMenu();
 
 		if(is_object($menu)){
-			jimport('joomla.html.parameter');
 			$menuparams = new acyParameter($menu->params);
 
 			if(!empty($menuparams)){
@@ -75,12 +64,12 @@ class UserViewUser extends acymailingView{
 				}
 			}
 
-			$pathway->addItem(acymailing_translation('SUBSCRIPTION'));
+			acymailing_addBreadcrumb(acymailing_translation('SUBSCRIPTION'));
 			if(empty($menu)) acymailing_setPageTitle(acymailing_translation('SUBSCRIPTION'));
 		}else{
 			$subscription = $subscriberClass->getSubscription($subscriber->subid, 'listid');
 
-			$pathway->addItem(acymailing_translation('MODIFY_SUBSCRIPTION'));
+			acymailing_addBreadcrumb(acymailing_translation('MODIFY_SUBSCRIPTION'));
 			if(empty($menu)) acymailing_setPageTitle(acymailing_translation('MODIFY_SUBSCRIPTION'));
 		}
 		if(!empty($subscriber->email)) $subscriber->email = acymailing_punycode($subscriber->email, 'emailToUTF8');
@@ -202,19 +191,15 @@ class UserViewUser extends acymailingView{
 		$mailid = acymailing_getVar('int', 'mailid');
 		$this->mailid = $mailid;
 
-		$db = JFactory::GetDBO();
-
 		$query = 'SELECT l.listid, l.name FROM '.acymailing_table('list').' as l';
 		$query .= ' JOIN '.acymailing_table('listsub').' AS ls ON ls.listid = l.listid AND ls.subid = '.acymailing_getVar('int', 'subid');
 		$query .= ' WHERE l.type = \'list\' AND (ls.unsubdate < ls.subdate OR ls.unsubdate IS NULL) AND l.visible = 1 AND l.published = 1';
 		$query .= ' ORDER BY l.ordering ASC';
 
-		$db->setQuery($query);
-		$otherSubscriptions = $db->loadObjectList();
+		$otherSubscriptions = acymailing_loadObjectList($query);
 
 		$query = 'SELECT lm.listid FROM '.acymailing_table('mail').' AS m INNER JOIN '.acymailing_table('listmail').' AS lm ON m.mailid = lm.mailid WHERE m.mailid = '.acymailing_getVar('int', 'mailid');
-		$db->setQuery($query);
-		$listsToDeny = $db->loadObjectList();
+		$listsToDeny = acymailing_loadObjectList($query);
 
 		if(!empty($otherSubscriptions)){
 			$i = 0;
@@ -267,9 +252,7 @@ class UserViewUser extends acymailingView{
 
 
 		$unsubtext = str_replace(array_keys($replace), $replace, acymailing_translation('UNSUBSCRIBE'));
-		$app = JFactory::getApplication();
-		$pathway = $app->getPathway();
-		$pathway->addItem($unsubtext);
+		acymailing_addBreadcrumb($unsubtext);
 
 		acymailing_setPageTitle($unsubtext);
 	}

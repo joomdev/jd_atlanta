@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -19,19 +20,10 @@ class listsViewLists extends acymailingView{
 	}
 
 	function listing(){
-		$app = JFactory::getApplication();
-
 		global $Itemid;
 		$config = acymailing_config();
 
-		$jsite = JFactory::getApplication('site');
-		$menus = $jsite->getMenu();
-		$menu = $menus->getActive();
-
-		if(empty($menu) AND !empty($Itemid)){
-			$menus->setActive($Itemid);
-			$menu = $menus->getItem($Itemid);
-		}
+		$menu = acymailing_getMenu();
 
 		if(empty($menu)) {
 			acymailing_enqueueMessage(acymailing_translation('ACY_NOTALLOWED'));
@@ -41,9 +33,7 @@ class listsViewLists extends acymailingView{
 		$selectedLists = 'all';
 
 		if(is_object($menu)){
-			jimport('joomla.html.parameter');
 			$menuparams = new acyParameter($menu->params);
-
 
 			$this->listsintrotext = $menuparams->get('listsintrotext');
 			$this->listsfinaltext = $menuparams->get('listsfinaltext');
@@ -57,8 +47,7 @@ class listsViewLists extends acymailingView{
 		}
 
 		if(empty($menuparams)){
-			$pathway = $app->getPathway();
-			$pathway->addItem(acymailing_translation('MAILING_LISTS'));
+			acymailing_addBreadcrumb(acymailing_translation('MAILING_LISTS'));
 		}
 
 		$document = JFactory::getDocument();

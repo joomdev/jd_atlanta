@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 $config = acymailing_config();
@@ -51,43 +52,43 @@ $backend = acymailing_isAdmin(); ?>
 
 </style>
 <script language="javascript" type="text/javascript">
-	<?php if(!ACYMAILING_J16){ ?>
-	function submitbutton(pressbutton){
-		<?php }else{ ?>
-		Joomla.submitbutton = function(pressbutton){
-			<?php } ?>
+	document.addEventListener("DOMContentLoaded", function(){
+		acymailing.submitbutton = function(pressbutton){
 			var form = document.adminForm;
 			if(pressbutton != 'cancel' && form.email){
 				form.email.value = form.email.value.replace(/ /g, "");
-				<?php if($config->get('special_chars', 0) == 0){ ?>
-				var filter = /^([a-z0-9_'&\.\-\+=])+\@(([a-z0-9\-])+\.)+([a-z0-9]{2,10})+$/i;
-				<?php }else{ ?>
-				var filter = /\@/i;
-				<?php } ?>
+				var filter = /^<?php echo acymailing_getEmailRegex(true); ?>$/i;'
 				if(!filter.test(form.email.value)){
 					alert("<?php echo acymailing_translation('VALID_EMAIL', true); ?>");
 					return false;
 				}
 			}
-			<?php if(!ACYMAILING_J16){ ?>
-			submitform(pressbutton);
-		}
-		<?php }else{ ?>
-		Joomla.submitform(pressbutton, form);
-	}
-	;
-	<?php } ?>
+			acymailing.submitform(pressbutton, form);
+		};
+	});
 </script>
-<?php if(!empty($this->geoloc)){ ?>
-	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-	<script language="JavaScript" type="text/javascript">
+<?php
+$config = acymailing_config();
+$google_map_api_key = $config->get('google_map_api_key');
+if(empty($google_map_api_key) && acymailing_isAdmin()){
+	acymailing_display('<a href="'.acymailing_completeLink('cpanel').'" onclick="localStorage.setItem(\'acyconfig_tab\', \'config_subscription\');">'.acymailing_translation('ACY_NEED_GOOGLE_MAP_API_KEY').'</a>', 'info');
+}
+
+if(!empty($this->geoloc) && !empty($google_map_api_key)){ ?>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script language="javascript" type="text/javascript">
+		google.charts.load('current', {
+			packages: ['geochart', 'corechart'],
+			mapsApiKey: '<?php echo $google_map_api_key; ?>'
+		});
+		google.charts.setOnLoadCallback(drawMarkersMap);
+
+		var chart;
+		var data;
+
 		var mapOptions = {
 			legend: 'none', displayMode: 'markers', sizeAxis: {minSize: 6, maxSize: 24, minValue: 1, maxValue: 10}, enableRegionInteractivity: 'true', region: '<?php echo $this->geoloc_region; ?>'
 		};
-		google.load('visualization', '1', {'packages': ['geochart']});
-		google.setOnLoadCallback(drawMarkersMap);
-		var chart;
-		var data;
 		function drawMarkersMap(){
 			data = new google.visualization.DataTable();
 			data.addColumn('string', 'Address');
@@ -103,17 +104,15 @@ $backend = acymailing_isAdmin(); ?>
 			}
 			echo "data.addRows([".implode(", ", $myData)."]);";
 			?>
-			chart = new google.visualization.GeoChart(document.getElementById('mapGeoloc_div'));
-			chart.draw(data, mapOptions);
-		}
-		;
 
+			chart = new google.visualization.GeoChart(document.getElementById('mapGeoloc_div'));
+		}
 	</script>
 <?php } ?>
 <div id="acy_content">
 	<div id="iframedoc"></div>
 
-	<form action="<?php echo acymailing_route('index.php?option='.ACYMAILING_COMPONENT.'&ctrl='.acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off" <?php if(!empty($this->fieldsClass->formoption)) echo $this->fieldsClass->formoption; ?> >
+	<form action="<?php echo acymailing_completeLink(acymailing_getVar('cmd', 'ctrl')); ?>" method="post" name="adminForm" id="adminForm" autocomplete="off" <?php if(!empty($this->fieldsClass->formoption)) echo $this->fieldsClass->formoption; ?> >
 		<input type="hidden" name="cid[]" value="<?php echo @$this->subscriber->subid; ?>"/>
 		<input type="hidden" name="acy_source" value="<?php echo acymailing_isAdmin() ? 'management_back' : 'management_front'; ?>"/>
 		<?php $selectedList = acymailing_getVar('int', 'filter_lists');
@@ -262,10 +261,9 @@ $backend = acymailing_isAdmin(); ?>
 			$this->fieldsClass->currentUser = $this->subscriber;
 			include(dirname(__FILE__).DS.'extrafields.'.basename(__FILE__));
 		} ?>
-		<div class="onelineblockoptions acytabsystem" style="clear:both;<?php echo $this->isAdmin ? '' : 'max-width:700px;'; ?>">
+		<div class="onelineblockoptions" style="clear:both;<?php echo $this->isAdmin ? '' : 'max-width:700px;'; ?>">
 			<div id="acysubscriberinfo">
 				<?php $tabs = acymailing_get('helper.acytabs');
-				$tabs->setOptions(array('useCookie' => true));
 
 				echo $tabs->startPane('user_tabs');
 				echo $tabs->startPanel(acymailing_translation('SUBSCRIPTION'), 'user_subscription');
@@ -402,7 +400,7 @@ $backend = acymailing_isAdmin(); ?>
 
 							for($i = 0, $a = count($this->open); $i < $a; $i++){
 								$row =& $this->open[$i];
-								$row->subject = Emoji::Decode($row->subject);
+								$row->subject = acyEmoji::Decode($row->subject);
 								?>
 								<tr class="<?php echo "row$k"; ?>">
 									<td align="center" style="text-align:center">
@@ -418,7 +416,7 @@ $backend = acymailing_isAdmin(); ?>
 											echo acymailing_popup($link, $row->subject, '', $width, $height);
 										}else{
 											$text = '<b>'.acymailing_translation('ACY_ID').' : </b>'.$row->mailid;
-											echo acymailing_tooltip( $text, $row->subject, '', $row->subject);
+											echo acymailing_tooltip($text, $row->subject, '', $row->subject);
 										}
 										?>
 									</td>
@@ -485,7 +483,7 @@ $backend = acymailing_isAdmin(); ?>
 
 							for($i = 0, $a = count($this->clicks); $i < $a; $i++){
 								$row =& $this->clicks[$i];
-								$row->subject = Emoji::Decode($row->subject);
+								$row->subject = acyEmoji::Decode($row->subject);
 								$id = 'urlclick'.$i;
 								?>
 								<tr class="<?php echo "row$k"; ?>" id="<?php echo $id; ?>">
@@ -552,7 +550,7 @@ $backend = acymailing_isAdmin(); ?>
 
 							for($i = 0, $a = count($this->queue); $i < $a; $i++){
 								$row =& $this->queue[$i];
-								$row->subject = Emoji::Decode($row->subject);
+								$row->subject = acyEmoji::Decode($row->subject);
 								$id = 'queue'.$i;
 								?>
 								<tr class="<?php echo "row$k"; ?>" id="<?php echo $id; ?>">
@@ -686,11 +684,9 @@ $backend = acymailing_isAdmin(); ?>
 					echo $tabs->endPanel();
 				}
 
-				if(!empty($this->geoloc)){
-					echo $tabs->startPanel('<span onclick="setTimeout(function(){chart.draw(data, mapOptions)},100);setTimeout(function(){chart.draw(data, mapOptions)},2000);">'.acymailing_translation('GEOLOCATION').'</span>', 'geoloc');
+				if(!empty($this->geoloc) && !empty($google_map_api_key)){
+					echo $tabs->startPanel('<span onclick="setTimeout(function(){chart.draw(data, mapOptions)},100);">'.acymailing_translation('GEOLOCATION').'</span>', 'geoloc');
 					?>
-
-
 					<div>
 						<div id="mapGeoloc_div" style="width:900px; max-width:100%; float:left; padding-right:20px;"></div>
 						<div style="float:left; min-width:400px; max-width:800px;">
@@ -790,7 +786,7 @@ $backend = acymailing_isAdmin(); ?>
 										<?php echo $this->escape($oneNeighbour->name); ?>
 									</td>
 									<td valign="top">
-										<?php echo '<a href="index.php?option=com_acymailing&ctrl=subscriber&task=edit&subid='.$oneNeighbour->subid.'" target="_blank">'.$this->escape($oneNeighbour->email).'</a>'; ?>
+										<?php echo '<a href="'.acymailing_completeLink('subscriber&task=edit&subid='.$oneNeighbour->subid).'" target="_blank">'.$this->escape($oneNeighbour->email).'</a>'; ?>
 									</td>
 									<td align="center" style="text-align:center" valign="top">
 										<?php echo $oneNeighbour->subid; ?>

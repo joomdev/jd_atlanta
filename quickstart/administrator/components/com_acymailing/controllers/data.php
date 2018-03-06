@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -69,21 +70,20 @@ class DataController extends acymailingController{
 			if(file_exists(ACYMAILING_MEDIA.'import'.DS.acymailing_getVar('cmd', 'filename'))) $importContent = file_get_contents(ACYMAILING_MEDIA.'import'.DS.acymailing_getVar('cmd', 'filename'));
 			if(empty($importContent)){
 				acymailing_enqueueMessage(acymailing_translation('ACY_IMPORT_NO_CONTENT'), 'error');
-				$this->setRedirect(acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'data&task=import', false, true));
+				acymailing_redirect(acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'data&task=import', false, true));
 			}else{
-				acymailing_setVar('hidemainmenu', 1);
 				acymailing_setVar('layout', 'genericimport');
 				return parent::display();
 			}
 		}else{
-			$this->setRedirect(acymailing_completeLink(acymailing_isAdmin() ? 'subscriber' : 'frontsubscriber', false, true));
+			acymailing_redirect(acymailing_completeLink(acymailing_isAdmin() ? 'subscriber' : 'frontsubscriber', false, true));
 		}
 	}
 
 	function finalizeimport(){
 		$importHelper = acymailing_get('helper.import');
 		$importHelper->finalizeImport();
-		$this->setRedirect(acymailing_completeLink(acymailing_isAdmin() ? 'subscriber' : 'frontsubscriber', false, true));
+		acymailing_redirect(acymailing_completeLink(acymailing_isAdmin() ? 'subscriber' : 'frontsubscriber', false, true));
 	}
 
 	function downloadimport(){
@@ -116,14 +116,17 @@ class DataController extends acymailingController{
 
         acymailing_enqueueMessage($message, 'error');
 
-        $menuHelper = acymailing_get('helper.acymenu');
-        echo '<div id="acyallcontent" class="acyallcontent">';
-        echo $menuHelper->display('data');
+		if(!ACYMAILING_J40){
+			$menuHelper = acymailing_get('helper.acymenu');
+			echo '<div id="acyallcontent" class="acyallcontent">';
+			echo $menuHelper->display('data');
+			echo '<div id="acymainarea" class="acymaincontent_data">';
+		}
 
-        echo '<div id="acymainarea" class="acymaincontent_data">';
         acymailing_setVar('layout', 'export');
         parent::display();
-        echo '</div></div>';
+
+		if(!ACYMAILING_J40) echo '</div></div>';
         return false;
     }
 
@@ -232,7 +235,7 @@ class DataController extends acymailingController{
 		if(!empty($filtersExport['confirmed'])) $where[] = 's.confirmed = 1';
 		if(!empty($filtersExport['registered'])) $where[] = 's.userid > 0';
 		if(!empty($filtersExport['enabled'])) $where[] = 's.enabled = 1';
-
+		
 		if(acymailing_getVar('int', 'sessionvalues') AND !empty($_SESSION['acymailing']['exportusers'])){
 			$where[] = 's.subid IN ('.implode(',', $_SESSION['acymailing']['exportusers']).')';
 		}
@@ -246,14 +249,14 @@ class DataController extends acymailingController{
 		$query = $querySelect;
 		if(!empty($where)) $query .= ' WHERE ('.implode(') AND (', $where).')';
 		if(acymailing_getVar('int', 'sessionquery')){
-			$currentSession = JFactory::getSession();
 			$selectOthers = '';
 			if(!empty($exportFieldsOthers)){
 				foreach($exportFieldsOthers as $oneField){
 					$selectOthers .= ' , '.$oneField.' AS '.str_replace('.', '_', $oneField);
 				}
 			}
-			$acyExportQuery = $currentSession->get('acyexportquery');
+			acymailing_session();
+			$acyExportQuery = $_SESSION['acymailing']['acyexportquery'];
 			if(strpos($acyExportQuery, 'urlclick') !== false) {
 				$query = 'SELECT s.`subid`, '.$selectFields.$selectOthers.' '.$acyExportQuery;
 				$assocField = '';
@@ -263,15 +266,13 @@ class DataController extends acymailingController{
 		}
 		$query .= ' ORDER BY s.subid';
 
-		$db = JFactory::getDBO();
 		$encodingClass = acymailing_get('helper.encoding');
 		$exportHelper = acymailing_get('helper.export');
 
 		$fileName = 'export_'.date('Y-m-d');
 		if(!empty($exportLists) && !empty($filtersExport['subscribed'])){
 			$fileName = '';
-			$db->setQuery('SELECT name FROM #__acymailing_list WHERE listid IN ('.implode(',', $exportLists).')');
-			$allExportedLists = $db->loadObjectList();
+			$allExportedLists = acymailing_loadObjectList('SELECT name FROM #__acymailing_list WHERE listid IN ('.implode(',', $exportLists).')');
 			foreach($allExportedLists as $oneList){
 				$fileName .= '__'.$oneList->name;
 			}
@@ -313,19 +314,18 @@ class DataController extends acymailingController{
 		$valDep = 0;
 		$dateFields = array('created', 'confirmed_date', 'lastopen_date', 'lastclick_date', 'lastsent_date', 'userstats_opendate', 'userstats_senddate', 'urlclick_date', 'hist_date');
 		do{
-			$db->setQuery($query.' LIMIT '.$valDep.', '.$nbExport);
+			$allData = acymailing_loadObjectList($query.' LIMIT '.$valDep.', '.$nbExport, $assocField);
 			$valDep += $nbExport;
-			$allData = $db->loadAssocList($assocField);
 			if($allData === false){
-				echo $eol.$eol.'Error : '.$db->getErrorMsg();
+				echo $eol.$eol.'Error : '.acymailing_getDBError();
 			}
 			if(empty($allData)) break;
 
 			foreach($allData as $subid => &$oneUser){
-				if(!in_array('subid', $exportFields)) unset($allData[$subid]['subid']);
+				if(!in_array('subid', $exportFields)) unset($allData[$subid]->subid);
 
 				foreach($dateFields as &$fieldName){
-					if(isset($allData[$subid][$fieldName])) $allData[$subid][$fieldName] = acymailing_getDate($allData[$subid][$fieldName], '%Y-%m-%d %H:%M:%S');
+					if(isset($allData[$subid]->$fieldName)) $allData[$subid]->$fieldName = acymailing_getDate($allData[$subid]->$fieldName, '%Y-%m-%d %H:%M:%S');
 				}
 			}
 
@@ -336,11 +336,10 @@ class DataController extends acymailingController{
 				if(!empty($exportLists)) $queryList .= 'AND ls.listid IN ('.implode(',', $exportLists).') ';
 				$queryList .= 'LEFT JOIN #__acymailing_list AS l ON ls.listid = l.listid
 								WHERE s.subid IN ('.implode(',', array_keys($allData)).')';
-				$db->setQuery($queryList);
-				$resList = $db->loadObjectList();
+				$resList = acymailing_loadObjectList($queryList);
 				foreach($resList as &$listsub){
-					if(in_array('listid', $exportFieldsList)) $allData[$listsub->subid]['listid'] = empty($allData[$listsub->subid]['listid']) ? $listsub->listid : $allData[$listsub->subid]['listid'].' - '.$listsub->listid;
-					if(in_array('listname', $exportFieldsList)) $allData[$listsub->subid]['listname'] = empty($allData[$listsub->subid]['listname']) ? $listsub->name : $allData[$listsub->subid]['listname'].' - '.$listsub->name;
+					if(in_array('listid', $exportFieldsList)) $allData[$listsub->subid]->listid = empty($allData[$listsub->subid]->listid) ? $listsub->listid : $allData[$listsub->subid]->listid.' - '.$listsub->listid;
+					if(in_array('listname', $exportFieldsList)) $allData[$listsub->subid]->listname = empty($allData[$listsub->subid]->listname) ? $listsub->name : $allData[$listsub->subid]->listname.' - '.$listsub->name;
 				}
 				unset($resList);
 			}
@@ -348,12 +347,11 @@ class DataController extends acymailingController{
 			if(!empty($exportFieldsGeoloc) && !empty($allData)){
 				$orderGeoloc = acymailing_getVar('cmd', 'exportgeolocorder');
 				if(strtolower($orderGeoloc) !== 'desc') $orderGeoloc = 'asc';
-				$db->setQuery('SELECT geolocation_subid,'.implode(', ', $exportFieldsGeoloc).' FROM (SELECT * FROM #__acymailing_geolocation WHERE geolocation_subid IN ('.implode(',', array_keys($allData)).') ORDER BY geolocation_id '.$orderGeoloc.') as geoloc GROUP BY geolocation_subid');
-				$resGeol = $db->loadObjectList('geolocation_subid');
+				$resGeol = acymailing_loadObjectList('SELECT geolocation_subid,'.implode(', ', $exportFieldsGeoloc).' FROM (SELECT * FROM #__acymailing_geolocation WHERE geolocation_subid IN ('.implode(',', array_keys($allData)).') ORDER BY geolocation_id '.$orderGeoloc.') as geoloc GROUP BY geolocation_subid', 'geolocation_subid');
 				foreach($allData as $subid => $oneSubscriber){
 					foreach($exportFieldsGeoloc as $geolField){
 						$value = empty($resGeol[$subid]) ? '' : $resGeol[$subid]->$geolField;
-						$allData[$subid][$geolField] = ($geolField == 'geolocation_created' ? acymailing_getDate($value, '%Y-%m-%d %H:%M:%S') : $value);
+						$allData[$subid]->$geolField = ($geolField == 'geolocation_created' ? acymailing_getDate($value, '%Y-%m-%d %H:%M:%S') : $value);
 					}
 				}
 				unset($resGeol);
@@ -361,7 +359,7 @@ class DataController extends acymailingController{
 
 
 			foreach($allData as $subid => &$oneUser){
-				$dataexport = implode($separator, $oneUser);
+				$dataexport = implode($separator, get_object_vars($oneUser));
 				echo $before.$encodingClass->change($dataexport, 'UTF-8', $exportFormat).$after.$eol;
 			}
 

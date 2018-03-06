@@ -1,15 +1,16 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 $name = 'Build Bio';
-$thumb = 'media/com_acymailing/templates/newsletter-6/newsletter-6.png';
+$thumb = ACYMAILING_MEDIA_FOLDER.'/templates/newsletter-6/newsletter-6.png';
 $body = acymailing_fileGetContent(dirname(__FILE__).DS.'index.html');
 
 $styles['tag_h1'] = 'font-weight:bold; font-size:14px;color:#3c3c3c !important;margin:0px;';
@@ -59,6 +60,7 @@ $stylesheet = 'table, div, p,td{
 	.w540 img{max-width:540px; height:auto !important}
 }
 ';
+
 
 
 

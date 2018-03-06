@@ -1,24 +1,25 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><div id="acy_content">
 	<div id="iframedoc"></div>
-	<form action="index.php?option=<?php echo ACYMAILING_COMPONENT ?>&amp;ctrl=<?php echo acymailing_getVar('cmd', 'ctrl'); ?>" method="post" name="adminForm" id="adminForm">
+	<form action="<?php echo acymailing_completeLink((acymailing_isAdmin() ? '' : 'front').'stats', true); ?>" method="post" name="adminForm" id="adminForm">
 		<?php if(!acymailing_isAdmin()){ ?>
 			<fieldset class="acyheaderarea">
-				<?php if(!empty($this->rows[0]->subject)) $this->rows[0]->subject = Emoji::Decode($this->rows[0]->subject); ?>
+				<?php if(!empty($this->rows[0]->subject)) $this->rows[0]->subject = acyEmoji::Decode($this->rows[0]->subject); ?>
 				<div class="acyheader icon-48-stats" style="float: left;"><?php echo(!empty($this->rows) ? $this->rows[0]->subject : acymailing_translation('UNSUBSCRIBECAPTION')); ?></div>
 				<div class="toolbar" id="toolbar" style="float: right;">
 					<table>
 						<tr>
-							<?php if(acymailing_getVar('string', 'tmpl') == 'component' && !empty($this->rows)){ ?>
-								<td><a onclick="javascript:submitbutton('export<?php echo ucfirst(acymailing_getVar('cmd', 'task')); ?>'); return false;" href="#"><span class="icon-32-acyexport" title="<?php echo acymailing_translation('ACY_EXPORT', true); ?>"></span><?php echo acymailing_translation('ACY_EXPORT'); ?></a></td>
+							<?php if(acymailing_isNoTemplate() && !empty($this->rows)){ ?>
+								<td><a onclick="acymailing.submitbutton('export<?php echo ucfirst(acymailing_getVar('cmd', 'task')); ?>'); return false;" href="#"><span class="icon-32-acyexport" title="<?php echo acymailing_translation('ACY_EXPORT', true); ?>"></span><?php echo acymailing_translation('ACY_EXPORT'); ?></a></td>
 								<td>
 								</td>
 							<?php } ?>
@@ -64,8 +65,7 @@ defined('_JEXEC') or die('Restricted access');
 			<tr>
 				<td colspan="4">
 					<?php echo $this->pagination->getListFooter();
-					echo $this->pagination->getResultsCounter();
-					if(ACYMAILING_J30) echo '<br />'.$this->pagination->getLimitBox(); ?>
+					echo $this->pagination->getResultsCounter(); ?>
 				</td>
 			</tr>
 			</tfoot>
@@ -113,13 +113,8 @@ defined('_JEXEC') or die('Restricted access');
 			</tbody>
 		</table>
 
-		<input type="hidden" name="option" value="<?php echo ACYMAILING_COMPONENT; ?>"/>
-		<input type="hidden" name="task" value="<?php echo acymailing_getVar('cmd', 'task'); ?>"/>
 		<input type="hidden" name="defaulttask" value="<?php echo acymailing_getVar('cmd', 'task'); ?>"/>
-		<input type="hidden" name="ctrl" value="<?php echo acymailing_getVar('cmd', 'ctrl'); ?>"/>
-		<input type="hidden" name="filter_order" value="<?php echo $this->pageInfo->filter->order->value; ?>"/>
-		<input type="hidden" name="filter_order_Dir" value="<?php echo $this->pageInfo->filter->order->dir; ?>"/>
-		<input type="hidden" name="tmpl" value="component"/>
 		<input type="hidden" name="fromdetail" value="<?php echo acymailing_getVar('int', 'fromdetail'); ?>"/>
+		<?php acymailing_formOptions($this->pageInfo->filter->order); ?>
 	</form>
 </div>

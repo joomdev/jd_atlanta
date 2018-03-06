@@ -1,20 +1,22 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
 
 class FileViewFile extends acymailingView{
+	
 	function display($tpl = null){
 		acymailing_addStyle(false, ACYMAILING_CSS.'frontendedition.css?v='.filemtime(ACYMAILING_MEDIA.'css'.DS.'frontendedition.css'));
 
-		acymailing_setVar('tmpl', 'component');
+		acymailing_setNoTemplate();
 
 		$function = $this->getLayout();
 		if(method_exists($this, $function)) $this->$function();
@@ -43,7 +45,7 @@ class FileViewFile extends acymailingView{
 			}
 		}
 
-		if(acymailing_getVar('string', 'tmpl') == 'component'){
+		if(acymailing_isNoTemplate()){
 			$acyToolbar = acymailing_get('helper.toolbar');
 			$acyToolbar->custom('savecss', acymailing_translation('ACY_SAVE'), 'save', false);
 			$acyToolbar->setTitle($type.'_'.$fileName.'.css');
@@ -69,10 +71,10 @@ class FileViewFile extends acymailingView{
 
 		$file = new stdClass();
 		$file->name = $code;
-		$path = acymailing_getLanguagePath(ACYMAILING_ROOT).DS.$code.DS.$code.'.com_acymailing.ini';
+		$path = acymailing_getLanguagePath(ACYMAILING_ROOT, $code).DS.$code.'.com_acymailing.ini';
 		$file->path = $path;
 
-
+		
 		$showLatest = true;
 		$loadLatest = false;
 
@@ -84,16 +86,16 @@ class FileViewFile extends acymailingView{
 		}else{
 			$loadLatest = true;
 			acymailing_enqueueMessage(acymailing_translation('LOAD_ENGLISH_1').'<br />'.acymailing_translation('LOAD_ENGLISH_2').'<br />'.acymailing_translation('LOAD_ENGLISH_3'), 'info');
-			$file->content = acymailing_fileGetContent(acymailing_getLanguagePath(ACYMAILING_ROOT).DS.'en-GB'.DS.'en-GB.com_acymailing.ini');
+			$file->content = acymailing_fileGetContent(acymailing_getLanguagePath(ACYMAILING_ROOT, ACYMAILING_DEFAULT_LANGUAGE).DS.ACYMAILING_DEFAULT_LANGUAGE.'.com_acymailing.ini');
 		}
 
-		$custompath = acymailing_getLanguagePath(ACYMAILING_ROOT).DS.$code.DS.$code.'.com_acymailing_custom.ini';
+		$custompath = acymailing_getLanguagePath(ACYMAILING_ROOT, $code).DS.$code.'.com_acymailing_custom.ini';
 		if(file_exists($custompath)){
 			$file->customcontent = acymailing_fileGetContent($custompath);
 		}
 
-		if($loadLatest OR acymailing_getVar('cmd', 'task') == 'latest'){
-			if(file_exists(ACYMAILING_ROOT.'language'.DS.$code)){
+		if($loadLatest || acymailing_getVar('cmd', 'task') == 'latest'){
+			if(file_exists(acymailing_getLanguagePath(ACYMAILING_ROOT, $code))){
 				acymailing_addScript(false, ACYMAILING_UPDATEURL.'languageload&code='.acymailing_getVar('cmd', 'code'));
 			}else{
 				acymailing_enqueueMessage('The specified language "'.htmlspecialchars($code, ENT_COMPAT, 'UTF-8').'" is not installed on your site', 'warning');
@@ -103,7 +105,7 @@ class FileViewFile extends acymailingView{
 			$showLatest = false;
 		}
 
-		if(acymailing_getVar('string', 'tmpl') == 'component'){
+		if(acymailing_isNoTemplate()){
 			$acyToolbar = acymailing_get('helper.toolbar');
 			$acyToolbar->save();
 			$acyToolbar->custom('share', acymailing_translation('SHARE'), 'share', false);
@@ -121,7 +123,7 @@ class FileViewFile extends acymailingView{
 		$file->name = acymailing_getVar('cmd', 'code');
 
 		$acyToolbar = acymailing_get('helper.toolbar');
-		$acyToolbar->custom('share', acymailing_translation('SHARE'), 'share', false, "if(confirm('".acymailing_translation('CONFIRM_SHARE_TRANS', true)."')){ javascript:submitbutton('send');} return false;");
+		$acyToolbar->custom('share', acymailing_translation('SHARE'), 'share', false, "if(confirm('".acymailing_translation('CONFIRM_SHARE_TRANS', true)."')){ acymailing.submitbutton('send');} return false;");
 		$acyToolbar->setTitle(acymailing_translation('SHARE').' : '.$this->escape($file->name));
 		$acyToolbar->topfixed = false;
 		$acyToolbar->display();
@@ -130,9 +132,6 @@ class FileViewFile extends acymailingView{
 	}
 
 	function select(){
-
-
-
 		$config = acymailing_config();
 		$uploadFolders = acymailing_getFilesFolder('upload', true);
 		$uploadFolder = acymailing_getVar('string', 'currentFolder', $uploadFolders[0]);
@@ -148,17 +147,16 @@ class FileViewFile extends acymailingView{
 					$script .= 'parent.document.getElementById("'.$map.'preview").src = "'.acymailing_rootURI().str_replace(DS, '/', $uploadFolder).'/'.$uploaded.'";';
 				}else{
 					$script .= 'parent.document.getElementById("'.$map.'selection").innerHTML = "'.$uploaded.'";';
+					$script .= "parent.document.getElementById('".$map."suppr').style.display = 'inline';";
 				}
-				$script .= 'window.parent.SqueezeBox.close();';
+				$script .= 'window.parent.acymailing.closeBox();';
 				acymailing_addScript(true, $script);
 			}
 		}
 
 		$fileToDelete = acymailing_getVar('string', 'filename', '');
 		if(!empty($fileToDelete) && file_exists($uploadPath.DS.$fileToDelete) && empty($uploadedFile)){
-			$db = JFactory::getDBO();
-			$db->setQuery('SELECT mailid FROM #__acymailing_mail WHERE attach LIKE \'%"'.$uploadFolder.'/'.$fileToDelete.'"%\'');
-			$checkAttach = acymailing_loadResultArray($db);
+			$checkAttach = acymailing_loadResultArray('SELECT mailid FROM #__acymailing_mail WHERE attach LIKE \'%"'.$uploadFolder.'/'.$fileToDelete.'"%\'');
 
 			if(!empty($checkAttach)){
 				acymailing_display(acymailing_translation_sprintf('ACY_CANT_DELETEFILE', implode($checkAttach, ', ')), 'error');

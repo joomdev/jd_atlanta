@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 if(!function_exists('ldap_connect')){
@@ -15,7 +16,7 @@ if(!function_exists('ldap_connect')){
 
 $js = 'function updateldap(){
 		document.getElementById("ldap_fields").innerHTML = "<span class=\"onload\"></span>";
-		queryString = "index.php?option=com_acymailing&tmpl=component&ctrl=data&task=ajaxload&importfrom=ldap";
+		queryString = "'.acymailing_prepareAjaxURL('data').'&task=ajaxload&importfrom=ldap";
 		queryString += "&ldap_host="+document.getElementById("ldap_host").value;
 		queryString += "&ldap_port="+document.getElementById("ldap_port").value;
 		queryString += "&ldap_basedn="+document.getElementById("ldap_basedn").value;

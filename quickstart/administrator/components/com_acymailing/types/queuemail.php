@@ -1,25 +1,23 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
-class queuemailType{
+class queuemailType extends acymailingClass{
 	function __construct(){
-
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT COUNT(*) as total, mailid FROM #__acymailing_queue GROUP BY mailid');
-		$allmails = $db->loadObjectList('mailid');
+		parent::__construct();
+		$allmails = acymailing_loadObjectList('SELECT COUNT(*) as total, mailid FROM #__acymailing_queue GROUP BY mailid', 'mailid');
 
 		$subjects = array();
 		if(!empty($allmails)){
-			$db->setQuery('SELECT mailid,subject FROM #__acymailing_mail WHERE mailid IN ('.implode(',',array_keys($allmails)).') ORDER BY subject ASC');
-			$subjects = $db->loadObjectList('mailid');
+			$subjects = acymailing_loadObjectList('SELECT mailid,subject FROM #__acymailing_mail WHERE mailid IN ('.implode(',',array_keys($allmails)).') ORDER BY subject ASC', 'mailid');
 		}
 
 		$this->values = array();

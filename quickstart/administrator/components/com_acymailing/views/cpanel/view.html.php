@@ -1,26 +1,26 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.1
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
 class CpanelViewCpanel extends acymailingView{
+	
 	function display($tpl = null){
 		$toggleClass = acymailing_get('helper.toggle');
 		$config = acymailing_config();
-		$db = JFactory::getDBO();
-		$app = JFactory::getApplication();
 
 		$language = acymailing_getLanguageTag();
 
 		$styleRemind = 'float:right;margin-right:30px;position:relative;';
-		$loadLink = acymailing_popup('index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=file&amp;task=latest&amp;code='.$language, acymailing_translation('LOAD_LATEST_LANGUAGE'), '', 800, 500, '', ' onclick="window.document.getElementById(\'acymailing_messages_warning\').style.display = \'none\';return true;" ');
-		if(!file_exists(ACYMAILING_ROOT.'language'.DS.$language.DS.$language.'.com_acymailing.ini')){
+		$loadLink = acymailing_popup(acymailing_completeLink('file', true).'&amp;task=latest&amp;code='.$language, acymailing_translation('LOAD_LATEST_LANGUAGE'), '', 800, 500, '', ' onclick="window.document.getElementById(\'acymailing_messages_warning\').style.display = \'none\';return true;" ');
+		if(!file_exists(acymailing_getLanguagePath(ACYMAILING_ROOT, $language).DS.$language.'.com_acymailing.ini')){
 			if($config->get('errorlanguagemissing', 1)){
 				$notremind = '<small style="'.$styleRemind.'">'.$toggleClass->delete('acymailing_messages_warning', 'errorlanguagemissing_0', 'config', false, acymailing_translation('DONT_REMIND')).'</small>';
 				acymailing_enqueueMessage(acymailing_translation('MISSING_LANGUAGE').' '.$loadLink.' '.$notremind, 'warning');
@@ -30,19 +30,6 @@ class CpanelViewCpanel extends acymailingView{
 				$notremind = '<small style="'.$styleRemind.'">'.$toggleClass->delete('acymailing_messages_warning', 'errorlanguageupdate_0', 'config', false, acymailing_translation('DONT_REMIND')).'</small>';
 				acymailing_enqueueMessage(acymailing_translation('UPDATE_LANGUAGE').' '.$loadLink.' '.$notremind, 'warning');
 			}
-		}
-
-		if(ACYMAILING_J30 && $app->getTemplate() == 'hathor'){
-			if($config->get('errortemplatenotisis', 1)){
-				$message = ' You can change the default Back-end template <a href="index.php?option=com_templates&view=styles">Here</a> or change your personnal default Back-end template by editing your user profile <a href="index.php?option=com_users&view=users">Here</a>, tab "Basic Settings".';
-				$notremind = '<small style="'.$styleRemind.'">'.$toggleClass->delete('acymailing_messages_warning', 'errortemplatenotisis_0', 'config', false, acymailing_translation('DONT_REMIND')).'</small>';
-				acymailing_enqueueMessage('You should rather use the isis template in the Back-End which suits more AcyMailing.'.$message.$notremind, 'warning');
-			}
-		}
-
-		if($config->get('migratefromj2', 1) && ACYMAILING_J16 && !ACYMAILING_J30){
-			$notremind = '<small style="'.$styleRemind.'">'.$toggleClass->delete('acymailing_messages_error', 'migratefromj2_0', 'config', false, acymailing_translation('DONT_REMIND')).'</small>';
-			acymailing_enqueueMessage(acymailing_translation_sprintf('ACY_MIGRATE', '<a target="_blank" href="http://www.acyba.com/index.php?option=com_updateme&ctrl=redirect&page=j25migration">'.acymailing_translation('ACY_MIGRATE_HELP').'</a>').$notremind, 'warning');
 		}
 
 		$indexes = array('listsub', 'stats', 'list', 'mail', 'userstats', 'urlclick', 'history', 'template', 'queue', 'subscriber');
@@ -89,8 +76,6 @@ class CpanelViewCpanel extends acymailingView{
 		$encodingval[] = acymailing_selectOption('base64', 'Base 64');
 		$elements->encoding_format = acymailing_select($encodingval, "config[encoding_format]", 'size="1" style="width:150px;"', 'value', 'text', $config->get('encoding_format', 'base64'));
 
-		$elements->special_chars = acymailing_boolean("config[special_chars]", '', $config->get('special_chars', 0));
-
 		$charset = acymailing_get('type.charset');
 		$elements->charset = $charset->display("config[charset]", $config->get('charset', 'UTF-8'));
 
@@ -105,49 +90,12 @@ class CpanelViewCpanel extends acymailingView{
 
 		$elements->allow_visitor = acymailing_boolean("config[allow_visitor]", '', $config->get('allow_visitor', 1));
 
-		$editorType = acymailing_get('type.editor');
-		$elements->editor = $editorType->display('config[editor]', $config->get('editor'));
-
 		$elements->subscription_message = acymailing_boolean("config[subscription_message]", '', $config->get('subscription_message', 1));
 		$elements->confirmation_message = acymailing_boolean("config[confirmation_message]", '', $config->get('confirmation_message', 1));
 		$elements->unsubscription_message = acymailing_boolean("config[unsubscription_message]", '', $config->get('unsubscription_message', 1));
 		$elements->welcome_message = acymailing_boolean("config[welcome_message]", '', $config->get('welcome_message', 1));
 		$elements->unsub_message = acymailing_boolean("config[unsub_message]", '', $config->get('unsub_message', 1));
 		$elements->confirm_message = acymailing_boolean("config[confirm_message]", '', $config->get('confirm_message', 0));
-
-
-		if(acymailing_level(1)){
-			$js = 'var selectedForward = '.$config->get('forward', 0).'
-					function confirmForward(clickedForward){
-						if(clickedForward == selectedForward || clickedForward != 1) return true;
-
-						var cnfrm = confirm(\''.str_replace("'", "\'", acymailing_translation('ACY_FORWARDCHOICE_CONFIRMATION')).'\');
-						if(!cnfrm) return true;';
-
-				if(ACYMAILING_J30){
-					$js .= '
-					var labels = document.getElementById("config_forwardfieldset").getElementsByTagName("label");
-					for(oneLabel in labels){
-						if(isNaN(oneLabel)) continue;
-						if(labels[oneLabel].getAttribute("for") == "config_forward2"){
-							labels[oneLabel].click();
-						}
-					}';
-				}else{
-					$js .= 'document.getElementById("config[forward]2").checked = true;';
-				}
-
-				$js .= '}';
-			acymailing_addScript(true, $js);
-
-			$forwardValues = array();
-			$forwardValues[] = acymailing_selectOption(0, acymailing_translation('JOOMEXT_NO'));
-			$forwardValues[] = acymailing_selectOption(1, acymailing_translation('JOOMEXT_YES'));
-			$forwardValues[] = acymailing_selectOption(2, acymailing_translation('JOOMEXT_YES_FORWARD'));
-			$elements->forward = acymailing_radio($forwardValues, "config[forward]", 'onclick="confirmForward(this.value);"', 'value', 'text', $config->get('forward', 0));
-		}else{
-			$elements->forward = acymailing_getUpgradeLink('essential');
-		}
 
 		if(acymailing_level(1)){
 			$js = "function updateDKIM(dkimval){
@@ -218,9 +166,9 @@ class CpanelViewCpanel extends acymailingView{
 					window.document.getElementById(id).innerHTML = '".str_replace("'", "\'", acymailing_translation('ACY_CLOSE_TIMEOUT'))."';
 
 					var xhr = new XMLHttpRequest();
-					xhr.open('GET', '".rtrim(acymailing_rootURI(), '/')."/index.php?option=com_acymailing&tmpl=component&ctrl=statistics&task=detecttimeout&seckey=".$config->get('security_key')."');
+					xhr.open('GET', '".acymailing_prepareAjaxURL('stats')."&task=detecttimeout&seckey=".$config->get('security_key')."');
 					xhr.onload = function(){
-						document.id(id).innerHTML = 'Done!';
+						document.getElementById(id).innerHTML = 'Done!';
 						window.document.getElementById(id).className = 'loading';
 					}
 					xhr.send();
@@ -235,6 +183,8 @@ class CpanelViewCpanel extends acymailingView{
 		}
 		acymailing_addScript(true, $js);
 
+		$script = '';
+
 		$cssval = array('css_frontend' => 'component', 'css_module' => 'module', 'css_backend' => 'backend');
 		foreach($cssval as $configval => $type){
 			$myvals = array();
@@ -244,7 +194,6 @@ class CpanelViewCpanel extends acymailingView{
 				$myvals[] = acymailing_selectOption('backend_custom', acymailing_translation('ACY_CUSTOM'));
 				$editFileName = $config->get('css_backend', 'default');
 			}else{
-
 				$regex = '^'.$type.'_([-_a-z0-9]*)\.css$';
 				$allCSSFiles = acymailing_getFiles(ACYMAILING_MEDIA.'css', $regex);
 
@@ -275,26 +224,32 @@ class CpanelViewCpanel extends acymailingView{
 			$js = 'onchange="updateCSSLink(\''.$configval.'\',\''.$type.'\',this.value);"';
 
 			$elements->$configval = acymailing_select($myvals, 'config['.$configval.']', 'class="inputbox" size="1" '.$js, 'value', 'text', $config->get($configval, 'default'), $configval.'_choice');
-			$linkEdit = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=file&amp;task=css&amp;var='.$configval.'&amp;file='.$editFileName;
+			$linkEdit = acymailing_completeLink("file", true)."&amp;task=css&amp;var=".$configval."&amp;file='+".$configval."+'";
 			$elements->$configval .= ' '.acymailing_popup($linkEdit, '<i class="acyicon-edit" style="margin: 5px 5px 0px 5px; display: inline-block;"></i>', '', 800, 500, $configval.'_link', $aStyle);
+
+			$script .= ' var '.$configval.' = "'.$editFileName.'"; ';
 		}
 
-		$js = "function updateCSSLink(myid,type,newval){
-			if(newval){document.getElementById(myid+'_link').style.display = '';}else{document.getElementById(myid+'_link').style.display = 'none'}
+		$script .= "
+		function updateCSSLink(myid,type,newval){
+			if(newval){
+				document.getElementById(myid+'_link').style.display = '';
+			}else{
+				document.getElementById(myid+'_link').style.display = 'none';
+			}
+			
 			if(myid == 'css_backend') filename = newval;
 			else filename = type+'_'+newval;
-			document.getElementById(myid+'_link').href = 'index.php?option=com_acymailing&tmpl=component&ctrl=file&task=css&var='+myid+'&file='+filename;
+			
+			document.getElementById(myid+'_link').href = '".acymailing_completeLink('file&task=css', true)."&var='+myid+'&file='+filename;
+			window[myid] = filename;
 		}";
-		acymailing_addScript(true, $js);
-		$bootstrapFrontValues = array();
-		$bootstrapFrontValues[] = acymailing_selectOption(0, acymailing_translation('JOOMEXT_NO'));
-		$bootstrapFrontValues[] = acymailing_selectOption(1, 'Bootstrap 2');
-		$bootstrapFrontValues[] = acymailing_selectOption(2, 'Bootstrap 3');
-		$elements->bootstrap_frontend = acymailing_radio($bootstrapFrontValues, "config[bootstrap_frontend]", '', 'value', 'text', $config->get('bootstrap_frontend', 0));
+		acymailing_addScript(true, $script);
 
 		$elements->colortype = acymailing_get('type.color');
 
-		$elements->use_sef = acymailing_boolean("config[use_sef]", '', $config->get('use_sef', 0));
+		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=send-in-article';
+		$elements->edit_send_in_article = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('ACY_EDIT_ARTICLE_EMAIL').'</button>', '', 900, 700);
 
 		if(acymailing_level(1)){
 			$trackingMode = $config->get('trackingsystem', 'acymailing');
@@ -309,16 +264,11 @@ class CpanelViewCpanel extends acymailingView{
 		$elements->tracking_system = $tracking_system;
 		$elements->tracking_system_external_website = $tracking_system_external_website;
 
-		$indexType = $config->get('indexFollow', '');
-		$indexFollow = '<div style="float: left;"><input type="checkbox" name="config[indexFollow][]" id="indexFollow[0]" value="noindex" style="margin-left:10px" '.(stripos($indexType, 'noindex') !== false ? 'checked="checked"' : '').'/> <label for="indexFollow[0]">noindex</label></div>';
-		$indexFollow .= '<div style="float: left;"><input type="checkbox" name="config[indexFollow][]" id="indexFollow[1]" value="nofollow" style="margin-left:10px" '.(stripos($indexType, 'nofollow') !== false ? 'checked="checked"' : '').'/> <label for="indexFollow[1]">nofollow</label></div>';
-		$indexFollow .= '<input type="hidden" name="config[indexFollow][]" value="1"/>';
-		$elements->indexFollow = $indexFollow;
-
 		if(acymailing_level(3)){
 			$geolocAvailable = true;
 			$geolocation = '<input type="hidden" name="config[geolocation]" value="0"/>';
 			$geoloc_api_key = '';
+			$google_map_api_key = '';
 			if(!function_exists('curl_init')){
 				$geolocAvailable = false;
 				$geolocation .= 'The AcyMailing geolocation plugin needs the CURL library installed but it seems that it is not available on your server. Please contact your web hosting to set it up.';
@@ -339,76 +289,33 @@ class CpanelViewCpanel extends acymailingView{
 				$geolocation .= ' <span style="white-space:nowrap"><input type="checkbox" name="config[geolocation][]" id="geolocation_5" value="unsubscription" style="margin-left:10px;" '.(stripos($geoloc, 'unsubscription') !== false ? 'checked="checked"' : '').'/> <label for="geolocation_5">'.acymailing_translation('GEOLOC_UNSUB').'</label></span>';
 				$geolocation .= '<input type="hidden" name="config[geolocation][]" value="1"/>';
 				$geoloc_api_key = '<input class="inputbox" type="text" id="geoloc_api_key" name="config[geoloc_api_key]" style="width:450px" value="'.$this->escape($config->get('geoloc_api_key', '')).'">';
+				$google_map_api_key = '<input class"inputbox" type="text" id="google_map_api_key" name="config[google_map_api_key]" style="width:450px" value="'.$this->escape($config->get('google_map_api_key', '')).'">';
 			}
 		}else{
 			$geolocation = acymailing_getUpgradeLink('enterprise');
 			$geoloc_api_key = false;
+			$google_map_api_key = false;
 		}
 		$elements->geolocation = $geolocation;
 		$elements->geoloc_api_key = $geoloc_api_key;
-
-		if(!ACYMAILING_J16){
-			$query = 'SELECT a.name, a.id as itemid, b.title  FROM `#__menu` as a JOIN `#__menu_types` as b on a.menutype = b.menutype WHERE a.access = 0 ORDER BY b.title ASC,a.ordering ASC';
-		}else{
-			$orderby = ACYMAILING_J30 ? 'a.lft' : 'a.ordering';
-			$query = 'SELECT a.alias as name, a.id as itemid, b.title  FROM `#__menu` as a JOIN `#__menu_types` as b on a.menutype = b.menutype WHERE a.access = 1 AND a.client_id=0 AND a.parent_id != 0 ORDER BY b.title ASC,'.$orderby.' ASC';
-		}
-
-		$db->setQuery($query);
-		$joomMenus = $db->loadObjectList();
-
-		$menuvalues = array();
-		$menuvalues[] = acymailing_selectOption('0', acymailing_translation('ACY_NONE'));
-		$lastGroup = '';
-		foreach($joomMenus as $oneMenu){
-			if($oneMenu->title != $lastGroup){
-				if(!empty($lastGroup)) $menuvalues[] = acymailing_selectOption('</OPTGROUP>');
-				$menuvalues[] = acymailing_selectOption('<OPTGROUP>', $oneMenu->title);
-				$lastGroup = $oneMenu->title;
-			}
-			$menuvalues[] = acymailing_selectOption($oneMenu->itemid, $oneMenu->name);
-		}
-
-		$elements->acymailing_menu = acymailing_select($menuvalues, 'config[itemid]', 'size="1"', 'value', 'text', $config->get('itemid'));
+		$elements->google_map_api_key = $google_map_api_key;
 
 
-		$acyrss_format = array();
-		$acyrss_format[] = acymailing_selectOption('', acymailing_translation('ACY_NONE'));
-		$acyrss_format[] = acymailing_selectOption('rss', 'RSS feed');
-		$acyrss_format[] = acymailing_selectOption('atom', 'Atom feed');
-		$acyrss_format[] = acymailing_selectOption('both', acymailing_translation('ACY_ALL'));
-		$elements->acyrss_format = acymailing_select($acyrss_format, "config[acyrss_format]", 'size="1"', 'value', 'text', $config->get('acyrss_format', ''));
+		$link = acymailing_completeLink('email', true).'&amp;task=edit&amp;mailid=';
+		$button = '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_NOTIFICATION_MAIL').'</button>';
+		
+		$elements->editConfEmail = acymailing_popup($link.'confirmation', '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_CONF_MAIL').'</button>', '', 800, 500, 'confirmemail');
+		
+		$elements->edit_notification_created = acymailing_popup($link.'notification_created', $button);
+		$elements->edit_notification_refuse = acymailing_popup($link.'notification_refuse', $button);
+		$elements->edit_notification_unsuball = acymailing_popup($link.'notification_unsuball', $button);
+		$elements->edit_notification_unsub = acymailing_popup($link.'notification_unsub', $button);
+		$elements->edit_notification_contact = acymailing_popup($link.'notification_contact', $button);
+		$elements->edit_notification_contact_menu = acymailing_popup($link.'notification_contact_menu', $button);
+		$elements->edit_notification_confirm = acymailing_popup($link.'notification_confirm', $button);
+		$elements->editModifEmail = acymailing_popup($link.'modif', $button, '', 800, 500, 'modifemail');
 
-		$acyrss_order = array();
-		$acyrss_order[] = acymailing_selectOption('senddate', acymailing_translation('SEND_DATE'));
-		$acyrss_order[] = acymailing_selectOption('mailid', acymailing_translation('ACY_ID'));
-		$acyrss_order[] = acymailing_selectOption('subject', acymailing_translation('ACY_TITLE'));
-		$elements->acyrss_order = acymailing_select($acyrss_order, "config[acyrss_order]", 'size="1"', 'value', 'text', $config->get('acyrss_order', 'senddate'));
-
-
-
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=confirmation';
-		$elements->editConfEmail = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_CONF_MAIL').'</button>', '', 800, 500, 'confirmemail');
-
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=notification_created';
-		$elements->edit_notification_created = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_NOTIFICATION_MAIL').'</button>');
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=notification_refuse';
-		$elements->edit_notification_refuse = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_NOTIFICATION_MAIL').'</button>');
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=notification_unsuball';
-		$elements->edit_notification_unsuball = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_NOTIFICATION_MAIL').'</button>');
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=notification_unsub';
-		$elements->edit_notification_unsub = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_NOTIFICATION_MAIL').'</button>');
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=notification_contact';
-		$elements->edit_notification_contact = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_NOTIFICATION_MAIL').'</button>');
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=notification_contact_menu';
-		$elements->edit_notification_contact_menu = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_NOTIFICATION_MAIL').'</button>');
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=notification_confirm';
-		$elements->edit_notification_confirm = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_NOTIFICATION_MAIL').'</button>');
-
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=email&amp;task=edit&amp;mailid=modif';
-		$elements->editModifEmail = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('EDIT_NOTIFICATION_MAIL').'</button>', '', 800, 500, 'modifemail');
-
-		$link = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=cpanel&amp;task=checkDB';
+		$link = acymailing_completeLink('cpanel', true).'&amp;task=checkDB';
 		$elements->checkDB = acymailing_popup($link, '<button class="acymailing_button_grey" onclick="return false">'.acymailing_translation('DATABASE_INTEGRITY').'</button>');
 
 		$js = "function addUnsubReason(){
@@ -431,28 +338,20 @@ class CpanelViewCpanel extends acymailingView{
 		";
 		acymailing_addScript(true, $js);
 
-		$path = acymailing_getLanguagePath(ACYMAILING_ROOT);
-		$dirs = acymailing_getFolders($path);
+
+		$langs = acymailing_getLanguages();
 		$languages = array();
 
-		foreach($dirs as $dir){
-			if(strlen($dir) != 5 || $dir == "xx-XX") continue;
-			$xmlFiles = acymailing_getFiles($path.DS.$dir, '^([-_A-Za-z]*)\.xml$');
-			$xmlFile = reset($xmlFiles);
-			if(empty($xmlFile)){
-				$data = array();
-			}else{
-				$data = JApplicationHelper::parseXMLLangMetaFile($path.DS.$dir.DS.$xmlFile);
-			}
+		foreach ($langs as $lang => $obj) {
+			if (strlen($lang) != 5 || $lang == "xx-XX") continue;
 
 			$oneLanguage = new stdClass();
-			$oneLanguage->language = $dir;
-			$oneLanguage->name = empty($data['name']) ? $dir : $data['name'];
+			$oneLanguage->language = $lang;
+			$oneLanguage->name = $obj->name;
 
-			$languageFiles = acymailing_getFiles($path.DS.$dir, '^(.*)\.com_acymailing\.ini$');
-			$languageFile = reset($languageFiles);
-			$linkEdit = 'index.php?option=com_acymailing&amp;tmpl=component&amp;ctrl=file&amp;task=language&amp;code='.$oneLanguage->language;
-			$oneLanguage->edit = acymailing_popup($linkEdit, '<i class="acyicon-'.(empty($languageFile) ? 'new' : 'edit').'" id="image'.$oneLanguage->language.'"></i>');
+			$linkEdit = acymailing_completeLink('file').'&task=language&code=' . $lang;
+			$icon = $obj->exists ? 'edit' : 'new';
+			$oneLanguage->edit = acymailing_popup($linkEdit, '<i class="acyicon-'.$icon.'" id="image' . $lang . '"></i>');
 
 			$languages[] = $oneLanguage;
 		}
@@ -472,40 +371,150 @@ class CpanelViewCpanel extends acymailingView{
 		$allowmodif[] = acymailing_selectOption("all", acymailing_translation('JOOMEXT_YES'));
 		$elements->allow_modif = acymailing_radio($allowmodif, "config[allow_modif]", 'size="1" onclick="updateModification(this.value)"', 'value', 'text', $config->get('allow_modif', 'data'));
 
+		if('joomla' == 'joomla') {
+			$indexType = $config->get('indexFollow', '');
+			$indexFollow = '<div style="float: left;"><input type="checkbox" name="config[indexFollow][]" id="indexFollow[0]" value="noindex" style="margin-left:10px" '.(stripos($indexType, 'noindex') !== false ? 'checked="checked"' : '').'/> <label for="indexFollow[0]">noindex</label></div>';
+			$indexFollow .= '<div style="float: left;"><input type="checkbox" name="config[indexFollow][]" id="indexFollow[1]" value="nofollow" style="margin-left:10px" '.(stripos($indexType, 'nofollow') !== false ? 'checked="checked"' : '').'/> <label for="indexFollow[1]">nofollow</label></div>';
+			$indexFollow .= '<input type="hidden" name="config[indexFollow][]" value="1"/>';
+			$elements->indexFollow = $indexFollow;
+			
+			if(!ACYMAILING_J16){
+				$query = 'SELECT a.name, a.id as itemid, b.title  FROM `#__menu` as a JOIN `#__menu_types` as b on a.menutype = b.menutype WHERE a.access = 0 ORDER BY b.title ASC,a.ordering ASC';
+			}else{
+				$orderby = ACYMAILING_J30 ? 'a.lft' : 'a.ordering';
+				$query = 'SELECT a.alias as name, a.id as itemid, b.title  FROM `#__menu` as a JOIN `#__menu_types` as b on a.menutype = b.menutype WHERE a.access = 1 AND a.client_id=0 AND a.parent_id != 0 ORDER BY b.title ASC,'.$orderby.' ASC';
+			}
+
+			$joomMenus = acymailing_loadObjectList($query);
+
+			$menuvalues = array();
+			$menuvalues[] = acymailing_selectOption('0', acymailing_translation('ACY_NONE'));
+			$lastGroup = '';
+			foreach($joomMenus as $oneMenu){
+				if($oneMenu->title != $lastGroup){
+					if(!empty($lastGroup)) $menuvalues[] = acymailing_selectOption('</OPTGROUP>');
+					$menuvalues[] = acymailing_selectOption('<OPTGROUP>', $oneMenu->title);
+					$lastGroup = $oneMenu->title;
+				}
+				$menuvalues[] = acymailing_selectOption($oneMenu->itemid, $oneMenu->name);
+			}
+
+			$elements->acymailing_menu = acymailing_select($menuvalues, 'config[itemid]', 'size="1"', 'value', 'text', $config->get('itemid'));
 
 
+			$acyrss_format = array();
+			$acyrss_format[] = acymailing_selectOption('', acymailing_translation('ACY_NONE'));
+			$acyrss_format[] = acymailing_selectOption('rss', 'RSS feed');
+			$acyrss_format[] = acymailing_selectOption('atom', 'Atom feed');
+			$acyrss_format[] = acymailing_selectOption('both', acymailing_translation('ACY_ALL'));
+			$elements->acyrss_format = acymailing_select($acyrss_format, "config[acyrss_format]", 'size="1"', 'value', 'text', $config->get('acyrss_format', ''));
 
-		if(!ACYMAILING_J16){
-			$db->setQuery("SELECT name,published,id FROM `#__plugins` WHERE `folder` = 'acymailing' AND `element` NOT LIKE 'plg%' ORDER BY published DESC, name ASC");
-		}else{
-			$db->setQuery("SELECT name,enabled as published,extension_id as id FROM `#__extensions` WHERE `state` <> -1 AND `folder` = 'acymailing' AND `type`= 'plugin' AND `element` NOT LIKE 'plg%' ORDER BY enabled DESC, name ASC");
+			$acyrss_order = array();
+			$acyrss_order[] = acymailing_selectOption('senddate', acymailing_translation('SEND_DATE'));
+			$acyrss_order[] = acymailing_selectOption('mailid', acymailing_translation('ACY_ID'));
+			$acyrss_order[] = acymailing_selectOption('subject', acymailing_translation('ACY_TITLE'));
+			$elements->acyrss_order = acymailing_select($acyrss_order, "config[acyrss_order]", 'size="1"', 'value', 'text', $config->get('acyrss_order', 'senddate'));
+			
+			if(version_compare(JVERSION, '3.1.2', '>=')) $elements->special_chars = acymailing_boolean("config[special_chars]", '', $config->get('special_chars', 0));
+
+			$bootstrapFrontValues = array();
+			$bootstrapFrontValues[] = acymailing_selectOption(0, acymailing_translation('JOOMEXT_NO'));
+			$bootstrapFrontValues[] = acymailing_selectOption(1, 'Bootstrap 2');
+			$bootstrapFrontValues[] = acymailing_selectOption(2, 'Bootstrap 3');
+			$elements->bootstrap_frontend = acymailing_radio($bootstrapFrontValues, "config[bootstrap_frontend]", '', 'value', 'text', $config->get('bootstrap_frontend', 0));
+			
+			if(acymailing_level(1)){
+				$js = 'var selectedForward = '.$config->get('forward', 0).'
+					function confirmForward(clickedForward){
+						if(clickedForward == selectedForward || clickedForward != 1) return true;
+
+						var cnfrm = confirm(\''.str_replace("'", "\'", acymailing_translation('ACY_FORWARDCHOICE_CONFIRMATION')).'\');
+						if(!cnfrm) return true;';
+
+				if(ACYMAILING_J30){
+					$js .= '
+					var labels = document.getElementById("config_forwardfieldset").getElementsByTagName("label");
+					for(oneLabel in labels){
+						if(isNaN(oneLabel)) continue;
+						if(labels[oneLabel].getAttribute("for") == "config_forward2"){
+							labels[oneLabel].click();
+						}
+					}';
+				}else{
+					$js .= 'document.getElementById("config[forward]2").checked = true;';
+				}
+
+				$js .= '}';
+				acymailing_addScript(true, $js);
+
+				$forwardValues = array();
+				$forwardValues[] = acymailing_selectOption(0, acymailing_translation('JOOMEXT_NO'));
+				$forwardValues[] = acymailing_selectOption(1, acymailing_translation('JOOMEXT_YES'));
+				$forwardValues[] = acymailing_selectOption(2, acymailing_translation('JOOMEXT_YES_FORWARD'));
+				$elements->forward = acymailing_radio($forwardValues, "config[forward]", 'onclick="confirmForward(this.value);"', 'value', 'text', $config->get('forward', 0));
+
+				$nextDate = $config->get('cron_plugins_next', time());
+
+				$listHours = array();
+				$listMinutess = array();
+				for($i = 0; $i < 24; $i++){
+					$value = $i < 10 ? '0'.$i : $i;
+					$listHours[] = acymailing_selectOption($value, $value);
+				}
+				$hours = acymailing_select($listHours, 'cronplghours', 'class="inputbox" size="1" style="width:60px;"', 'value', 'text', acymailing_getDate($nextDate, 'H'));
+				for($i = 0; $i < 60; $i += 5){
+					$value = $i < 10 ? '0'.$i : $i;
+					$listMinutess[] = acymailing_selectOption($value, $value);
+				}
+				$defaultMin = floor(acymailing_getDate($nextDate, 'i') / 5) * 5;
+				$minutes = acymailing_select($listMinutess, 'cronplgminutes', 'class="inputbox" size="1" style="width:60px;"', 'value', 'text', $defaultMin);
+				$elements->cron_plugins = $hours.' : '.$minutes;
+			}else{
+				$elements->forward = acymailing_getUpgradeLink('essential');
+			}
+
+			$elements->use_sef = acymailing_boolean("config[use_sef]", '', $config->get('use_sef', 0));
+			
+			$editorType = acymailing_get('type.editor');
+			$elements->editor = $editorType->display('config[editor]', $config->get('editor'));
+
+			if (!ACYMAILING_J16) {
+				$plugins = acymailing_loadObjectList("SELECT name, element, published,id FROM `#__plugins` WHERE `folder` = 'acymailing' AND `element` NOT LIKE 'plg%' ORDER BY published DESC, name ASC");
+			} else {
+				$plugins = acymailing_loadObjectList("SELECT name, element, enabled as published,extension_id as id FROM `#__extensions` WHERE `state` <> -1 AND `folder` = 'acymailing' AND `type`= 'plugin' AND `element` NOT LIKE 'plg%' ORDER BY enabled DESC, name ASC");
+			}
+
+			if (!ACYMAILING_J16) {
+				$integrationplugins = acymailing_loadObjectList("SELECT name, element, published,id FROM `#__plugins` WHERE (`folder` != 'acymailing' OR `element` LIKE 'plg%') AND (`name` LIKE '%acymailing%' OR `element` LIKE '%acymailing%') ORDER BY published DESC, name ASC");
+			} else {
+				$integrationplugins = acymailing_loadObjectList("SELECT name, element, enabled as published ,extension_id as id FROM `#__extensions` WHERE `state` <> -1 AND (`folder` != 'acymailing' OR `element` LIKE 'plg%') AND `type` = 'plugin' AND (`name` LIKE '%acymailing%' OR `element` LIKE '%acymailing%') ORDER BY enabled DESC, name ASC");
+			}
+
+			$pluginsNeedUpDate = json_decode($config->get('pluginNeedUpdate', ''));
+			if(!empty($pluginsNeedUpDate)){
+				foreach($plugins as $plugin){
+					if(!in_array($plugin->id, $pluginsNeedUpDate)) continue;
+					$plugin->needUpDate = true;
+				}
+				foreach($integrationplugins as $plugin){
+					if(!in_array($plugin->id, $pluginsNeedUpDate)) continue;
+					$plugin->needUpDate = true;
+				}
+			}
+
+			$this->plugins = $plugins;
+			$this->integrationplugins = $integrationplugins;
+
+			if((!ACYMAILING_J16 AND !file_exists(ACYMAILING_ROOT.'plugins'.DS.'acymailing'.DS.'tagsubscriber.php')) OR (ACYMAILING_J16 AND !file_exists(ACYMAILING_ROOT.'plugins'.DS.'acymailing'.DS.'tagsubscriber'.DS.'tagsubscriber.php'))) acymailing_checkPluginsFolders();
 		}
-		$plugins = $db->loadObjectList();
 
-		if(!ACYMAILING_J16){
-			$db->setQuery("SELECT name,published,id FROM `#__plugins` WHERE (`folder` != 'acymailing' OR `element` LIKE 'plg%') AND (`name` LIKE '%acymailing%' OR `element` LIKE '%acymailing%') ORDER BY published DESC, name ASC");
-		}else{
-			$db->setQuery("SELECT name,enabled as published ,extension_id as id FROM `#__extensions` WHERE `state` <> -1 AND (`folder` != 'acymailing' OR `element` LIKE 'plg%') AND `type` = 'plugin' AND (`name` LIKE '%acymailing%' OR `element` LIKE '%acymailing%') ORDER BY enabled DESC, name ASC");
-		}
-
-		$integrationplugins = $db->loadObjectList();
-
-		$bounceaction = acymailing_get('type.bounceaction');
-		$this->bounceaction = $bounceaction;
+		$this->bounceaction = acymailing_get('type.bounceaction');
 		$this->config = $config;
 		$this->languages = $languages;
 		$this->elements = $elements;
-		$this->plugins = $plugins;
-		$this->integrationplugins = $integrationplugins;
 
-
-		$tabs = acymailing_get('helper.acytabs');
-		$tabs->setOptions(array('useCookie' => true));
-
-		$this->tabs = $tabs;
+		$this->tabs = acymailing_get('helper.acytabs');
 		$this->toggleClass = $toggleClass;
-
-		if((!ACYMAILING_J16 AND !file_exists(rtrim(JPATH_SITE, DS).DS.'plugins'.DS.'acymailing'.DS.'tagsubscriber.php')) OR (ACYMAILING_J16 AND !file_exists(rtrim(JPATH_SITE, DS).DS.'plugins'.DS.'acymailing'.DS.'tagsubscriber'.DS.'tagsubscriber.php'))) acymailing_checkPluginsFolders();
 
 		return parent::display($tpl);
 	}
