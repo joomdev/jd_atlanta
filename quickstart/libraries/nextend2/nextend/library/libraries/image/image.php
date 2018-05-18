@@ -14,11 +14,15 @@ class N2Image extends N2CacheImage {
         if ($targetWidth > 0 && $targetHeight > 0 && function_exists('imagecreatefrompng')) {
 
             if (substr($imageUrl, 0, 2) == '//') {
-                $imageUrl = parse_url(N2Uri::getBaseuri(), PHP_URL_SCHEME) . ':' . $imageUrl;
+                $imageUrl = parse_url(N2Uri::getFullUri(), PHP_URL_SCHEME) . ':' . $imageUrl;
             }
 
-            $imageUrl  = N2Uri::relativetoabsolute($imageUrl);
-            $imagePath = N2Filesystem::absoluteURLToPath($imageUrl);
+            if (strpos($imageUrl, N2Filesystem::getBasePath()) !== 0) {
+                $imageUrl  = N2Uri::relativetoabsolute($imageUrl);
+                $imagePath = N2Filesystem::absoluteURLToPath($imageUrl);
+            } else {
+                $imagePath = $imageUrl;
+            }
 
             $cache = new self($group);
 
@@ -171,11 +175,15 @@ class N2Image extends N2CacheImage {
         if ($scale > 0 && function_exists('imagecreatefrompng')) {
 
             if (substr($imageUrl, 0, 2) == '//') {
-                $imageUrl = parse_url(N2Uri::getBaseuri(), PHP_URL_SCHEME) . ':' . $imageUrl;
+                $imageUrl = parse_url(N2Uri::getFullUri(), PHP_URL_SCHEME) . ':' . $imageUrl;
             }
 
-            $imageUrl  = N2Uri::relativetoabsolute($imageUrl);
-            $imagePath = N2Filesystem::absoluteURLToPath($imageUrl);
+            if (strpos($imageUrl, N2Filesystem::getBasePath()) !== 0) {
+                $imageUrl  = N2Uri::relativetoabsolute($imageUrl);
+                $imagePath = N2Filesystem::absoluteURLToPath($imageUrl);
+            } else {
+                $imagePath = $imageUrl;
+            }
 
             $cache = new self($group);
             if ($imagePath == $imageUrl) {
@@ -246,7 +254,7 @@ class N2Image extends N2CacheImage {
         } else if ($extension == 'jpg') {
             $image = @imagecreatefromjpeg($imagePath);
             if (function_exists("exif_read_data")) {
-                $exif = exif_read_data($imagePath);
+                $exif = @exif_read_data($imagePath);
 
                 $rotated = $this->getOrientation($exif, $image);
                 if ($rotated) {

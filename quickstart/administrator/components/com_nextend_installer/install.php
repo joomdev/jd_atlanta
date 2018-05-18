@@ -14,12 +14,14 @@ if (!function_exists('NextendSS3DeleteExtensionFolder')) {
             @JFolder::delete($pkg_path . '/modules');
             @JFolder::delete($pkg_path . '/plugins');
             @JFolder::delete($pkg_path . '/libraries');
+            @JFolder::delete($pkg_path . '/media/n2/n');
+            @JFolder::delete($pkg_path . '/media/n2/ss3');
         }
         $db = JFactory::getDBO();
-        $db->setQuery("DELETE FROM #__menu WHERE title LIKE 'com_nextend_installer'");
-        $db->query();
-        $db->setQuery("DELETE FROM #__extensions WHERE name LIKE 'nextend_installer'");
-        $db->query();
+        $db->setQuery("DELETE FROM #__menu WHERE title LIKE 'com_nextend_installer'")
+            ->execute();
+        $db->setQuery("DELETE FROM #__extensions WHERE name LIKE 'nextend_installer'")
+            ->execute();
     }
 
     function com_install() {
@@ -53,6 +55,16 @@ if (!function_exists('NextendSS3DeleteExtensionFolder')) {
                 JFolder::copy($pkg_path . 'libraries/nextend2', $target, '', true);
                 JFolder::delete($pkg_path . 'libraries');
             }
+            
+            if (JFolder::exists($pkg_path . 'media/n2')) {
+                $librariesPath = JPATH_SITE . DIRECTORY_SEPARATOR . 'media';
+                $target        = $librariesPath . DIRECTORY_SEPARATOR . 'n2';
+                if (JFolder::exists($target)) {
+                    JFolder::delete($target);
+                }
+                JFolder::copy($pkg_path . 'media/n2', $target, '', true);
+                JFolder::delete($pkg_path . 'media');
+            }
 
 
             $extensions = array_merge(JFolder::folders($pkg_path . 'components', '.', false, true), JFolder::folders($pkg_path . 'modules', '.', false, true), JFolder::folders($pkg_path . 'plugins/system', '.', false, true), JFolder::folders($pkg_path . 'plugins/installer', '.', false, true));
@@ -80,8 +92,8 @@ if (!function_exists('NextendSS3DeleteExtensionFolder')) {
                 }
             }
             $db = JFactory::getDBO();
-            $db->setQuery("UPDATE #__extensions SET enabled=1 WHERE (name LIKE '%nextend%' OR name LIKE '%smartslider3%')  AND type='plugin'");
-            $db->query();
+            $db->setQuery("UPDATE #__extensions SET enabled=1 WHERE (name LIKE '%nextend%' OR name LIKE '%smartslider3%')  AND type='plugin'")
+                ->execute();
         }
 
         function uninstall() {

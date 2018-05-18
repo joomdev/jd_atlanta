@@ -1,30 +1,23 @@
 <?php
 N2Loader::import('libraries.plugins.N2SliderGeneratorPluginAbstract', 'smartslider');
 
-class N2SSPluginGeneratorJoomlaContent extends N2PluginBase
-{
+class N2SSPluginGeneratorJoomlaContent extends N2SliderGeneratorPluginAbstract {
 
-    public static $group = 'joomlacontent';
-    public static $groupLabel = 'Joomla content';
+    protected $name = 'joomlacontent';
 
-    function onGeneratorList(&$group, &$list) {
-        $group[self::$group] = self::$groupLabel;
-
-        if (!isset($list[self::$group])) {
-            $list[self::$group] = array();
-        }
-
-        $list[self::$group]['article'] = N2GeneratorInfo::getInstance(self::$groupLabel, n2_('Articles'), $this->getPath() . 'article')
-                                                        ->setType('article');
-
-        $list[self::$group]['category'] = N2GeneratorInfo::getInstance(self::$groupLabel, n2_('Categories'), $this->getPath() . 'category')
-                                                         ->setType('article');
+    public function getLabel() {
+        return 'Joomla articles';
     }
 
-    function getPath() {
+    protected function loadSources() {
+        new N2GeneratorJoomlaContentArticle($this, 'article', n2_('Article'));
+        new N2GeneratorJoomlaContentCategory($this, 'category', n2_('Category'));
+    }
+
+    public function getPath() {
         return dirname(__FILE__) . DIRECTORY_SEPARATOR;
     }
 
 }
 
-N2Plugin::addPlugin('ssgenerator', 'N2SSPluginGeneratorJoomlaContent');
+N2SSGeneratorFactory::addGenerator(new N2SSPluginGeneratorJoomlaContent);

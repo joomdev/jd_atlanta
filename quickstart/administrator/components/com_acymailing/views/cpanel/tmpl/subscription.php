@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.9.1
+ * @version	5.9.6
  * @author	acyba.com
  * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -130,7 +130,16 @@ defined('_JEXEC') or die('Restricted access');
 		<table class="acymailing_table" cellspacing="1">
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_SUB_DESC').'<br /><br /><i>'.acymailing_translation('REDIRECTION_NOT_MODULE').'</i>', acymailing_translation('REDIRECTION_SUB'), '', acymailing_translation('REDIRECTION_SUB')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_CONFIRM_DESC'), acymailing_translation('REDIRECTION_CONFIRM'), '', acymailing_translation('REDIRECTION_CONFIRM')); ?>
+				</td>
+				<td>
+					<input class="inputbox" type="text" id="confirm_redirect" name="config[confirm_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('confirm_redirect')); ?>">
+				</td>
+			</tr>
+			<?php $redirectMessageModule = 'joomla' == 'joomla' ? '<br /><br /><i>'.acymailing_translation('REDIRECTION_NOT_MODULE').'</i>' : ''; ?>
+			<tr>
+				<td class="acykey">
+					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_SUB_DESC').$redirectMessageModule, acymailing_translation('REDIRECTION_SUB'), '', acymailing_translation('REDIRECTION_SUB')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" id="sub_redirect" name="config[sub_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('sub_redirect')); ?>">
@@ -138,7 +147,7 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_MODIF_DESC').'<br /><br /><i>'.acymailing_translation('REDIRECTION_NOT_MODULE').'</i>', acymailing_translation('REDIRECTION_MODIF'), '', acymailing_translation('REDIRECTION_MODIF')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_MODIF_DESC').$redirectMessageModule, acymailing_translation('REDIRECTION_MODIF'), '', acymailing_translation('REDIRECTION_MODIF')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" id="modif_redirect" name="config[modif_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('modif_redirect')); ?>">
@@ -146,20 +155,13 @@ defined('_JEXEC') or die('Restricted access');
 			</tr>
 			<tr>
 				<td class="acykey">
-					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_CONFIRM_DESC'), acymailing_translation('REDIRECTION_CONFIRM'), '', acymailing_translation('REDIRECTION_CONFIRM')); ?>
-				</td>
-				<td>
-					<input class="inputbox" type="text" id="confirm_redirect" name="config[confirm_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('confirm_redirect')); ?>">
-				</td>
-			</tr>
-			<tr>
-				<td class="acykey">
-					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_UNSUB_DESC'), acymailing_translation('REDIRECTION_UNSUB'), '', acymailing_translation('REDIRECTION_UNSUB')); ?>
+					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_UNSUB_DESC').$redirectMessageModule, acymailing_translation('REDIRECTION_UNSUB'), '', acymailing_translation('REDIRECTION_UNSUB')); ?>
 				</td>
 				<td>
 					<input class="inputbox" type="text" id="unsub_redirect" name="config[unsub_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('unsub_redirect')); ?>">
 				</td>
 			</tr>
+			<?php if('joomla' == 'joomla') { ?>
 			<tr>
 				<td class="acykey">
 					<?php echo acymailing_tooltip(acymailing_translation('REDIRECTION_MODULE_DESC'), acymailing_translation('REDIRECTION_MODULE'), '', acymailing_translation('REDIRECTION_MODULE')); ?>
@@ -168,6 +170,7 @@ defined('_JEXEC') or die('Restricted access');
 					<input class="inputbox" type="text" id="module_redirect" name="config[module_redirect]" style="width:250px" value="<?php echo $this->escape($this->config->get('module_redirect')); ?>">
 				</td>
 			</tr>
+			<?php } ?>
 			<tr>
 				<td class="acykey">
 					<?php echo acymailing_translation('ACY_REDIRECT_TAGS'); ?>

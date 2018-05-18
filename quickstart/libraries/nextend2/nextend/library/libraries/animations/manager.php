@@ -1,8 +1,7 @@
 <?php
 N2Loader::import('libraries.animations.renderer');
 
-class N2AnimationManager
-{
+class N2AnimationManager {
 
     public static function init() {
         static $inited = false;
@@ -14,11 +13,13 @@ class N2AnimationManager
     }
 
     public static function load() {
-        N2Base::getApplication('system')->getApplicationType('backend')->run(array(
-            'useRequest' => false,
-            'controller' => 'animation',
-            'action'     => 'index'
-        ));
+        N2Base::getApplication('system')
+              ->getApplicationType('backend')
+              ->run(array(
+                  'useRequest' => false,
+                  'controller' => 'animation',
+                  'action'     => 'index'
+              ));
     }
 }
 

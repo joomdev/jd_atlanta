@@ -1,14 +1,16 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.item.itemFactoryAbstract', 'smartslider');
+N2Loader::import('libraries.renderable.layers.item.itemFactoryAbstract', 'smartslider');
 
 class N2SSPluginItemFactoryText extends N2SSPluginItemFactoryAbstract {
 
-    var $type = 'text';
+    protected $type = 'text';
 
     protected $priority = 2;
 
-    private static $font = 1304;
+    private $font = 1304;
+
+    private $style = '';
 
     protected $layerProperties = array(
         "desktopportraitleft"   => 0,
@@ -18,50 +20,51 @@ class N2SSPluginItemFactoryText extends N2SSPluginItemFactoryAbstract {
         "desktopportraitvalign" => "top"
     );
 
-    protected $group = 'Basic';
-
     protected $class = 'N2SSItemText';
 
     public function __construct() {
-        $this->_title = n2_x('Text', 'Slide item');
+        $this->title = n2_x('Text', 'Slide item');
+        $this->group = n2_('Content');
     }
 
-    private static function initDefaultFont() {
+    private function initDefaultFont() {
         static $inited = false;
         if (!$inited) {
             $res = N2StorageSectionAdmin::get('smartslider', 'default', 'item-text-font');
             if (is_array($res)) {
-                self::$font = $res['value'];
+                $this->font = $res['value'];
             }
-            if (is_numeric(self::$font)) {
-                N2FontRenderer::preLoad(self::$font);
+            if (is_numeric($this->font)) {
+                N2FontRenderer::preLoad($this->font);
             }
             $inited = true;
         }
     }
 
-    private static $style = '';
-
-    private static function initDefaultStyle() {
+    private function initDefaultStyle() {
         static $inited = false;
         if (!$inited) {
             $res = N2StorageSectionAdmin::get('smartslider', 'default', 'item-text-style');
             if (is_array($res)) {
-                self::$style = $res['value'];
+                $this->style = $res['value'];
             }
-            if (is_numeric(self::$style)) {
-                N2StyleRenderer::preLoad(self::$style);
+            if (is_numeric($this->style)) {
+                N2StyleRenderer::preLoad($this->style);
             }
             $inited = true;
         }
     }
 
-    public static function onSmartsliderDefaultSettings(&$settings) {
+    public function globalDefaultItemFontAndStyle($fontTab, $styleTab) {
         self::initDefaultFont();
-        $settings['font'][] = '<param name="item-text-font" type="font" previewmode="paragraph" label="' . n2_('Item') . ' - ' . n2_('Text') . '" default="' . self::$font . '" />';
+        new N2ElementFont($fontTab, 'item-text-font', n2_('Item') . ' - ' . n2_('Text'), $this->font, array(
+            'previewMode' => 'paragraph'
+        ));
 
         self::initDefaultStyle();
-        $settings['style'][] = '<param name="item-text-style" type="style" set="heading" previewmode="heading" label="' . n2_('Item') . ' - ' . n2_('Text') . '" default="' . self::$style . '" />';
+        new N2ElementStyle($styleTab, 'item-text-style', n2_('Item') . ' - ' . n2_('Text'), $this->style, array(
+            'previewMode' => 'heading'
+        ));
     }
 
     function getValues() {
@@ -72,8 +75,8 @@ class N2SSPluginItemFactoryText extends N2SSPluginItemFactoryAbstract {
             'content'       => 'Lorem ipsum dolor sit amet, <a href="#">consectetur adipiscing</a> elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
             'contenttablet' => '',
             'contentmobile' => '',
-            'font'          => self::$font,
-            'style'         => self::$style
+            'font'          => $this->font,
+            'style'         => $this->style
         );
     }
 
@@ -100,8 +103,37 @@ class N2SSPluginItemFactoryText extends N2SSPluginItemFactoryAbstract {
 
         return $data;
     }
+
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'item-text');
+
+        new N2ElementRichTextarea($settings, 'content', n2_('Text'), '', array(
+            'fieldStyle' => 'height: 120px; width: 230px;resize: vertical;'
+        ));
+
+        new N2ElementFont($settings, 'font', n2_('Font') . ' - ' . n2_x('Text', 'Slide item'), '', array(
+            'previewMode' => 'paragraph',
+            'preview'     => '<div style="width:{nextend.activeLayer.width()}px;"><p class="{styleClassName} {fontClassName}">{$(\'#item_textcontent\').val();}</p></div>',
+            'set'         => 1000,
+            'style'       => 'item_textstyle',
+            'rowClass'    => 'n2-hidden'
+        ));
+        new N2ElementStyle($settings, 'style', n2_('Style') . ' - ' . n2_x('Text', 'Slide item'), '', array(
+            'previewMode' => 'heading',
+            'preview'     => '<div style="width:{nextend.activeLayer.width()}px;"><p class="{styleClassName} {fontClassName}">{$(\'#item_textcontent\').val();}</p></div>',
+            'set'         => 1000,
+            'font'        => 'item_textfont',
+            'rowClass'    => 'n2-hidden'
+        ));
+
+        new N2ElementRichTextarea($settings, 'contenttablet', n2_('Tablet text'), '', array(
+            'fieldStyle' => 'height: 120px; width: 230px;resize: vertical;'
+        ));
+
+        new N2ElementRichTextarea($settings, 'contentmobile', n2_('Mobile text'), '', array(
+            'fieldStyle' => 'height: 120px; width: 230px;resize: vertical;'
+        ));
+    }
 }
 
-N2Plugin::addPlugin('ssitem', 'N2SSPluginItemFactoryText');
-
-N2Pluggable::addAction('smartsliderDefault', 'N2SSPluginItemFactoryText::onSmartsliderDefaultSettings');
+N2SmartSliderItemsFactory::addItem(new N2SSPluginItemFactoryText);

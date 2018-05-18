@@ -4,15 +4,16 @@ class N2SmartSliderTypeGroup extends N2SmartSliderType {
 
     private $earlier = 2145916800;
 
-    public function render() {
+    public function render($css) {
 
         ob_start();
-        $this->renderType();
+        $this->renderType($css);
+
 
         return ob_get_clean();
     }
 
-    protected function renderType() {
+    protected function renderType($css) {
 
         $xref = new N2SmartsliderSlidersXrefModel();
         $rows = $xref->getSliders($this->slider->data->get('id'));

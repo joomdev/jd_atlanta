@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.9.1
+ * @version	5.9.6
  * @author	acyba.com
  * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,7 @@ function installAcyMailing(){
 		$updateHelper = acymailing_get('helper.update');
 		$updateHelper->installTables();
 		$success = false;
+		if(!function_exists('acymailing_loadResult')) include_once(rtrim(JPATH_ADMINISTRATOR, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_acymailing'.DIRECTORY_SEPARATOR.'helpers'.DIRECTORY_SEPARATOR.'helper.php');
 	}
 
 	acymailing_increasePerf();
@@ -79,7 +80,7 @@ class com_acymailingInstallerScript{
 class acymailingInstall{
 
 	var $level = 'starter';
-	var $version = '5.9.1';
+	var $version = '5.9.6';
 	var $update = false;
 	var $fromLevel = '';
 	var $fromVersion = '';
@@ -678,11 +679,19 @@ class acymailingInstall{
 			$this->updateQuery("ALTER TABLE #__acymailing_mail MODIFY `type` enum('news','autonews','followup','unsub','welcome','notification','joomlanotification','action', 'article') NOT NULL DEFAULT 'news'");
 
 			if(!ACYMAILING_J16){
-				$this->updateQuery("UPDATE #__plugins SET `ordering` = 24 WHERE `element` = 'urltracker' AND `folder` = 'acymailing'");
 				$this->updateQuery("UPDATE #__plugins SET `ordering` = 0 WHERE `element` = 'plginboxactions' AND `folder` = 'acymailing'");
 			}else{
-				$this->updateQuery("UPDATE #__extensions SET `ordering` = 24 WHERE `element` = 'urltracker' AND `folder` = 'acymailing'");
 				$this->updateQuery("UPDATE #__extensions SET `ordering` = 0 WHERE `element` = 'plginboxactions' AND `folder` = 'acymailing'");
+			}
+		}
+
+		if(version_compare($this->fromVersion, '5.9.4', '<')){
+			if(!ACYMAILING_J16){
+				$this->updateQuery("UPDATE #__plugins SET `ordering` = 24 WHERE `element` = 'urltracker' AND `folder` = 'acymailing'");
+				$this->updateQuery("UPDATE #__plugins SET `ordering` = 52 WHERE `element` = 'template' AND `folder` = 'acymailing'");
+			}else{
+				$this->updateQuery("UPDATE #__extensions SET `ordering` = 24 WHERE `element` = 'urltracker' AND `folder` = 'acymailing'");
+				$this->updateQuery("UPDATE #__extensions SET `ordering` = 52 WHERE `element` = 'template' AND `folder` = 'acymailing'");
 			}
 		}
 	}
@@ -816,6 +825,7 @@ class acymailingInstall{
 		$allPref['css_frontend'] = 'default';
 		$allPref['css_backend'] = '';
 		$allPref['bootstrap_frontend'] = 0;
+		$allPref['export_excelsecurity'] = 1;
 
 		$allPref['unsub_reasons'] = serialize(array('UNSUB_SURVEY_FREQUENT', 'UNSUB_SURVEY_RELEVANT'));
 

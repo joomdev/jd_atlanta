@@ -1,16 +1,14 @@
 /**
- * @package JD-NEW-JERSEY
  * @author JoomDev https://www.joomdev.com/
- * @copyright Copyright (C) 2008 - 2017 Joomdev.com. All rights reserved.
+ * @copyright Copyright (C) 2008 - 2018 Joomdev.com. All rights reserved.
  * @license http://www.gnu.org/licenses/gpl-2.0.html GPLv2 or later
 */
-
-/*----- START START Jevents  -----*/
 
 #jevents{
 	ul.actions{
 		li{
-			[class^="icon-"], .jevbootstrap [class*=" icon-"]{
+			[class^="icon-"],
+			.jevbootstrap [class*=" icon-"]{
 				background:none;
 			}
 			a{
@@ -21,16 +19,14 @@
 			}
 		}
 	}
-	#jevents_header{
-		h2.contentheading{
-			font-size: 35px;
-			font-weight: normal;
-			letter-spacing: normal;
-			line-height: normal;
-			margin-bottom: 0px;
-			margin-top: 0;
-			padding-bottom: 0px;
-		}
+	#jevents_header h2.contentheading{
+		font-size: 35px;
+		font-weight: normal;
+		letter-spacing: normal;
+		line-height: normal;
+		margin-bottom: 0px;
+		margin-top: 0;
+		padding-bottom: 0px;
 	}
 	div.ev_adminpanel{
 		display:none;
@@ -97,14 +93,14 @@
 				display: inline-block;
 				width: 100%;
 			}
-			.previousmonth,.nextmonth{
+			.previousmonth, .nextmonth{
 				display: none;
 			}
 		}
 		.event_legend_container{
 			div{
 				a{
-					&:hover,&:focus{
+					&:hover, &:focus{
 						opacity: 0.5;
 					}
 				}
@@ -123,7 +119,6 @@
 				line-height: 19px;
 				padding: 9px 20px;
 				text-shadow: none;
-				text-transform: uppercase;
 				&:hover{
 					background: fade(@major_color, 80%);
 					border: 2px solid rgba(0, 0, 0, 0);
@@ -152,7 +147,6 @@
 				line-height: 19px;
 				padding: 9px 20px;
 				text-shadow: none;
-				text-transform: uppercase;
 				line-height: normal;
 				position: relative;
 				top: -4px;
@@ -165,5 +159,3 @@
 		}
 	}
 }
-
-/* End */ 

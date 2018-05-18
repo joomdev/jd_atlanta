@@ -1,7 +1,6 @@
 <?php
 
-class N2AnimationRenderer
-{
+class N2AnimationRenderer {
 
     public static $sets = array();
 

@@ -2,7 +2,7 @@
 /**
  * @version   $Id: containerlist.php 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 defined('JPATH_PLATFORM') or die;

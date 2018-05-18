@@ -1,42 +1,44 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.item.itemFactoryAbstract', 'smartslider');
+N2Loader::import('libraries.renderable.layers.item.itemFactoryAbstract', 'smartslider');
 
 class N2SSPluginItemFactoryImage extends N2SSPluginItemFactoryAbstract {
 
-    var $type = 'image';
+    protected $type = 'image';
 
     protected $priority = 4;
 
     protected $layerProperties = array("desktopportraitwidth" => "300");
 
-    private static $style = '';
-
-    protected $group = 'Basic';
+    private $style = '';
 
     protected $class = 'N2SSItemImage';
 
     public function __construct() {
-        $this->_title = n2_x('Image', 'Slide item');
+        $this->title = n2_x('Image', 'Slide item');
+        $this->group = n2_('Basic');
     }
 
-    private static function initDefaultStyle() {
+    private function initDefaultStyle() {
         static $inited = false;
         if (!$inited) {
             $res = N2StorageSectionAdmin::get('smartslider', 'default', 'item-image-style');
             if (is_array($res)) {
-                self::$style = $res['value'];
+                $this->style = $res['value'];
             }
-            if (is_numeric(self::$style)) {
-                N2StyleRenderer::preLoad(self::$style);
+            if (is_numeric($this->style)) {
+                N2StyleRenderer::preLoad($this->style);
             }
             $inited = true;
         }
     }
 
-    public static function onSmartsliderDefaultSettings(&$settings) {
+    public function globalDefaultItemFontAndStyle($fontTab, $styleTab) {
         self::initDefaultStyle();
-        $settings['style'][] = '<param name="item-image-style" type="style" previewmode="box" label="Item - Image" default="' . self::$style . '" />';
+
+        new N2ElementStyle($styleTab, 'item-image-style', n2_('Item') . ' - ' . n2_('Image'), $this->style, array(
+            'previewMode' => 'box'
+        ));
     }
 
     function getValues() {
@@ -48,7 +50,7 @@ class N2SSPluginItemFactoryImage extends N2SSPluginItemFactoryAbstract {
             'title'          => '',
             'link'           => '#|*|_self',
             'size'           => 'auto|*|auto',
-            'style'          => self::$style,
+            'style'          => $this->style,
             'cssclass'       => '',
             'image-optimize' => 1
         );
@@ -87,8 +89,57 @@ class N2SSPluginItemFactoryImage extends N2SSPluginItemFactoryAbstract {
         return $data;
     }
 
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'item-image');
+
+        new N2ElementImage($settings, 'image', n2_('Image'), '', array(
+            'fixed'      => true,
+            'style'      => 'width:236px;',
+            'relatedAlt' => 'item_imagealt'
+        ));
+
+        $link = new N2ElementMixed($settings, 'link', '', '|*|_self|*|');
+        new N2ElementUrl($link, 'link-1', n2_('Link'), '', array(
+            'style' => 'width:236px;'
+        ));
+        new N2ElementList($link, 'link-2', n2_('Target window'), '', array(
+            'options' => array(
+                '_self'  => n2_('Self'),
+                '_blank' => n2_('New')
+            )
+        ));
+        new N2ElementList($link, 'link-3', 'Rel', '', array(
+            'options' => array(
+                ''           => '',
+                'nofollow'   => 'nofollow',
+                'noreferrer' => 'noreferrer',
+                'author'     => 'author',
+                'external'   => 'external',
+                'help'       => 'help'
+            )
+        ));
+
+        $seo = new N2ElementGroup($settings, 'item-image-seo');
+        new N2ElementText($seo, 'alt', 'SEO - ' . n2_('Alt tag'), '', array(
+            'style' => 'width:125px;'
+        ));
+        new N2ElementText($seo, 'title', 'SEO - ' . n2_('Title'), '', array(
+            'style' => 'width:125px;'
+        ));
+
+        $misc = new N2ElementGroup($settings, 'item-image-misc', '', array(
+        ));
+        $size = new N2ElementMixed($misc, 'size', '', 'auto|*|auto');
+        new N2ElementText($size, 'size-1', n2_('Width'), '', array(
+            'style' => 'width:60px;'
+        ));
+        new N2ElementText($size, 'size-2', n2_('Height'), '', array(
+            'style' => 'width:60px;'
+        ));
+
+
+    }
+
 }
 
-N2Plugin::addPlugin('ssitem', 'N2SSPluginItemFactoryImage');
-
-N2Pluggable::addAction('smartsliderDefault', 'N2SSPluginItemFactoryImage::onSmartsliderDefaultSettings');
+N2SmartSliderItemsFactory::addItem(new N2SSPluginItemFactoryImage);

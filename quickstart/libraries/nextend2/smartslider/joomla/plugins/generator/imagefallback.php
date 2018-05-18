@@ -1,6 +1,6 @@
 <?php
 
-class NextendImageFallBack {
+class N2JoomlaImageFallBack {
 
     static public function findImage($s) {
         preg_match_all('/(<img.*?src=[\'"](.*?)[\'"][^>]*>)|(background(-image)??\s*?:.*?url\((["|\']?)?(.+?)(["|\']?)?\))/i', $s, $r);
@@ -11,12 +11,14 @@ class NextendImageFallBack {
         } else {
             $s = '';
         }
+
         return $s;
     }
 
     static public function siteURL() {
         $protocol   = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
         $domainName = $_SERVER['HTTP_HOST'];
+
         return $protocol . $domainName;
     }
 
@@ -37,12 +39,15 @@ class NextendImageFallBack {
                         if (N2Filesystem::existsFile($file)) {
                             $return = N2ImageHelper::dynamic($root . $imageInText);
                         } else {
-                            $slashes = array('/','\\');
-							if(in_array(substr(self::siteURL(), -1), $slashes) || in_array(substr($imageInText, 0, 1), $slashes)){
-								$return = N2ImageHelper::dynamic(self::siteURL() . $imageInText);
-							} else {
-								$return = N2ImageHelper::dynamic(self::siteURL() . '/' . $imageInText);
-							}
+                            $slashes = array(
+                                '/',
+                                '\\'
+                            );
+                            if (in_array(substr(self::siteURL(), -1), $slashes) || in_array(substr($imageInText, 0, 1), $slashes)) {
+                                $return = N2ImageHelper::dynamic(self::siteURL() . $imageInText);
+                            } else {
+                                $return = N2ImageHelper::dynamic(self::siteURL() . '/' . $imageInText);
+                            }
                         }
                         if ($return != '$/') {
                             break;
@@ -60,6 +65,7 @@ class NextendImageFallBack {
                 }
             }
         }
+
         return $return;
     }
 }

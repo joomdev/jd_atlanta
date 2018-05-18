@@ -1,6 +1,6 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.itemFactory', 'smartslider');
+N2Loader::import('libraries.renderable.layers.itemFactory', 'smartslider');
 
 class N2SSItemText extends N2SSItemAbstract {
 
@@ -15,17 +15,16 @@ class N2SSItemText extends N2SSItemAbstract {
     }
 
     private function getHTML() {
-        $slide  = $this->layer->getSlide();
-        $slider = $slide->getSlider();
+        $owner = $this->layer->getOwner();
 
-        $font  = N2FontRenderer::render($this->data->get('font'), 'paragraph', $slider->elementId, 'div#' . $slider->elementId . ' .n2-ss-layer ', $slider->fontSize);
-        $style = N2StyleRenderer::render($this->data->get('style'), 'heading', $slider->elementId, 'div#' . $slider->elementId . ' ');
+        $font = $owner->addFont($this->data->get('font'), 'paragraph', 'div#' . $owner->getElementID() . ' .n2-ss-layer ');
 
+        $style = $owner->addStyle($this->data->get('style'), 'heading');
 
         $html          = '';
-        $content       = str_replace('<p>', '<p class="' . $font . ' ' . $style . ' n2-ow">', $this->wpautop($this->closeTags($slide->fill($this->data->get('content', '')))));
-        $contentTablet = str_replace('<p>', '<p class="' . $font . ' ' . $style . ' n2-ow">', $this->wpautop($this->closeTags($slide->fill($this->data->get('contenttablet', '')))));
-        $contentMobile = str_replace('<p>', '<p class="' . $font . ' ' . $style . ' n2-ow">', $this->wpautop($this->closeTags($slide->fill($this->data->get('contentmobile', '')))));
+        $content       = str_replace('<p>', '<p class="' . $font . ' ' . $style . ' n2-ow">', $this->wpautop($this->closeTags($owner->fill($this->data->get('content', '')))));
+        $contentTablet = str_replace('<p>', '<p class="' . $font . ' ' . $style . ' n2-ow">', $this->wpautop($this->closeTags($owner->fill($this->data->get('contenttablet', '')))));
+        $contentMobile = str_replace('<p>', '<p class="' . $font . ' ' . $style . ' n2-ow">', $this->wpautop($this->closeTags($owner->fill($this->data->get('contentmobile', '')))));
         $class         = '';
 
         if ($contentMobile == '') {

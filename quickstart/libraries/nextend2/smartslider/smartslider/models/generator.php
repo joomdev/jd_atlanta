@@ -3,183 +3,284 @@ N2Loader::import("libraries.slider.abstract", "smartslider");
 
 class N2SmartsliderGeneratorModel extends N2Model {
 
-    private static $layouts = array(
-        'image'          => '{"title":"{title}","description":"","thumbnail":"{thumbnail}","backgroundColor":"ffffff00","backgroundImage":"{image}","backgroundAlt":"","backgroundtitle":"","backgroundMode":"default","backgroundVideoMp4":"","backgroundVideoMuted":"1","backgroundVideoLoop":"1","backgroundVideoMode":"fill","link":"|*|_self","slidedurationin":"0","slidedurationout":"0","slide":[]}',
-        'image_extended' => '{"title":"{title}","description":"{description}","thumbnail":"{image}","backgroundColor":"ffffff00","backgroundImage":"{image}","backgroundAlt":"","backgroundtitle":"","backgroundMode":"default","backgroundVideoMp4":"","backgroundVideoMuted":"1","backgroundVideoLoop":"1","backgroundVideoMode":"fill","link":"|*|_self","slidedurationin":"0","slidedurationout":"0","slide":[]}',
-        'article'        => '{"title":"{title}","description":"{description}","thumbnail":"{thumbnail}","backgroundColor":"ffffff00","backgroundImage":"{featured_image}","backgroundAlt":"","backgroundtitle":"","backgroundMode":"default","backgroundVideoMp4":"","backgroundVideoMuted":"1","backgroundVideoLoop":"1","backgroundVideoMode":"fill","link":"{url}|*|_self","slidedurationin":"0","slidedurationout":"0","slide":[]}',
-        'youtube'        => '{"title":"{title/1}","description":"{removehtml(description/1)}","thumbnail":"{thumbnail_medium/1}","backgroundColor":"ffffff00","backgroundImage":"","backgroundAlt":"","backgroundtitle":"","backgroundMode":"default","backgroundVideoMp4":"","backgroundVideoMuted":"1","backgroundVideoLoop":"1","backgroundVideoMode":"fill","link":"|*|_self","slidedurationin":"0","slidedurationout":"0","simplebganimation":"","kenburns":"50|*|50|*|","slide":[{"style":"position: absolute; z-index: 1;left:0%;top:0%;width:100%;height:100%;","animations":{},"name":"youtube","crop":"visible","align":"left","desktopportrait":1,"desktoplandscape":1,"tabletportrait":1,"tabletlandscape":1,"mobileportrait":1,"mobilelandscape":1,"desktopportraitleft":0,"desktopportraittop":0,"desktopportraitwidth":100,"desktopportraitheight":100,"items":[{"type":"youtube","values":{"youtubeurl":"{video_id/1}","volume":"-1","autoplay":"1","center":"0","loop":"0","theme":"dark","related":"0","vq":"default"}}]}]}'
-    );
-
     private static function getLayout($type) {
 
+        N2Loader::import('libraries.slidebuilder.component', 'smartslider');
+        N2Loader::importAll('libraries.slidebuilder', 'smartslider');
 
-        $slide = new N2SmartSliderSlideHelper();
+        $slideBuilder = new N2SmartSliderSlideBuilder();
 
         switch ($type) {
             case 'image':
-                $slide->set('title', "{title}")
-                      ->set('thumbnail', "{thumbnail}")
-                      ->set('backgroundImage', "{image}");
+                $slideBuilder->set(array(
+                    'title'           => "{title}",
+                    'thumbnail'       => "{thumbnail}",
+                    'backgroundImage' => "{image}",
+                    'background-type' => 'image'
+                ));
                 break;
 
             case 'image_extended':
-                $slide->set('title', "{title}")
-                      ->set('thumbnail', "{thumbnail}")
-                      ->set('backgroundImage', "{image}");
-
-                new N2SmartSliderItemHelper($slide, 'heading', array(
-                    'desktopportraitleft'   => 30,
-                    'desktopportraittop'    => -12,
-                    'desktopportraitalign'  => 'left',
-                    'desktopportraitvalign' => 'bottom'
-                ), array(
-                    'heading' => '{title/1}'
+                $slideBuilder->set(array(
+                    'title'           => "{title}",
+                    'thumbnail'       => "{thumbnail}",
+                    'backgroundImage' => "{image}",
+                    'background-type' => 'image'
+                ));
+              
+                $slideBuilder->content->set(array(
+                    'verticalalign'             => 'flex-end',
+                    'desktopportraitpadding'    => '0|*|0|*|0|*|0|*|px+'
+                ));
+                $row = new N2SmartSliderSlideBuilderRow($slideBuilder->content);
+                $row->set(array(
+                    'bgcolor' => '00000080',
+                ));
+                $col = new N2SmartSliderSlideBuilderColumn($row, '1');
+                $col->set(array(
+                    'desktopportraitinneralign' => "left"
+                ));
+                $heading = new N2SmartSliderSlideBuilderLayer($col, 'heading');
+                $heading->set(array(
+                    'desktopportraitselfalign'  => 'inherit'
+                ));
+                $heading->item->set(array(
+                    'heading' => '{title/1}',
                 ));
                 break;
 
             case 'article':
-                $slide->set('title', "{title}")
-                      ->set('description', "{description}")
-                      ->set('link', '{url}|*|_self')
-                      ->set('thumbnail', "{thumbnail}")
-                      ->set('backgroundImage', "{image}");
-
-                new N2SmartSliderItemHelper($slide, 'heading', array(
-                    'desktopportraitleft'   => 30,
-                    'desktopportraittop'    => -12,
-                    'desktopportraitalign'  => 'left',
-                    'desktopportraitvalign' => 'bottom'
-                ), array(
-                    'heading' => '{title}'
+                $slideBuilder->set(array(
+                    'title'           => "{title}",
+                    'description'     => '{description}',
+                    'link'            => '{url}|*|_self',
+                    'thumbnail'       => "{thumbnail}",
+                    'backgroundImage' => "{image}",
+                    'background-type' => 'image'
+                ));
+                
+                $slideBuilder->content->set(array(
+                    'verticalalign'             => 'flex-end',
+                    'desktopportraitpadding'    => '0|*|0|*|0|*|0|*|px+',
+                ));
+                $row = new N2SmartSliderSlideBuilderRow($slideBuilder->content);
+                $row->set(array(
+                    'bgcolor' => '00000080',
+                ));
+                $col = new N2SmartSliderSlideBuilderColumn($row, '1');
+                $col->set(array(
+                    'desktopportraitinneralign' => "left",
+                ));
+                $heading = new N2SmartSliderSlideBuilderLayer($col, 'heading');
+                $heading->set(array(
+                    'desktopportraitselfalign'  => 'inherit'
+                ));
+                $heading->item->set(array(
+                    'heading'   => '{title}',
+                    'font'      => base64_encode('{"name":"Static","data":[{"extra":"","color":"ffffffff","size":"36||px","tshadow":"0|*|0|*|0|*|000000ff","afont":"Roboto,Arial","lineheight":"1.5","bold":0,"italic":0,"underline":0,"align":"inherit","letterspacing":"normal","wordspacing":"normal","texttransform":"none"},{"extra":""}]}')
                 ));
                 break;
 
             case 'product':
-                $slide->set('title', "{title}")
-                      ->set('description', "{description}")
-                      ->set('link', '{url}|*|_self')
-                      ->set('thumbnail', "{thumbnail}")
-                      ->set('backgroundImage', "{image}");
-
-                new N2SmartSliderItemHelper($slide, 'heading', array(
-                    'desktopportraitleft'   => 30,
-                    'desktopportraittop'    => -12,
-                    'desktopportraitalign'  => 'left',
-                    'desktopportraitvalign' => 'bottom'
-                ), array(
-                    'heading' => '{title}'
+                $slideBuilder->set(array(
+                    'title'           => "{title}",
+                    'description'     => '{description}',
+                    'link'            => '{url}|*|_self',
+                    'thumbnail'       => "{thumbnail}",
+                    'backgroundImage' => "{image}",
+                    'background-type' => 'image'
                 ));
 
-                new N2SmartSliderItemHelper($slide, 'heading', array(
-                    'desktopportraitleft'   => -30,
-                    'desktopportraittop'    => -12,
-                    'desktopportraitalign'  => 'right',
-                    'desktopportraitvalign' => 'bottom'
-                ), array(
-                    'heading' => '{price}'
+                $slideBuilder->content->set(array(
+                    'verticalalign'             => 'flex-end',
+                    'desktopportraitpadding'    => '0|*|0|*|0|*|0|*|px+',
                 ));
+                $row = new N2SmartSliderSlideBuilderRow($slideBuilder->content);
+                $row->set(array(
+                    'bgcolor'                   => '00000080',
+                ));
+                $col = new N2SmartSliderSlideBuilderColumn($row, '1/2');
+                $col->set(array(
+                    'desktopportraitinneralign' => "left",
+                ));
+                $heading = new N2SmartSliderSlideBuilderLayer($col, 'heading');
+                $heading->set(array(
+                    'desktopportraitselfalign'  => 'inherit'
+                ));
+                $heading->item->set(array(
+                    'heading'   => '{title}',
+                    'font'      => base64_encode('{"name":"Static","data":[{"extra":"","color":"ffffffff","size":"36||px","tshadow":"0|*|0|*|0|*|000000ff","afont":"Roboto,Arial","lineheight":"1.5","bold":0,"italic":0,"underline":0,"align":"inherit","letterspacing":"normal","wordspacing":"normal","texttransform":"none"},{"extra":""}]}'),
+                ));
+                $col2 = new N2SmartSliderSlideBuilderColumn($row, '1/2');
+                $col2->set(array(
+                    'desktopportraitinneralign' => "right",
+                ));
+                $heading = new N2SmartSliderSlideBuilderLayer($col2, 'heading');
+                $heading->set(array(
+                    'desktopportraitselfalign'  => 'inherit'
+                ));
+                $heading->item->set(array(
+                    'heading'   => '{price}',
+                    'font'      => base64_encode('{"name":"Static","data":[{"extra":"","color":"ffffffff","size":"36||px","tshadow":"0|*|0|*|0|*|000000ff","afont":"Roboto,Arial","lineheight":"1.5","bold":0,"italic":0,"underline":0,"align":"inherit","letterspacing":"normal","wordspacing":"normal","texttransform":"none"},{"extra":""}]}'),
+                ));
+
                 break;
 
             case 'event':
-                $slide->set('title', "{title}")
-                      ->set('description', "{description}")
-                      ->set('link', '{url}|*|_self')
-                      ->set('thumbnail', "{thumbnail}")
-                      ->set('backgroundImage', "{image}");
-
-                new N2SmartSliderItemHelper($slide, 'heading', array(
-                    'desktopportraitleft'   => 30,
-                    'desktopportraittop'    => -12,
-                    'desktopportraitalign'  => 'left',
-                    'desktopportraitvalign' => 'bottom'
-                ), array(
-                    'heading' => '{title}'
+                $slideBuilder->set(array(
+                    'title'           => "{title}",
+                    'description'     => '{description}',
+                    'link'            => '{url}|*|_self',
+                    'thumbnail'       => "{thumbnail}",
+                    'backgroundImage' => "{image}",
+                    'background-type' => 'image'
                 ));
-
-                new N2SmartSliderItemHelper($slide, 'heading', array(
-                    'desktopportraitleft'   => -30,
-                    'desktopportraittop'    => -12,
-                    'desktopportraitalign'  => 'right',
-                    'desktopportraitvalign' => 'bottom'
-                ), array(
-                    'heading' => '{start_date}'
+                $slideBuilder->content->set(array(
+                    'verticalalign'          => 'flex-end',
+                    'desktopportraitpadding' => '0|*|0|*|0|*|0|*|px+',
                 ));
+                $row = new N2SmartSliderSlideBuilderRow($slideBuilder->content);
+                $row->set(array(
+                    'bgcolor'                => '00000080',
+                ));
+                $col = new N2SmartSliderSlideBuilderColumn($row, '1/2');
+                $col->set(array(
+                    'desktopportraitinneralign' => "left",
+                ));
+                $heading = new N2SmartSliderSlideBuilderLayer($col, 'heading');
+                $heading->set(array(
+                    'desktopportraitselfalign'  => 'inherit'
+                ));
+                $heading->item->set(array(
+                    'heading' => '{title}',
+                    'font'    => base64_encode('{"name":"Static","data":[{"extra":"","color":"ffffffff","size":"36||px","tshadow":"0|*|0|*|0|*|000000ff","afont":"Roboto,Arial","lineheight":"1.5","bold":0,"italic":0,"underline":0,"align":"inherit","letterspacing":"normal","wordspacing":"normal","texttransform":"none"},{"extra":""}]}'),
+                ));
+                $col2 = new N2SmartSliderSlideBuilderColumn($row, '1/2');
+                $col2->set(array(
+                    'desktopportraitinneralign' => "right",
+                ));
+                $heading = new N2SmartSliderSlideBuilderLayer($col2, 'heading');
+                $heading->set(array(
+                    'desktopportraitselfalign'  => 'inherit'
+                ));
+                $heading->item->set(array(
+                    'heading'   => '{start_date}',
+                    'font'      => base64_encode('{"name":"Static","data":[{"extra":"","color":"ffffffff","size":"36||px","tshadow":"0|*|0|*|0|*|000000ff","afont":"Roboto,Arial","lineheight":"1.5","bold":0,"italic":0,"underline":0,"align":"inherit","letterspacing":"normal","wordspacing":"normal","texttransform":"none"},{"extra":""}]}'),
+                ));
+            
                 break;
 
             case 'youtube':
-                $slide->set('title', "{title}")
-                      ->set('description', "{description}")
-                      ->set('thumbnail', "{thumbnail}");
+                $slideBuilder->set(array(
+                    'title'           => "{title}",
+                    'description'     => '{description}',
+                    'link'            => '{url}|*|_self',
+                    'thumbnail'       => "{thumbnail}",
+                    'backgroundColor' => "ffffff00",
+                    'background-type' => 'color',
+                ));
 
-                new N2SmartSliderItemHelper($slide, 'youtube', array(
+                $youtube = new N2SmartSliderSlideBuilderLayer($slideBuilder, 'youtube');
+                $youtube->set(array(
                     'desktopportraitwidth'  => '100%',
                     'desktopportraitheight' => '100%',
-                    'desktopportraitleft'   => 0,
-                    'desktopportraittop'    => 0
-                ), array(
-                    'youtubeurl' => '{video_url}',
-                    'image'      => ''
+                    'desktopportraitalign'  => 'left',
+                    'desktopportraitvalign' => 'top'
+                ));
+                $youtube->item->set(array(
+                    "youtubeurl" => "{video_url}",
                 ));
                 break;
 
             case 'vimeo':
-                $slide->set('title', "{title}")
-                      ->set('description', "{description}")
-                      ->set('thumbnail', "{image200x150/1}");
+                $slideBuilder->set(array(
+                    'title'           => "{title}",
+                    'description'     => '{description}',
+                    'link'            => '{url}|*|_self',
+                    'thumbnail'       => "{image200x150/1}",
+                    'backgroundColor' => "ffffff00",
+                    'background-type' => 'color',
+                ));
 
-                new N2SmartSliderItemHelper($slide, 'vimeo', array(
+                $vimeo = new N2SmartSliderSlideBuilderLayer($slideBuilder, 'vimeo');
+                $vimeo->set(array(
                     'desktopportraitwidth'  => '100%',
                     'desktopportraitheight' => '100%',
-                    'desktopportraitleft'   => 0,
-                    'desktopportraittop'    => 0
-                ), array(
-                    'vimeourl' => '{url}',
+                    'desktopportraitalign'  => 'left',
+                    'desktopportraitvalign' => 'top'
+                ));
+                $vimeo->item->set(array(
+                    "vimeourl" => "{url}",
                     'image'    => ''
                 ));
+
                 break;
 
             case 'social_post':
-                $slide->set('title', "{title}")
-                      ->set('description', "{description}")
-                      ->set('link', '{url}|*|_self')
-                      ->set('thumbnail', "{author_image}");
-
-                new N2SmartSliderItemHelper($slide, 'heading', array(
-                    'desktopportraittop'    => 20,
-                    'desktopportraitalign'  => 'center',
-                    'desktopportraitvalign' => 'top',
-                    'desktopportraitwidth'  => '80%',
-                ), array(
-                    'nowrap'  => 0,
-                    'heading' => '{message}'
+                $slideBuilder->set(array(
+                    'title'           => "{title}",
+                    'description'     => '{description}',
+                    'link'            => '{url}|*|_self',
+                    'thumbnail'       => "{author_image}",
+                    'backgroundColor' => "ffffff00",
+                    'background-type' => 'color',
                 ));
 
-                new N2SmartSliderItemHelper($slide, 'image', array(
-                    'desktopportraittop'    => 50,
-                    'desktopportraitwidth'  => 200,
-                    'desktopportraitheight' => 200
-                ), array(
-                    'image' => '{author_image}'
+                $slideBuilder->content->set(array(
+                    'verticalalign'          => 'center',
+                    'desktopportraitpadding' => '0|*|0|*|0|*|0|*|px+',
+                    'desktopportraitmargin'  => '0|*|0|*|0|*|0|*|px+'
                 ));
 
-                new N2SmartSliderItemHelper($slide, 'button', array(
-                    'desktopportraittop' => 150
-                ), array(
-                    'content' => '{url_label}'
+                $row = new N2SmartSliderSlideBuilderRow($slideBuilder->content);
+                $row->set(array(
+                    'bgcolor'                => '00000080',
+                    'desktopportraitpadding' => '10|*|10|*|10|*|10|*|px+',
+                    'desktopportraitmargin'  => '0|*|0|*|0|*|0|*|px+'
                 ));
+                $col = new N2SmartSliderSlideBuilderColumn($row, '1');
+                $col->set(array(
+                    'desktopportraitinneralign' => "left",
+                    'desktopportraitmargin'     => '0|*|0|*|0|*|0|*|px+',
+                    'desktopportraitpadding'    => '10|*|10|*|10|*|10|*|px+'
+                ));
+                $heading = new N2SmartSliderSlideBuilderLayer($col, 'heading');
+                $heading->set(array(
+                    'desktopportraitmargin'     => '0|*|0|*|0|*|0|*|px+',
+                    'desktopportraitselfalign'  => 'inherit'
+                ));
+                $heading->item->set(array(
+                    'heading' => '{message}',
+                ));
+                $image = new N2SmartSliderSlideBuilderLayer($col, 'image');
+                $image->set(array(
+                    'desktopportraitmargin'    => '0|*|0|*|0|*|0|*|px+',
+                    'desktopportraitselfalign' => 'inherit'
+                ));
+                $image->item->set(array(
+                    'image' => '{author_image}',
+                ));
+                $button = new N2SmartSliderSlideBuilderLayer($col, 'button');
+                $button->set(array(
+                    'desktopportraitmargin'    => '0|*|0|*|0|*|0|*|px+',
+                    'desktopportraitselfalign' => 'inherit'
+                ));
+                $button->item->set(array(
+                    'content' => '{url_label}',
+                ));
+            
                 break;
 
             default:
-                return array(
-                    'title'       => 'title',
-                    'slide'       => array(),
-                    'description' => '',
-                    'thumbnail'   => '',
-                    'published'   => 1
-                );
+                return $slideBuilder->set(array(
+                    'title'           => "title",
+                    'description'     => '',
+                    'backgroundColor' => "ffffff00",
+                    'background-type' => 'color',
+                ));
         }
 
-        return $slide->toArray();
+        return $slideBuilder->getData();
     }
 
     public function __construct() {
@@ -197,24 +298,16 @@ class N2SmartsliderGeneratorModel extends N2Model {
         try {
             $generatorId = $this->_create($data->get('type'), $data->get('group'), json_encode($params));
 
-            $info      = $this->getGeneratorInfo($data->get('group'), $data->get('type'));
-            $slideData = self::getLayout($info->type);
-            /*if (self::$layouts[$info->type]) {
-                $slideData = json_decode(self::$layouts[$info->type], true);
-            } else {
-                $slideData = array(
-                    'title'       => 'title',
-                    'slide'       => array(),
-                    'description' => '',
-                    'thumbnail'   => '',
-                    'published'   => 1
-                );
-            }*/
+
+            $source = $this->getGeneratorGroup($data->get('group'))
+                           ->getSource($data->get('type'));
+
+            $slideData = self::getLayout($source->getLayout());
 
             $slideData['published']     = '1';
             $slideData['publishdates']  = '|*|';
             $slideData['generator_id']  = $generatorId;
-            $slideData['record-slides'] = intval($data->get('record-slides', 1));
+            $slideData['record-slides'] = intval($data->get('record-slides', 5));
             $slideData['slide']         = json_encode($slideData['slide']);
             $slidesModel                = new N2SmartsliderSlidesModel();
             $slideId                    = $slidesModel->create($sliderId, $slideData, false);
@@ -230,88 +323,51 @@ class N2SmartsliderGeneratorModel extends N2Model {
     }
 
     public function generatorCommonForm($data = array()) {
-        $configurationXmlFile = dirname(__FILE__) . '/forms/multigenerator.xml';
 
         N2Loader::import('libraries.form.form');
         $form = new N2Form();
         $form->set('class', 'nextend-smart-slider-admin');
         $form->loadArray($data);
 
-        $form->loadXMLFile($configurationXmlFile);
+        $settings = new N2Tab($form, 'generator', n2_('Generator settings'));
+
+        new N2ElementNumber($settings, 'record-slides', n2_('Slides'), 5, array(
+            'unit' => n2_('slides'),
+            'wide' => 4,
+        ));
+
+        if (N2SSPRO) {
+            $record = new N2ElementGroup($settings, 'generator-record-offset', n2_('Record'), array(
+                'rowClass' => 'n2-expert'
+            ));
+            new N2ElementNumber($record, 'record-start', n2_('Start index'), 1, array(
+                'wide' => 3
+            ));
+            new N2ElementNumber($record, 'record-group', n2_('Group result'), 1, array(
+                'wide' => 3
+            ));
+        }//N2SSPRO
+
+
+        new N2ElementNumber($settings, 'cache-expiration', n2_('Cache expiration'), 24, array(
+            'wide' => 3,
+            'unit' => n2_('hours')
+        ));
+
+        new N2ElementButton($settings, 'record-viewer', n2_('Record viewer'), n2_('View records'));
+        new N2ElementToken($settings);
 
         echo $form->render('generator');
-    }
-
-    public function generatorEditForm($data = array()) {
-        $configurationXmlFile = dirname(__FILE__) . '/forms/generator_edit.xml';
-
-        N2Loader::import('libraries.form.form');
-        $form = new N2Form();
-        $form->set('class', 'nextend-smart-slider-admin');
-        $form->loadArray($data);
-
-        $form->loadXMLFile($configurationXmlFile);
-
-        echo $form->render('generator');
-    }
-
-    public function generatorSpecificForm($group, $type, $data = array()) {
-
-        $info = $this->getGeneratorInfo($group, $type);
-
-        $xmlPath = $info->path . '/config.xml';
-
-        $form = new N2Form();
-        $form->loadArray($data);
-
-        $form->loadXMLFile($xmlPath);
-
-        $form->set('info', $info);
-
-        echo $form->render('generator');
-
-        return $xmlPath;
     }
 
     /**
-     * @param $group
      * @param $type
      *
-     * @return N2GeneratorInfo
-     * @throws Exception
+     * @return N2SliderGeneratorPluginAbstract
      */
-    public function getGeneratorInfo($group, $type = null) {
+    public function getGeneratorGroup($type) {
 
-        list($groups, $list) = self::getGenerators();
-
-        if (isset($list[$group])) {
-            if (isset($list[$group][$type])) {
-                return $list[$group][$type];
-            } else {
-                return $list[$group][key($list[$group])];
-            }
-        }
-        throw new Exception('Generator not found: ' . $group . ' - ' . $type);
-    }
-
-    public static function getGenerators() {
-
-        static $groups;
-        static $list;
-
-        if (!$list) {
-            $groups = array();
-            $list   = array();
-            N2Plugin::callPlugin('ssgenerator', 'onGeneratorList', array(
-                &$groups,
-                &$list
-            ));
-        }
-
-        return array(
-            &$groups,
-            &$list
-        );
+        return N2SSGeneratorFactory::getGenerator($type);
     }
 
     public function get($id) {

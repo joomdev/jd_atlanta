@@ -2,21 +2,20 @@
 
 N2Loader::import('libraries.form.tab');
 
-class N2TabRaw extends N2Tab
-{
+class N2TabRaw extends N2Tab {
 
-    function decorateGroupStart() {
+    protected function decorateGroupStart() {
 
     }
 
-    function decorateGroupEnd() {
+    protected function decorateGroupEnd() {
 
         echo "</div>";
     }
 
-    function decorateElement(&$el, $out, $i) {
+    protected function decorateElement($el, $renderedElement) {
 
-        echo $out[1];
+        echo $renderedElement[1];
     }
 
 }

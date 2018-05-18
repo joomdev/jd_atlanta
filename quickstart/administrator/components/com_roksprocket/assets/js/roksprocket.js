@@ -1585,7 +1585,7 @@ Unmatrix 2d
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -2903,7 +2903,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -2997,7 +2997,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -3212,7 +3212,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -3835,7 +3835,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -4239,7 +4239,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -4311,7 +4311,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 (function (doc, win, udef) {
@@ -4759,7 +4759,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -4880,7 +4880,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -5062,7 +5062,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -5110,7 +5110,7 @@ Object.extend({
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 if (typeof this.RokSprocket == 'undefined') this.RokSprocket = {};
@@ -5324,7 +5324,7 @@ if (typeof this.RokSprocket == 'undefined') this.RokSprocket = {};
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -5589,7 +5589,7 @@ if (typeof this.RokSprocket == 'undefined') this.RokSprocket = {};
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -5843,7 +5843,7 @@ if (typeof this.RokSprocket == 'undefined') this.RokSprocket = {};
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){
@@ -5896,7 +5896,7 @@ if (typeof this.RokSprocket == 'undefined') this.RokSprocket = {};
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 
@@ -6043,7 +6043,7 @@ if (typeof this.RokSprocket == 'undefined') this.RokSprocket = {};
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
  ((function(){
@@ -7424,7 +7424,7 @@ var isUnavailable = function(type, date, options){
 /*!
  * @version   $Id: roksprocket.js 30474 2016-10-27 20:49:18Z djamil $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){

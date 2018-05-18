@@ -36,25 +36,25 @@ class N2LinkScrollTo {
             N2JS::addInline('
             window.n2Scroll = {
                 to: function(top){
-                    n2("html, body").animate({ scrollTop: top }, 400);
+                    $("html, body").animate({ scrollTop: top }, 400);
                 },
                 top: function(){
                     n2Scroll.to(0);
                 },
                 bottom: function(){
-                    n2Scroll.to(n2(document).height() - n2(window).height());
+                    n2Scroll.to($(document).height() - $(window).height());
                 },
                 before: function(el){
-                    n2Scroll.to(el.offset().top - n2(window).height());
+                    n2Scroll.to(el.offset().top - $(window).height());
                 },
                 after: function(el){
                     n2Scroll.to(el.offset().top + el.height());
                 },
                 next: function(el, selector){
-                    var els = n2(selector),
+                    var els = $(selector),
                         nextI = -1;
                     els.each(function(i, slider){
-                        if(n2(el).is(slider) || n2.contains(slider, el)){
+                        if($(el).is(slider) || $.contains(slider, el)){
                             nextI = i + 1;
                             return false;
                         }
@@ -64,10 +64,10 @@ class N2LinkScrollTo {
                     }
                 },
                 previous: function(el, selector){
-                    var els = n2(selector),
+                    var els = $(selector),
                         prevI = -1;
                     els.each(function(i, slider){
-                        if(n2(el).is(slider) || n2.contains(slider, el)){
+                        if($(el).is(slider) || $.contains(slider, el)){
                             prevI = i - 1;
                             return false;
                         }
@@ -79,9 +79,9 @@ class N2LinkScrollTo {
                 element: function(selector){
                     var offsetTop = 0;
                     if(typeof n2ScrollOffsetSelector !== "undefined"){
-                        offsetTop = n2(n2ScrollOffsetSelector).outerHeight();
+                        offsetTop = $(n2ScrollOffsetSelector).outerHeight();
                     }
-                    n2Scroll.to(n2(selector).offset().top - offsetTop);
+                    n2Scroll.to($(selector).offset().top - offsetTop);
                 }
             };');
             $inited = true;
@@ -97,10 +97,10 @@ class N2LinkScrollTo {
                     $onclick = 'n2Scroll.' . $argument . '();';
                     break;
                 case 'beforeSlider':
-                    $onclick = 'n2Scroll.before(n2(this).closest(".n2-ss-slider").addBack());';
+                    $onclick = 'n2Scroll.before(N2Classes.$(this).closest(".n2-ss-slider").addBack());';
                     break;
                 case 'afterSlider':
-                    $onclick = 'n2Scroll.after(n2(this).closest(".n2-ss-slider").addBack());';
+                    $onclick = 'n2Scroll.after(N2Classes.$(this).closest(".n2-ss-slider").addBack());';
                     break;
                 case 'nextSlider':
                     $onclick = 'n2Scroll.next(this, ".n2-ss-slider");';

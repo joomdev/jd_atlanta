@@ -13,7 +13,12 @@
     white-space: nowrap;
   }
 
-  .n2-ss-button-container a > span {
+  .n2-ss-button-container a div {
+    display: inline;
+    font-size:inherit;
+  }
+
+  .n2-ss-button-container a > div {
     display: inline-flex;
     align-items: center;
     vertical-align: top;

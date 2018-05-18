@@ -19,7 +19,7 @@ class N2SmartSliderTypeSimple extends N2SmartSliderType {
             'animation-duration'                     => 800,
             'animation-delay'                        => 0,
             'animation-easing'                       => 'easeOutQuad',
-            'animation-parallax'                     => 1,
+            'animation-parallax-overlap'             => 0,
             'animation-shifted-background-animation' => 'auto',
             'carousel'                               => 1,
 
@@ -28,7 +28,7 @@ class N2SmartSliderTypeSimple extends N2SmartSliderType {
         );
     }
 
-    protected function renderType() {
+    protected function renderType($css) {
 
         $params = $this->slider->params;
 
@@ -64,10 +64,10 @@ class N2SmartSliderTypeSimple extends N2SmartSliderType {
                     echo N2Html::tag('div', array('class' => 'n2-ss-slide-backgrounds'));
 
                     foreach ($this->slider->slides AS $i => $slide) {
-                        echo N2Html::tag('div', $slide->attributes + array(
-                                'class' => 'n2-ss-slide n2-ss-canvas n2-ow ' . $slide->classes,
-                                'style' => $slide->style
-                            ), $slide->background . $slide->getHTML());
+                        echo N2Html::tag('div', N2HTML::mergeAttributes($slide->attributes, $slide->linkAttributes, array(
+                            'class' => 'n2-ss-slide n2-ss-canvas n2-ow ' . $slide->classes,
+                            'style' => $slide->style
+                        )), $slide->background . $slide->getHTML());
                     }
                     ?>
                 </div>
@@ -88,6 +88,8 @@ class N2SmartSliderTypeSimple extends N2SmartSliderType {
             'parallax'                   => floatval($params->get('animation-parallax')),
             'shiftedBackgroundAnimation' => $params->get('animation-shifted-background-animation')
         );
+
+        $this->javaScriptProperties['mainanimation']['parallax'] = intval($params->get('animation-parallax-overlap'));
         $this->javaScriptProperties['mainanimation']['shiftedBackgroundAnimation'] = 0;
     
 
@@ -97,11 +99,15 @@ class N2SmartSliderTypeSimple extends N2SmartSliderType {
         $this->javaScriptProperties['dynamicHeight'] = 0;
     
 
-        N2Plugin::callPlugin('nextendslider', 'onNextendSliderProperties', array(&$this->javaScriptProperties));
+        $this->style .= $css->getCSS();
 
-        N2JS::addFirstCode("new N2Classes.SmartSliderSimple('#{$this->slider->elementId}', " . json_encode($this->javaScriptProperties) . ");");
+        $this->jsDependency[] = 'smartslider-simple-type-frontend';
 
         echo N2Html::clear();
+    }
+
+    public function getScript() {
+        return N2Html::script("N2R(" . json_encode($this->jsDependency) . ",function(){new N2Classes.SmartSliderSimple('#{$this->slider->elementId}', " . json_encode($this->javaScriptProperties) . ");});");
     }
 
     public function loadResources() {
@@ -110,9 +116,12 @@ class N2SmartSliderTypeSimple extends N2SmartSliderType {
     }
 
     private function initBackgroundAnimation() {
-        $speed                                      = $this->slider->params->get('background-animation-speed', 'normal');
-        $this->javaScriptProperties['bgAnimations'] = array(
+        $speed = $this->slider->params->get('background-animation-speed', 'normal');
+
+        $this->javaScriptProperties['bgAnimationsColor'] = N2Color::colorToRGBA($this->slider->params->get('background-animation-color', '333333ff'));
+        $this->javaScriptProperties['bgAnimations']      = array(
             'global' => $this->parseBackgroundAnimations($this->slider->params->get('background-animation', '')),
+            'color'  => N2Color::colorToRGBA($this->slider->params->get('background-animation-color', '333333ff')),
             'speed'  => $speed
         );
 
@@ -139,6 +148,14 @@ class N2SmartSliderTypeSimple extends N2SmartSliderType {
             $this->javaScriptProperties['bgAnimations']['slides'] = $slides;
         } else if (!$this->javaScriptProperties['bgAnimations']['global']) {
             $this->javaScriptProperties['bgAnimations'] = 0;
+        }
+
+        if ($this->javaScriptProperties['bgAnimations'] != 0) {
+
+            $this->jsDependency[] = "smartslider-backgroundanimation";
+            // We have background animation so load the required JS files
+            N2JS::addStaticGroup(N2Filesystem::translate(dirname(__FILE__)) . '/dist/smartslider-backgroundanimation.min.js', 'smartslider-backgroundanimation');
+        
         }
 
     }

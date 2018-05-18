@@ -1,22 +1,21 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.item.itemFactoryAbstract', 'smartslider');
+N2Loader::import('libraries.renderable.layers.item.itemFactoryAbstract', 'smartslider');
 
 class N2SSPluginItemFactoryHeading extends N2SSPluginItemFactoryAbstract {
 
-    var $type = 'heading';
+    protected $type = 'heading';
 
     protected $priority = 1;
 
-    private static $font = 1009;
-    private static $style = '';
-
-    protected $group = 'Basic';
+    private $font = 1009;
+    private $style = '';
 
     protected $class = 'N2SSItemHeading';
 
     public function __construct() {
-        $this->_title = n2_x('Heading', 'Slide item');
+        $this->title = n2_x('Heading', 'Slide item');
+        $this->group = n2_('Basic');
     }
 
     function getValues() {
@@ -29,8 +28,8 @@ class N2SSPluginItemFactoryHeading extends N2SSPluginItemFactoryAbstract {
             'heading'   => n2_('Heading layer'),
             'title'     => '',
             'link'      => '#|*|_self',
-            'font'      => self::$font,
-            'style'     => self::$style,
+            'font'      => $this->font,
+            'style'     => $this->style,
 
             'split-text-transform-origin'    => '50|*|50|*|0',
             'split-text-backface-visibility' => 1,
@@ -70,38 +69,100 @@ class N2SSPluginItemFactoryHeading extends N2SSPluginItemFactoryAbstract {
         return $data;
     }
 
-    private static function initDefault() {
+    private function initDefault() {
         static $inited = false;
         if (!$inited) {
             $res = N2StorageSectionAdmin::get('smartslider', 'default', 'item-heading-font');
             if (is_array($res)) {
-                self::$font = $res['value'];
+                $this->font = $res['value'];
             }
-            if (is_numeric(self::$font)) {
-                N2FontRenderer::preLoad(self::$font);
+            if (is_numeric($this->font)) {
+                N2FontRenderer::preLoad($this->font);
             }
 
             $res = N2StorageSectionAdmin::get('smartslider', 'default', 'item-heading-style');
             if (is_array($res)) {
-                self::$style = $res['value'];
+                $this->style = $res['value'];
             }
-            if (is_numeric(self::$style)) {
-                N2StyleRenderer::preLoad(self::$style);
+            if (is_numeric($this->style)) {
+                N2StyleRenderer::preLoad($this->style);
             }
             $inited = true;
         }
     }
 
-    public static function onSmartsliderDefaultSettings(&$settings) {
+    public function globalDefaultItemFontAndStyle($fontTab, $styleTab) {
         self::initDefault();
-        $settings['font'][] = '<param name="item-heading-font" type="font" previewmode="hover" label="' . n2_('Item') . ' - ' . n2_('Heading') . '" default="' . self::$font . '" />';
 
-        $settings['style'][] = '<param name="item-heading-style" type="style" set="heading" previewmode="heading" label="' . n2_('Item') . ' - ' . n2_('Heading') . '" default="' . self::$style . '" />';
+        new N2ElementFont($fontTab, 'item-heading-font', n2_('Item') . ' - ' . n2_('Heading'), $this->font, array(
+            'previewMode' => 'hover'
+        ));
+
+        new N2ElementStyle($styleTab, 'item-heading-style', n2_('Item') . ' - ' . n2_('Heading'), $this->style, array(
+            'previewMode' => 'heading'
+        ));
+    }
+
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'item-heading');
+
+        new N2ElementTextarea($settings, 'heading', n2_('Text'), n2_('Heading'), array(
+            'fieldStyle' => 'width: 230px;resize: vertical;'
+        ));
+
+        $link = new N2ElementMixed($settings, 'link', '', '|*|_self|*|');
+        new N2ElementUrl($link, 'link-1', n2_('Link'), '', array(
+            'style' => 'width:236px;'
+        ));
+        new N2ElementList($link, 'link-2', n2_('Target window'), '', array(
+            'options' => array(
+                '_self'  => n2_('Self'),
+                '_blank' => n2_('New')
+            )
+        ));
+        new N2ElementList($link, 'link-3', 'Rel', '', array(
+            'options' => array(
+                ''           => '',
+                'nofollow'   => 'nofollow',
+                'noreferrer' => 'noreferrer',
+                'author'     => 'author',
+                'external'   => 'external',
+                'help'       => 'help'
+            )
+        ));
+
+        $other = new N2ElementGroup($settings, 'item-heading-other');
+        new N2ElementList($other, 'priority', 'Tag', 'div', array(
+            'options' => array(
+                'div' => 'div',
+                '1'   => 'H1',
+                '2'   => 'H2',
+                '3'   => 'H3',
+                '4'   => 'H4',
+                '5'   => 'H5',
+                '6'   => 'H6'
+            )
+        ));
+        new N2ElementOnOff($other, 'fullwidth', n2_('Full width'), 1);
+        new N2ElementOnOff($other, 'nowrap', n2_('No wrap'), 0);
+
+        new N2ElementFont($settings, 'font', n2_('Font') . ' - ' . n2_('Heading'), '', array(
+            'previewMode' => 'hover',
+            'preview'     => '<div style="width:{nextend.activeLayer.prop(\'style\').width};"><div class="{styleClassName} {fontClassName}">{$(\'#item_headingheading\').val().replace(/\\n/g, \'<br />\');}</div></div>',
+            'set'         => 1000,
+            'style'       => 'item_headingstyle',
+            'rowClass'    => 'n2-hidden'
+        ));
+        new N2ElementStyle($settings, 'style', n2_('Style') . ' - ' . n2_('Heading'), '', array(
+            'previewMode' => 'heading',
+            'preview'     => '<div style="width:{nextend.activeLayer.prop(\'style\').width};"><div class="{styleClassName} {fontClassName}">{$(\'#item_headingheading\').val().replace(/\\n/g, \'<br />\');}</div></div>',
+            'set'         => 1000,
+            'font'        => 'item_headingfont',
+            'rowClass'    => 'n2-hidden'
+        ));
+
     }
 
 }
 
-N2Plugin::addPlugin('ssitem', 'N2SSPluginItemFactoryHeading');
-
-N2Pluggable::addAction('smartsliderDefault', 'N2SSPluginItemFactoryHeading::onSmartsliderDefaultSettings');
-
+N2SmartSliderItemsFactory::addItem(new N2SSPluginItemFactoryHeading);

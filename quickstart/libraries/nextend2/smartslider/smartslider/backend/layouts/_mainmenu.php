@@ -38,12 +38,14 @@ $help = N2Html::link(n2_('Docs'), 'https://smartslider3.helpscoutdocs.com/?utm_c
 
 $views[] = N2Html::tag('div', array(
     'class' => 'n2-menu-has-sub'
-), N2Html::tag('span', array('class' => 'n2-uc'), n2_('Help')) . N2Html::tag('div', array('class' => 'n2-menu-sub'), $help));
+), N2Html::link(n2_('Help'), 'https://smartslider3.com/help/?utm_campaign=' . N2SS3::$campaign . '&utm_source=dashboard-write-support&utm_medium=smartslider-' . N2Platform::getPlatform() . '-' . N2SS3::$plan, array(
+        'class'  => 'n2-h4 n2-uc',
+        'target' => '_blank'
+    )) . N2Html::tag('div', array('class' => 'n2-menu-sub'), $help));
 
-$this->widget->init('nav', array(
+N2Html::nav(array(
     'logoUrl'      => $this->appType->router->createUrl("sliders/index"),
     'logoImageUrl' => $this->appType->app->getLogo(),
     'views'        => $views,
     'actions'      => $this->getFragmentValue('actions')
 ));
-?>

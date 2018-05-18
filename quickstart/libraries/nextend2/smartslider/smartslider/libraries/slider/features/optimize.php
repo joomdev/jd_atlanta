@@ -29,11 +29,13 @@ class N2SmartSliderFeatureOptimize {
         if ($this->optimize) {
             try {
                 $sizes = $this->slider->assets->sizes;
+
                 return N2Image::resizeImage('resized', N2ImageHelper::fixed($image, true), ($this->backgroundImageCustom ? $this->backgroundImageWidth : $sizes['canvasWidth']), ($this->backgroundImageCustom ? $this->backgroundImageHeight : $sizes['canvasHeight']), 'normal', 'ffffff', true, $this->quality, true, $x, $y);
             } catch (Exception $e) {
                 return $image;
             }
         }
+
         return $image;
     }
 
@@ -45,6 +47,7 @@ class N2SmartSliderFeatureOptimize {
                 return $image;
             }
         }
+
         return $image;
     }
 }

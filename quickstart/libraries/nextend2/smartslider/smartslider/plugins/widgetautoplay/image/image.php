@@ -6,9 +6,9 @@ class N2SSPluginWidgetAutoplayImage extends N2SSPluginWidgetAbstract {
 
     private static $key = 'widget-autoplay-';
 
-    var $_name = 'image';
+    protected $name = 'image';
 
-    static function getDefaults() {
+    public function getDefaults() {
         return array(
             'widget-autoplay-responsive-desktop' => 1,
             'widget-autoplay-responsive-tablet'  => 0.7,
@@ -27,15 +27,33 @@ class N2SSPluginWidgetAutoplayImage extends N2SSPluginWidgetAbstract {
         );
     }
 
-    function onAutoplayList(&$list) {
-        $list[$this->_name] = $this->getPath();
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'widget-autoplay');
+
+        $play = new N2ElementGroup($settings, 'autoplay-play', n2_('Play'));
+        new N2ElementImageListFromFolder($play, 'widget-autoplay-play', n2_('Shape'), '', array(
+            'folder'     => N2Filesystem::translate($this->getPath() . 'play/'),
+            'post'       => 'break',
+            'isRequired' => true
+        ));
+        new N2ElementColor($play, 'widget-autoplay-play-color', n2_('Color'), '', array(
+            'alpha' => true
+        ));
+
+        new N2ElementStyle($settings, 'widget-autoplay-style', n2_('Style'), '', array(
+            'previewMode' => 'button',
+            'set'         => 1900,
+            'preview'     => '<div class="{styleClassName}" style="display: inline-block;"><img style="display: block;" src="{nextend.imageHelper.fixed($(\'#sliderwidget-autoplay-play-image\').val() || N2Color.colorizeSVG($(\'[data-image="\'+$(\'#sliderwidget-autoplay-play\').val()+\'"]\').attr(\'src\'), $(\'#sliderwidget-autoplay-play-color\').val()));}" /></div>'
+        ));
+
+        new N2ElementWidgetPosition($settings, 'widget-autoplay-position', n2_('Position'));
     }
 
-    function getPath() {
+    public function getPath() {
         return dirname(__FILE__) . DIRECTORY_SEPARATOR . 'image' . DIRECTORY_SEPARATOR;
     }
 
-    static function getPositions(&$params) {
+    public function getPositions(&$params) {
         $positions = array();
 
         $positions['autoplay-position'] = array(
@@ -46,7 +64,7 @@ class N2SSPluginWidgetAutoplayImage extends N2SSPluginWidgetAbstract {
         return $positions;
     }
 
-    static function render($slider, $id, $params) {
+    public function render($slider, $id, $params) {
         $html = '';
 
         $play      = $params->get(self::$key . 'play-image');
@@ -106,26 +124,26 @@ class N2SSPluginWidgetAutoplayImage extends N2SSPluginWidgetAbstract {
 
         if ($play && $pause) {
 
-            N2LESS::addFile(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'image' . DIRECTORY_SEPARATOR . 'style.n2less'), $slider->cacheId, array(
+            $slider->addLess(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'image' . DIRECTORY_SEPARATOR . 'style.n2less'), array(
                 "sliderid" => $slider->elementId
-            ), NEXTEND_SMARTSLIDER_ASSETS . '/less' . NDS);
-            N2JS::addFile(N2Filesystem::translate(dirname(__FILE__) . '/image/autoplay.min.js'), $id);
+            ));
+            $slider->features->addInitCallback(N2Filesystem::readFile(N2Filesystem::translate(dirname(__FILE__) . '/image/autoplay.min.js')));
         
 
             list($displayClass, $displayAttributes) = self::getDisplayAttributes($params, self::$key);
 
-            $styleClass = N2StyleRenderer::render($params->get(self::$key . 'style'), 'heading', $slider->elementId, 'div#' . $slider->elementId . ' ');
+            $styleClass = $slider->addStyle($params->get(self::$key . 'style'), 'heading');
 
 
             $isNormalFlow = self::isNormalFlow($params, self::$key);
             list($style, $attributes) = self::getPosition($params, self::$key);
 
 
-            N2JS::addInline('new N2Classes.SmartSliderWidgetAutoplayImage("' . $id . '", ' . n2_floatval($params->get(self::$key . 'responsive-desktop')) . ', ' . n2_floatval($params->get(self::$key . 'responsive-tablet')) . ', ' . n2_floatval($params->get(self::$key . 'responsive-mobile')) . ');');
+            $slider->features->addInitCallback('new N2Classes.SmartSliderWidgetAutoplayImage(this, ' . n2_floatval($params->get(self::$key . 'responsive-desktop')) . ', ' . n2_floatval($params->get(self::$key . 'responsive-tablet')) . ', ' . n2_floatval($params->get(self::$key . 'responsive-mobile')) . ');');
 
             $html = N2Html::tag('div', $displayAttributes + $attributes + array(
-                    'class'      => $displayClass . $styleClass . 'nextend-autoplay n2-ow nextend-autoplay-image' . ($isNormalFlow ? '' : 'n2-ib'),
-                    'style'      => $style . ($isNormalFlow ? 'margin-left:auto;margin-right:auto;' : ''),
+                    'class'      => $displayClass . $styleClass . 'nextend-autoplay n2-ib n2-ow nextend-autoplay-image',
+                    'style'      => $style,
                     'role'       => 'button',
                     'aria-label' => 'Pause autoplay'
                 ), N2Html::image($play, 'Play', array(
@@ -142,14 +160,14 @@ class N2SSPluginWidgetAutoplayImage extends N2SSPluginWidgetAbstract {
         return $html;
     }
 
-    public static function prepareExport($export, $params) {
+    public function prepareExport($export, $params) {
         $export->addImage($params->get(self::$key . 'play-image', ''));
         $export->addImage($params->get(self::$key . 'pause-image', ''));
 
         $export->addVisual($params->get(self::$key . 'style'));
     }
 
-    public static function prepareImport($import, $params) {
+    public function prepareImport($import, $params) {
 
         $params->set(self::$key . 'play-image', $import->fixImage($params->get(self::$key . 'play-image', '')));
         $params->set(self::$key . 'pause-image', $import->fixImage($params->get(self::$key . 'pause-image', '')));
@@ -159,4 +177,4 @@ class N2SSPluginWidgetAutoplayImage extends N2SSPluginWidgetAbstract {
 
 }
 
-N2Plugin::addPlugin('sswidgetautoplay', 'N2SSPluginWidgetAutoplayImage');
+N2SmartSliderWidgets::addWidget('autoplay', new N2SSPluginWidgetAutoplayImage);

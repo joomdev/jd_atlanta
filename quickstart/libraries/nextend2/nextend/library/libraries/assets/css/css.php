@@ -1,7 +1,6 @@
 <?php
 
-class N2CSS
-{
+class N2CSS {
 
     public static function addFile($pathToFile, $group) {
         N2AssetsManager::$css->addFile($pathToFile, $group);
@@ -15,8 +14,8 @@ class N2CSS
         N2AssetsManager::$css->addStaticGroup($file, $group);
     }
 
-    public static function addCode($code, $group) {
-        N2AssetsManager::$css->addCode($code, $group);
+    public static function addCode($code, $group, $unshift = false) {
+        N2AssetsManager::$css->addCode($code, $group, $unshift);
     }
 
     public static function addUrl($url) {

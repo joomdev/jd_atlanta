@@ -12,6 +12,10 @@ class N2CacheManifest extends N2Cache {
         $this->isRaw = $isRaw;
     }
 
+    protected function decode($data) {
+        return $data;
+    }
+
     public function makeCache($fileName, $hash, $callable) {
         if (!$this->isCached($fileName, $hash)) {
 
@@ -26,7 +30,7 @@ class N2CacheManifest extends N2Cache {
             return $this->getPath($fileName);
         }
 
-        return json_decode($this->get($fileName), true);
+        return $this->decode($this->get($fileName));
     }
 
     private function isCached($fileName, $hash) {

@@ -24,7 +24,7 @@ defined('_JEXEC') or die;
 	<div class="latestItemHeader">
 	  <?php if($this->item->params->get('latestItemTitle')): ?>
 	  <!-- Item title -->
-	  <h2 class="latestItemTitle">
+	  <h3 class="latestItemTitle itemTitle">
 	  	<?php if ($this->item->params->get('latestItemTitleLinked')): ?>
 			<a href="<?php echo $this->item->link; ?>">
 	  		<?php echo $this->item->title; ?>
@@ -32,16 +32,26 @@ defined('_JEXEC') or die;
 	  	<?php else: ?>
 	  	<?php echo $this->item->title; ?>
 	  	<?php endif; ?>
-	  </h2>
+	  </h3>
 	  <?php endif; ?>
   </div>
   
+  
+<div class="catItemHeader itemHeader">
 	<?php if($this->item->params->get('latestItemDateCreated')): ?>
 	<!-- Date created -->
 	<span class="latestItemDateCreated">
-		<?php echo JHTML::_('date', $this->item->created , JText::_('K2_DATE_FORMAT_LC2')); ?>
+		<i class="fa fa-clock-o" aria-hidden="true"></i> <?php echo JHTML::_('date', $this->item->created , JText::_('DATE_FORMAT_LC3')); ?>
 	</span>
 	<?php endif; ?>
+	
+	<?php if($this->item->params->get('latestItemCategory')): ?>
+	<!-- Item category name -->
+	<span class="latestItemCategory">
+		<i class="fa fa-folder-o" aria-hidden="true"></i> <a href="<?php echo $this->item->category->link; ?>"><?php echo $this->item->category->name; ?></a>
+	</span>
+	<?php endif; ?>
+</div>
 
   <!-- Plugins: AfterDisplayTitle -->
   <?php echo $this->item->event->AfterDisplayTitle; ?>
@@ -87,16 +97,8 @@ defined('_JEXEC') or die;
 	  <div class="clr"></div>
   </div>
 
-  <?php if($this->item->params->get('latestItemCategory') || $this->item->params->get('latestItemTags')): ?>
+  <?php if($this->item->params->get('latestItemTags')): ?>
   <div class="latestItemLinks">
-
-		<?php if($this->item->params->get('latestItemCategory')): ?>
-		<!-- Item category name -->
-		<div class="latestItemCategory">
-			<span><?php echo JText::_('K2_PUBLISHED_IN'); ?></span>
-			<a href="<?php echo $this->item->category->link; ?>"><?php echo $this->item->category->name; ?></a>
-		</div>
-		<?php endif; ?>
 
 	  <?php if($this->item->params->get('latestItemTags') && count($this->item->tags)): ?>
 	  <!-- Item tags -->

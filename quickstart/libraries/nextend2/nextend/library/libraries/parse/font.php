@@ -2,8 +2,7 @@
 N2Loader::import('libraries.image.color');
 N2Loader::import('libraries.parse.parse');
 
-class N2ParseFont
-{
+class N2ParseFont {
 
     /**
      * @var array
@@ -34,6 +33,7 @@ class N2ParseFont
             }
             $style .= $this->parse('extra', $extra);
         }
+
         return $style;
     }
 
@@ -54,6 +54,7 @@ class N2ParseFont
      */
     public function parse($property, $value) {
         $fn = 'parse' . $property;
+
         return $this->$fn($value);
     }
 
@@ -69,6 +70,7 @@ class N2ParseFont
             $rgba = N2Color::hex2rgba($v);
             $style .= 'color: RGBA(' . $rgba[0] . ',' . $rgba[1] . ',' . $rgba[2] . ',' . round($rgba[3] / 127, 2) . ');';
         }
+
         return $style;
     }
 
@@ -90,6 +92,7 @@ class N2ParseFont
         $v    = N2Parse::parse($v);
         $rgba = N2Color::hex2rgba($v[3]);
         if ($v[0] == 0 && $v[1] == 0 && $v[2] == 0) return 'text-shadow: none;';
+
         return 'text-shadow: ' . $v[0] . 'px ' . $v[1] . 'px ' . $v[2] . 'px RGBA(' . $rgba[0] . ',' . $rgba[1] . ',' . $rgba[2] . ',' . round($rgba[3] / 127, 2) . ');';
     }
 
@@ -109,6 +112,7 @@ class N2ParseFont
      */
     public function parseLineheight($v) {
         if ($v == '') return '';
+
         return 'line-height: ' . $v . ';';
     }
 
@@ -119,6 +123,7 @@ class N2ParseFont
      */
     public function parseBold($v) {
         if ($v == '1') return 'font-weight: bold;';
+
         return 'font-weight: normal;';
     }
 
@@ -129,6 +134,7 @@ class N2ParseFont
      */
     public function parseItalic($v) {
         if ($v == '1') return 'font-style: italic;';
+
         return 'font-style: normal;';
     }
 
@@ -139,6 +145,7 @@ class N2ParseFont
      */
     public function parseUnderline($v) {
         if ($v == '1') return 'text-decoration: underline;';
+
         return 'text-decoration: none;';
     }
 
@@ -202,6 +209,7 @@ class N2ParseFont
             }
             $families = str_replace($f[0], "'" . $family . "'", $families);
         }
+
         return $families;
     }
 }

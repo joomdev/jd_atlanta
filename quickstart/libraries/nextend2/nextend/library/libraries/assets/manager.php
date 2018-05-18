@@ -4,8 +4,7 @@
  * Class N2AssetsManager
  *
  */
-class N2AssetsManager
-{
+class N2AssetsManager {
 
     /**
      * @var N2AssetsCss
@@ -123,8 +122,10 @@ class N2AssetsManager
             if ($path) {
                 return self::$css->get();
             }
+
             return self::$css->getOutput();
         }
+
         return '';
     }
 
@@ -133,8 +134,10 @@ class N2AssetsManager
             if ($path) {
                 return self::$js->get();
             }
+
             return self::$js->getOutput();
         }
+
         return '';
     }
 

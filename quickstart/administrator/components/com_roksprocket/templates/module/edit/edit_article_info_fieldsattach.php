@@ -2,7 +2,7 @@
 /**
  * @version   $Id: edit_article_info_fieldsattach.php 10885 2013-05-30 06:31:41Z btowles $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 $now = JFactory::getDate()->toSql();

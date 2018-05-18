@@ -30,9 +30,9 @@ class N2AssetsPredefined {
 
 
         N2Base::getApplication('system')->info->assetsBackend();
-        N2JS::addFirstCode("NextendAjaxHelper.addAjaxArray(" . json_encode(N2Form::tokenizeUrl()) . ");");
+        N2JS::addFirstCode("N2R(['AjaxHelper'],function(){N2Classes.AjaxHelper.addAjaxArray(" . json_encode(N2Form::tokenizeUrl()) . ");});");
 
-        N2Plugin::callPlugin('fontservices', 'onFontManagerLoadBackend');
+        N2Fonts::onFontManagerLoadBackend();
     }
 
     public static function frontend($force = false) {
@@ -43,13 +43,16 @@ class N2AssetsPredefined {
         $once = true;
         N2AssetsManager::getInstance();
         if (N2Platform::$isAdmin) {
-            N2JS::addInline('window.N2PRO=' . N2PRO . ';', true);
-            N2JS::addInline('window.N2GSAP=' . N2GSAP . ';', true);
-            N2JS::addInline('window.N2PLATFORM="' . N2Platform::getPlatform() . '";', true);
+            N2JS::addGlobalInline('window.N2PRO=' . N2PRO . ';');
+            N2JS::addGlobalInline('window.N2GSAP=' . N2GSAP . ';');
+            N2JS::addGlobalInline('window.N2PLATFORM="' . N2Platform::getPlatform() . '";');
         }
     
 
-        N2JS::addInline('window.nextend={localization: {}, deferreds:[], loadScript: function(url){n2jQuery.ready(function () {var d = n2.Deferred();nextend.deferreds.push(d); n2.ajax({url:url,dataType:"script",cache:true,complete:function(){setTimeout(function(){d.resolve()})}})})}, ready: function(cb){n2.when.apply(n2, nextend.deferreds).done(function(){cb.call(window,n2)})}};', true);
+        N2JS::addGlobalInline('(function(){var N=this;N.N2_=N.N2_||{r:[],d:[]},N.N2R=N.N2R||function(){N.N2_.r.push(arguments)},N.N2D=N.N2D||function(){N.N2_.d.push(arguments)}}).call(window);');
+        N2JS::addGlobalInline('if(!window.n2jQuery){window.n2jQuery={ready:function(cb){console.error(\'n2jQuery will be deprecated!\');N2R([\'$\'],cb);}}}');
+
+        N2JS::addGlobalInline('window.nextend={localization: {}, ready: function(cb){console.error(\'nextend.ready will be deprecated!\');N2R(\'documentReady\', function($){cb.call(window,$)})}};');
 
         N2JS::jQuery($force);
 
@@ -58,7 +61,7 @@ class N2AssetsPredefined {
     
 
         N2Loader::import('libraries.fonts.fonts');
-        N2Plugin::callPlugin('fontservices', 'onFontManagerLoad', array($force));
+        N2Fonts::onFontManagerLoad($force);
     }
 
     private static function form($force = false) {
@@ -68,7 +71,7 @@ class N2AssetsPredefined {
         }
         $once = true;
 
-        N2JS::addFiles(N2LIBRARYASSETS . "/js", array(
+        N2JS::addFiles(N2LIBRARYASSETS . "/admin/js", array(
             'form.js',
             'element.js'
         ), 'nextend-backend');
@@ -76,11 +79,11 @@ class N2AssetsPredefined {
         N2Localization::addJS('The changes you made will be lost if you navigate away from this page.');
 
 
-        N2JS::addFiles(N2LIBRARYASSETS . "/js/element", array(
+        N2JS::addFiles(N2LIBRARYASSETS . "/admin/js/element", array(
             'text.js'
         ), 'nextend-backend');
 
-        foreach (glob(N2LIBRARYASSETS . "/js/element/*.js") AS $file) {
+        foreach (glob(N2LIBRARYASSETS . "/admin/js/element/*.js") AS $file) {
             N2JS::addFile($file, 'nextend-backend');
         }
     }

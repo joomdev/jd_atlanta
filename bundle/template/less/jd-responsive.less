@@ -1,57 +1,35 @@
 /**
- * @package JD-Atlanta
  * @author JoomDev https://www.joomdev.com/
- * @copyright Copyright (C) 2008 - 2017 Joomdev.com. All rights reserved.
+ * @copyright Copyright (C) 2008 - 2018 Joomdev.com. All rights reserved.
  * @license http://www.gnu.org/licenses/gpl-2.0.html GPLv2 or later
 */
 
 /* Start css */
-
 @media screen and (max-width: 991px) {
 	body{
 		#sp-header{
-			#sp-logo{
-				.logo{
-					padding: 20px 0;
-				}
+			#sp-logo .logo {
+				padding: 20px 0;
 			}
-			#sp-menu{
-				.sp-megamenu-wrapper{
-					a#offcanvas-toggler{
-						i{
-							color: #fff;
-						}
-					}
-				}
+			#sp-menu .sp-megamenu-wrapper a#offcanvas-toggler i{
+				color: #fff;
 			}
 		}
-		#sp-slider{
-			#sp-slider{
-				.sp-module {
-					&.jd-subscribe{
-						position: relative;
-						margin: 30px 0 0;
-						bottom: 0px;
-					}
-				}
-			}
+		#sp-slider #sp-slider .sp-module.jd-subscribe,
+		#sp-slider .sp-module.jd-subscribe{
+			position: relative;
+			margin: 30px 0 0;
+			bottom: 0px;
 		}
-		#sp-showcase{
-			.jd-title.m-t-50{
-				margin: 0px;
-			}
+		#sp-showcase .jd-title.m-t-50{
+			margin: 0px;
 		}
-		section#sp-bottom{
-			h1{
-				line-height: 35px;
-				text-align: center;
-			}
+		section#sp-bottom h1{
+			line-height: 35px;
+			text-align: center;
 		}
-		
 	}
 }
-
-/* -----end---- */
 
 @media screen and (min-width:600px) and (max-width:768px){
 	body{
@@ -63,10 +41,8 @@
 				.ns2-column{
 					.ns2-inner{
 						text-align: center;
-						a{
-							img{
-								margin: 0 auto !important;
-							}
+						a img{
+							margin: 0 auto !important;
 						}
 					}
 					.ns2-introtext{
@@ -77,8 +53,6 @@
 		}
 	}
 }
-
-/* -----end---- */
 
 @media screen and (max-width:600px){
 	body{
@@ -97,8 +71,8 @@
 					display: inline-block;
 					&.acyfield_email{
 						input.inputbox{
-							width: 100% !important;
 							margin-bottom: 20px;
+							width: 100% !important;
 						}
 					}
 					&.acysubbuttons{
@@ -107,10 +81,17 @@
 				}
 			}
 		}
-		.sprocket-mosaic-g-columns-1 > li, .sprocket-mosaic-g-columns-2 > li, .sprocket-mosaic-g-columns-3 > li, .sprocket-mosaic-g-columns-4 > li, .sprocket-mosaic-g-columns-5 > li, .sprocket-mosaic-g-columns-6 > li{ 
+		.sprocket-mosaic-g-columns-1 > li,
+		.sprocket-mosaic-g-columns-2 > li,
+		.sprocket-mosaic-g-columns-3 > li,
+		.sprocket-mosaic-g-columns-4 > li,
+		.sprocket-mosaic-g-columns-5 > li,
+		.sprocket-mosaic-g-columns-6 > li{ 
 			width:100%; 
 		}
-		.sprocket-mosaic-g-info, .sprocket-mosaic-g-tags, .sprocket-mosaic-g-text{
+		.sprocket-mosaic-g-info,
+		.sprocket-mosaic-g-tags,
+		.sprocket-mosaic-g-text{
 			display: block;
 		}
 		div.jd-title{
@@ -125,17 +106,11 @@
 			width: 100%;
 		}
 		.sprocket-tabs{
-			ul.sprocket-tabs-nav{
-				li{
-					float: left;
-				}
+			ul.sprocket-tabs-nav li{
+				float: left;
 			}
-		}
-		.sprocket-tabs{
-			.sprocket-tabs-panel{
-				img{
-					float: none !important;
-				}
+			.sprocket-tabs-panel img{
+				float: none !important;
 			}
 		}
 		div.ns2-wrap{
@@ -146,10 +121,8 @@
 				.ns2-column{
 					.ns2-inner{
 						text-align: center;
-						a{
-							img{
-								margin: 0 auto !important;
-							}
+						a img{
+							margin: 0 auto !important;
 						}
 					}
 					.ns2-introtext{
@@ -158,19 +131,14 @@
 				}
 			}
 		}
-		
 	}	
 }
-
-/* -----end---- */
 
 @media screen and (min-width:768px) and (max-width:1023px){
 	body{
 		#jd-social-icons{
-			ul{
-				li{
-					float: left;
-				}
+			ul li{
+				float: left;
 			}
 		}
 		.scale-icon{
@@ -180,14 +148,3 @@
 		}
 	}
 }
-/* -----end---- */
-
-@media screen and (min-width:1023px) and (max-width:1200px){
-	body{
-		
-	}
-}
-/* -----end---- */
-
-
-/* End */

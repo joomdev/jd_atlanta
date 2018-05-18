@@ -1,7 +1,6 @@
 <?php
 
-abstract class N2Application
-{
+abstract class N2Application {
 
     /**
      * @var
@@ -98,6 +97,7 @@ abstract class N2Application
 
     public function set($key, $value) {
         $this->localStorage[$key] = $value;
+
         return $this;
     }
 
@@ -105,6 +105,7 @@ abstract class N2Application
         if (isset($this->localStorage[$key])) {
             return $this->localStorage[$key];
         }
+
         return $default;
     }
 

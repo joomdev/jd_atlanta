@@ -1,8 +1,8 @@
 <?php
 /**
- * @version   $Id: edit_article.php 30593 2017-05-26 07:41:08Z matias $
+ * @version   $Id: edit_article.php 30593 2018-05-26 07:41:08Z matias $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  *
  * @var $article RokSprocket_Item

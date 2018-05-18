@@ -1,21 +1,34 @@
 <?php
 
-class N2SSPluginWidgetShadow extends N2PluginBase
-{
+class N2SSPluginWidgetShadow extends N2SSPluginSliderWidget {
 
-    private static $group = 'shadow';
+    public $ordering = 7;
 
-    function onWidgetList(&$list) {
-        $list[self::$group] = array(
-            n2_('Shadows'),
-            $this->getPath(),
-            7
-        );
+    protected $name = 'shadow';
+
+    public function getLabel() {
+        return n2_('Shadows');
     }
 
-    function getPath() {
-        return dirname(__FILE__) . DIRECTORY_SEPARATOR . self::$group . DIRECTORY_SEPARATOR;
+    public function getPath() {
+        return dirname(__FILE__) . DIRECTORY_SEPARATOR . $this->name . DIRECTORY_SEPARATOR;
+    }
+
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'widgetsshadow');
+
+        $url = N2Base::getApplication('smartslider')
+                     ->getApplicationType('backend')->router->createAjaxUrl(array("slider/renderwidgetshadow"));
+
+        new N2ElementWidgetPluginMatrix($settings, 'widgetshadow', false, '', $url, array(
+            'widget' => $this
+        ));
+
+        new N2TabPlaceholder($form, 'widget-shadow-placeholder', false, array(
+            'id' => 'nextend-widgetshadow-panel'
+        ));
+
     }
 }
 
-N2Plugin::addPlugin('sswidget', 'N2SSPluginWidgetShadow');
+N2SmartSliderWidgets::addGroup(new N2SSPluginWidgetShadow);

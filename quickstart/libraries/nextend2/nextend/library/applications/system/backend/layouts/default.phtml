@@ -8,9 +8,11 @@
         /**
          * @var $widget Nav
          */
-        $logoUrl = N2Base::getApplication('system')->getLogo();
+        $logoUrl = N2Base::getApplication('system')
+                         ->getLogo();
         $cmd     = N2Request::getVar("nextendcontroller", "dashboard");
-        echo $this->widget->init('nav', array(
+
+        N2Html::nav(array(
             'logoUrl'      => $this->appType->router->createUrl("dashboard/index"),
             'logoImageUrl' => $logoUrl,
             'views'        => array(
@@ -56,4 +58,4 @@
 
 N2Message::show();
 
-N2JS::addInline("new NextendExpertMode('nextend', 1);");
+N2JS::addInline("N2Classes.ExpertMode(1);");

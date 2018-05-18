@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.6
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -104,6 +105,7 @@ class plgAcymailingTemplate extends JPlugin{
 
 		if($addbody AND !strpos($email->body, '</body>')){
 			$before = '<html><head>'."\n";
+			if(!empty($template->header)) $before .= $template->header."\n";
 			$before .= '<meta http-equiv="Content-Type" content="text/html; charset='.strtolower($this->config->get('charset')).'" />'."\n";
 			$before .= '<meta name="viewport" content="width=device-width, initial-scale=1.0" />'."\n";
 			$before .= '<title>'.$email->subject.'</title>'."\n";
@@ -205,6 +207,7 @@ class plgAcymailingTemplate extends JPlugin{
 
 	public function acymailing_replacetags(&$email, $send = true){
 		$this->linksSEF($email);
+		$this->checkThumbnailYoutube($email);
 	}
 
 	public function linksSEF(&$email){
@@ -253,21 +256,11 @@ class plgAcymailingTemplate extends JPlugin{
 		if($newLinks == null){
 			if(!empty($sefLinks) && defined('JDEBUG') && JDEBUG) acymailing_enqueueMessage('Error trying to get the sef links: '.$sefLinks);
 
-			$otherarguments = '';
-			$liveParsed = parse_url(ACYMAILING_LIVE);
-			if(isset($liveParsed['path']) AND strlen($liveParsed['path']) > 0){
-				$mainurl = substr(ACYMAILING_LIVE, 0, strrpos(ACYMAILING_LIVE, $liveParsed['path'])).'/';
-				$otherarguments = trim(str_replace($mainurl, '', ACYMAILING_LIVE), '/');
-				if(strlen($otherarguments) > 0) $otherarguments .= '/';
-			}else{
-				$mainurl = ACYMAILING_LIVE;
-			}
-
 			$newLinks = array();
 			foreach($results[1] as $link){
 				$key = $link;
 				$link = ltrim($link, '/');
-				if(!empty($otherarguments) && strpos($link, $otherarguments) === false) $link = $otherarguments.$link;
+				$mainurl = acymailing_mainURL($link);
 				$newLinks[$key] = $mainurl.$link;
 			}
 		}
@@ -305,5 +298,10 @@ class plgAcymailingTemplate extends JPlugin{
 		if(empty($replace)) return;
 
 		$body = str_replace(array_keys($replace), $replace, $body);
+	}
+
+	function checkThumbnailYoutube(&$mail){
+		$acypluginsHelper = acymailing_get('helper.acyplugins');
+		$mail->body = $acypluginsHelper->replaceVideos($mail->body);
 	}
 }//endclass

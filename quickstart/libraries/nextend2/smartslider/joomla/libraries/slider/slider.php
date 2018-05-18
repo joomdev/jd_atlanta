@@ -42,8 +42,8 @@ class N2SmartSlider extends N2SmartSliderAbstract
         return $slider;
     }
 
-    public function addCMSFunctions($slider) {
-        return JHTML::_('content.prepare', '<div>'.$slider.'</div>', null, 'mod_smartslider');
+    public static function addCMSFunctions($text) {
+        return JHTML::_('content.prepare', '<div>'.$text.'</div>', null, 'mod_smartslider');
     }
 
 

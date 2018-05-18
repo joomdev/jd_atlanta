@@ -3,7 +3,7 @@
 /**
  * @version   $Id: K2.php 19225 2014-02-27 00:15:10Z btowles $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 class RokSprocket_Provider_K2 extends RokSprocket_Provider_AbstarctJoomlaBasedProvider

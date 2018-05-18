@@ -7,9 +7,9 @@ class N2SSPluginWidgetBarHorizontal extends N2SSPluginWidgetAbstract {
 
     private static $key = 'widget-bar-';
 
-    var $_name = 'horizontal';
+    protected $name = 'horizontal';
 
-    static function getDefaults() {
+    public function getDefaults() {
         return array(
             'widget-bar-position-mode'    => 'simple',
             'widget-bar-position-area'    => 10,
@@ -28,15 +28,68 @@ class N2SSPluginWidgetBarHorizontal extends N2SSPluginWidgetAbstract {
         );
     }
 
-    function onBarList(&$list) {
-        $list[$this->_name] = $this->getPath();
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'bar-horizontal');
+
+        new N2ElementWidgetPosition($settings, 'widget-bar-position', n2_('Position'));
+
+        new N2ElementOnOff($settings, 'widget-bar-animate', n2_('Animate'));
+
+        new N2ElementStyle($settings, 'widget-bar-style', n2_('Style'), '', array(
+            'previewMode' => 'simple',
+            'font'        => 'sliderwidget-bar-font-title',
+            'font2'       => 'sliderwidget-bar-font-description',
+            'set'         => 1900,
+            'preview'     => '<div style="width:100%;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;" class="{styleClassName}"><span href="#" class="{fontClassName}">Slide title</span><span class="{fontClassName2}">{$(\'#sliderwidget-bar-separator\').val()}Slide description which is longer than the title</span></div>'
+        ));
+
+        $title = new N2ElementGroup($settings, 'horizontal-bar-title', n2_('Title'));
+        new N2ElementOnOff($title, 'widget-bar-show-title', n2_('Enable'), 0, array(
+            'relatedFields' => array(
+                'widget-bar-font-title'
+            )
+        ));
+        new N2ElementFont($title, 'widget-bar-font-title', n2_('Font'), '', array(
+            'previewMode' => 'simple',
+            'set'         => 1100,
+            'style'       => 'sliderwidget-bar-style',
+            'preview'     => '<div style="width:100%;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;" class="{styleClassName}"><span href="#" class="{fontClassName}">Slide title</span></div>'
+        ));
+
+
+        $description = new N2ElementGroup($settings, 'horizontal-bar-description', n2_('Description'));
+        new N2ElementOnOff($description, 'widget-bar-show-description', n2_('Enable'), 0, array(
+            'relatedFields' => array(
+                'widget-bar-font-description'
+            )
+        ));
+        new N2ElementFont($description, 'widget-bar-font-description', n2_('Font'), '', array(
+            'previewMode' => 'simple',
+            'set'         => 1100,
+            'style'       => 'sliderwidget-bar-style',
+            'preview'     => '<div style="width:100%;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;" class="{styleClassName}"><span href="#" class="{fontClassName}">Slide description which is longer than the title</span></div>'
+        ));
+
+        $size = new N2ElementGroup($settings, 'horizontal-bar-size', n2_('Size'));
+        new N2ElementOnOff($size, 'widget-bar-full-width', n2_('Full width'));
+
+
+        new N2ElementText($settings, 'widget-bar-separator', n2_('Separator'));
+
+        new N2ElementRadio($settings, 'widget-bar-align', n2_('Align'), '', array(
+            'options' => array(
+                'left'   => n2_('Left'),
+                'center' => n2_('Center'),
+                'right'  => n2_('Right')
+            )
+        ));
     }
 
-    function getPath() {
+    public function getPath() {
         return dirname(__FILE__) . DIRECTORY_SEPARATOR . 'horizontal' . DIRECTORY_SEPARATOR;
     }
 
-    static function getPositions(&$params) {
+    public function getPositions(&$params) {
         $positions = array();
 
         $positions['bar-position'] = array(
@@ -54,19 +107,20 @@ class N2SSPluginWidgetBarHorizontal extends N2SSPluginWidgetAbstract {
      *
      * @return string
      */
-    static function render($slider, $id, $params) {
+    public function render($slider, $id, $params) {
 
-        N2LESS::addFile(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'horizontal' . DIRECTORY_SEPARATOR . 'style.n2less'), $slider->cacheId, array(
+        $slider->addLess(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'horizontal' . DIRECTORY_SEPARATOR . 'style.n2less'), array(
             "sliderid" => $slider->elementId
-        ), NEXTEND_SMARTSLIDER_ASSETS . '/less' . NDS);
-        N2JS::addFile(N2Filesystem::translate(dirname(__FILE__) . '/horizontal/bar.min.js'), $id);
+        ));
+        $slider->features->addInitCallback(N2Filesystem::readFile(N2Filesystem::translate(dirname(__FILE__) . '/horizontal/bar.min.js')));
     
 
         list($displayClass, $displayAttributes) = self::getDisplayAttributes($params, self::$key);
 
-        $styleClass      = N2StyleRenderer::render($params->get(self::$key . 'style'), 'simple', $slider->elementId, 'div#' . $slider->elementId . ' ');
-        $fontTitle       = N2FontRenderer::render($params->get(self::$key . 'font-title'), 'simple', $slider->elementId, 'div#' . $slider->elementId . ' ', $slider->fontSize);
-        $fontDescription = N2FontRenderer::render($params->get(self::$key . 'font-description'), 'simple', $slider->elementId, 'div#' . $slider->elementId . ' ', $slider->fontSize);
+        $styleClass = $slider->addStyle($params->get(self::$key . 'style'), 'simple');
+
+        $fontTitle       = $slider->addFont($params->get(self::$key . 'font-title'), 'simple');
+        $fontDescription = $slider->addFont($params->get(self::$key . 'font-description'), 'simple');
 
         list($style, $attributes) = self::getPosition($params, self::$key);
         $attributes['data-offset'] = $params->get(self::$key . 'position-offset');
@@ -93,14 +147,17 @@ class N2SSPluginWidgetBarHorizontal extends N2SSPluginWidgetAbstract {
 
             $html = '';
             if ($showTitle) {
-                $html .= N2Html::tag('span', array(
-                    'class' => $fontTitle . ' n2-ow'
-                ), N2Translation::_($slider->slides[$i]->getTitle()));
+                $title = N2Translation::_($slider->slides[$i]->getTitle());
+                if (!empty($title)) {
+                    $html .= N2Html::tag('span', array(
+                        'class' => $fontTitle . ' n2-ow'
+                    ), $title);
+                }
             }
 
             $description = $slider->slides[$i]->getDescription();
             if ($showDescription && !empty($description)) {
-                $html .= N2Html::tag('span', array('class' => $fontDescription . ' n2-ow'), (!empty($html) ? $separator : '') . N2Translation::_($description));
+                $html .= N2Html::tag('span', array('class' => $fontDescription . ' n2-ow'), (!empty($html) ? $separator : '') . N2SmartSlider::addCMSFunctions(N2Translation::_($description)));
             }
 
             $slides[$i] = array(
@@ -115,7 +172,7 @@ class N2SSPluginWidgetBarHorizontal extends N2SSPluginWidgetAbstract {
             'animate' => intval($params->get(self::$key . 'animate'))
         );
 
-        N2JS::addInline('new N2Classes.SmartSliderWidgetBarHorizontal("' . $id . '", ' . json_encode($slides) . ', ' . json_encode($parameters) . ');');
+        $slider->features->addInitCallback('new N2Classes.SmartSliderWidgetBarHorizontal(this, ' . json_encode($slides) . ', ' . json_encode($parameters) . ');');
 
         return N2Html::tag("div", $displayAttributes + $attributes + array(
                 "class" => $displayClass . "nextend-bar nextend-bar-horizontal n2-ow",
@@ -126,13 +183,13 @@ class N2SSPluginWidgetBarHorizontal extends N2SSPluginWidgetAbstract {
         ), $slides[$slider->firstSlideIndex]['html']));
     }
 
-    public static function prepareExport($export, $params) {
+    public function prepareExport($export, $params) {
         $export->addVisual($params->get(self::$key . 'style'));
         $export->addVisual($params->get(self::$key . 'font-title'));
         $export->addVisual($params->get(self::$key . 'font-description'));
     }
 
-    public static function prepareImport($import, $params) {
+    public function prepareImport($import, $params) {
 
         $params->set(self::$key . 'style', $import->fixSection($params->get(self::$key . 'style', '')));
         $params->set(self::$key . 'font-title', $import->fixSection($params->get(self::$key . 'font-title', '')));
@@ -142,10 +199,10 @@ class N2SSPluginWidgetBarHorizontal extends N2SSPluginWidgetAbstract {
 
 class N2SSPluginWidgetBarHorizontalFull extends N2SSPluginWidgetBarHorizontal {
 
-    var $_name = 'horizontalFull';
+    protected $name = 'horizontalFull';
 
-    static function getDefaults() {
-        return array_merge(N2SSPluginWidgetBarHorizontal::getDefaults(), array(
+    public function getDefaults() {
+        return array_merge(parent::getDefaults(), array(
             'widget-bar-position-offset' => 0,
             'widget-bar-style'           => 'eyJuYW1lIjoiU3RhdGljIiwiZGF0YSI6W3siYmFja2dyb3VuZGNvbG9yIjoiMDAwMDAwYWIiLCJwYWRkaW5nIjoiMjB8KnwyMHwqfDIwfCp8MjB8KnxweCIsImJveHNoYWRvdyI6IjB8KnwwfCp8MHwqfDB8KnwwMDAwMDBmZiIsImJvcmRlciI6IjB8Knxzb2xpZHwqfDAwMDAwMGZmIiwiYm9yZGVycmFkaXVzIjoiMCIsImV4dHJhIjoiIn1dfQ==',
             'widget-bar-full-width'      => 1,
@@ -154,4 +211,4 @@ class N2SSPluginWidgetBarHorizontalFull extends N2SSPluginWidgetBarHorizontal {
     }
 }
 
-N2Plugin::addPlugin('sswidgetbar', 'N2SSPluginWidgetBarHorizontalFull');
+N2SmartSliderWidgets::addWidget('bar', new N2SSPluginWidgetBarHorizontalFull);

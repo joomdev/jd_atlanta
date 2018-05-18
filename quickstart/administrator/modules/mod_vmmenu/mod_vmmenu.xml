@@ -4,13 +4,13 @@
 	version="2.5"
 	client="administrator">
 	<name>VirtueMart Administrator Menu</name>
-    <creationDate>December 06 2017</creationDate>
+    <creationDate>April 05 2018</creationDate>
     <author>The VirtueMart Development Team</author>
     <authorEmail>max|at|virtuemart.net</authorEmail>
     <authorUrl>https://virtuemart.net</authorUrl>
     <copyright>Copyright (C) 2004-2013 Virtuemart Team. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
-    <version>3.2.8</version>
+    <version>3.2.14</version>
 	<description>MOD_VMMENU_XML_DESCRIPTION</description>
 	<files>
 		<filename module="mod_vmmenu">mod_vmmenu.php</filename>

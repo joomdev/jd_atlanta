@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="vmpayment" method="upgrade">
     <description>Realex HPP and API</description>
     <name>realex_hpp_api</name>
-    <creationDate>December 06 2017</creationDate>
+    <creationDate>April 05 2018</creationDate>
     <author>The VirtueMart Development Team</author>
     <authorUrl>https://virtuemart.net</authorUrl>
-    <copyright>Copyright (C) 2004 - 2017 Virtuemart Team. All rights reserved.</copyright>
+    <copyright>Copyright (C) 2004 - 2018 Virtuemart Team. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
-    <version>3.2.8</version>
+    <version>3.2.14</version>
     <description><![CDATA[<a href="http://realex.com" target="_blank">realex</a> is a popular
 	payment provider and available in many countries. ]]>
     </description>

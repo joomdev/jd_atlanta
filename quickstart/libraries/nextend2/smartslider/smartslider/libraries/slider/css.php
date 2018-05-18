@@ -12,74 +12,84 @@ abstract class N2SmartSliderCSSAbstract {
 
     public $sizes = array();
 
+    protected $context = array();
+
     public function __construct($slider) {
         $this->slider = $slider;
-    }
 
-    public function render() {
-        $slider = $this->slider;
         $params = $slider->params;
+        N2CSS::addStaticGroup(NEXTEND_SMARTSLIDER_ASSETS . '/smartslider.min.css', 'smartslider');
+    
 
         $width  = intval($params->get('width', 900));
         $height = intval($params->get('height', 500));
-        if ($width < 10) {
-            N2Message::error(n2_('Slider width is not valid number!'));
+        if ($width < 10 || $height < 10) {
+            N2Message::error(n2_('Slider size is too small!'));
         }
-        if ($height < 10) {
-            N2Message::error(n2_('Slider height is not valid number!'));
-        }
-        $context = array(
-            'id'             => "~'#{$slider->elementId}'",
+        $this->context = array_merge($this->context, array(
+            'sliderid'       => "~'#{$slider->elementId}'",
             'width'          => $width . 'px',
             'height'         => $height . 'px',
             'canvas'         => 0,
             'count'          => count($slider->slides),
             'margin'         => '0px 0px 0px 0px',
-            'clear'          => 'clear.n2less',
             'hasPerspective' => 0
-        );
+        ));
 
         $perspective = intval($params->get('perspective', 1500));
         if ($perspective > 0) {
-            $context['hasPerspective'] = 1;
-            $context['perspective']    = $perspective . 'px';
+            $this->context['hasPerspective'] = 1;
+            $this->context['perspective']    = $perspective . 'px';
         }
-
-        $this->renderType($context);
 
         if ($params->get('imageload', 0)) {
-            N2LESS::addFile(NEXTEND_SMARTSLIDER_ASSETS . '/less/spinner.n2less', $slider->cacheId, $context, NEXTEND_SMARTSLIDER_ASSETS . '/less' . NDS);
+            $this->slider->addLess(NEXTEND_SMARTSLIDER_ASSETS . '/less/spinner.n2less', $this->context);
         }
+    }
+
+    public function getCSS() {
+        $css = '';
+        foreach ($this->slider->less AS $file => $context) {
+            $compiler = new n2lessc();
+            $compiler->setVariables($context);
+            $css .= $compiler->compileFile($file);
+        }
+        $css .= implode('', $this->slider->css);
+
+        $css .= $this->slider->params->get('custom-css-codes', '');
+
+        return $css;
+    }
+
+    public function initSizes() {
 
         $this->sizes['marginVertical']   = 0;
         $this->sizes['marginHorizontal'] = 0;
 
-        $this->sizes['width']        = intval($context['width']);
-        $this->sizes['height']       = intval($context['height']);
-        $this->sizes['canvasWidth']  = intval($context['canvaswidth']);
-        $this->sizes['canvasHeight'] = intval($context['canvasheight']);
+        $this->sizes['width']        = intval($this->context['width']);
+        $this->sizes['height']       = intval($this->context['height']);
+        $this->sizes['canvasWidth']  = intval($this->context['canvaswidth']);
+        $this->sizes['canvasHeight'] = intval($this->context['canvasheight']);
     }
 
-    protected abstract function renderType(&$context);
 
-    protected function setContextFonts($matches, &$context, $fonts, $value) {
-        $context['font' . $fonts] = '~".' . $matches[0] . '"';
+    protected function setContextFonts($matches, $fonts, $value) {
+        $this->context['font' . $fonts] = '~".' . $matches[0] . '"';
 
-        $font                              = new N2ParseFont($value);
-        $context['font' . $fonts . 'text'] = '";' . $font->printTab() . '"';
+        $font                                    = new N2ParseFont($value);
+        $this->context['font' . $fonts . 'text'] = '";' . $font->printTab() . '"';
         $font->mixinTab('Link');
-        $context['font' . $fonts . 'link'] = '";' . $font->printTab('Link') . '"';
+        $this->context['font' . $fonts . 'link'] = '";' . $font->printTab('Link') . '"';
         $font->mixinTab('Link:Hover', 'Link');
-        $context['font' . $fonts . 'hover'] = '";' . $font->printTab('Link:Hover') . '"';
+        $this->context['font' . $fonts . 'hover'] = '";' . $font->printTab('Link:Hover') . '"';
     }
 
-    protected function setContextStyles($selector, &$context, $styles, $value) {
-        $context['style' . $styles] = '~".' . $selector . '"';
+    protected function setContextStyles($selector, $styles, $value) {
+        $this->context['style' . $styles] = '~".' . $selector . '"';
 
-        $style                                 = new N2ParseStyle($value);
-        $context['style' . $styles . 'normal'] = '";' . $style->printTab('Normal') . '"';
-        $context['style' . $styles . 'hover']  = '";' . $style->printTab('Hover') . '"';
+        $style                                       = new N2ParseStyle($value);
+        $this->context['style' . $styles . 'normal'] = '";' . $style->printTab('Normal') . '"';
+        $this->context['style' . $styles . 'hover']  = '";' . $style->printTab('Hover') . '"';
 
     }
-
 }

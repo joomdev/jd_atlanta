@@ -6,19 +6,22 @@ class N2SmartsliderApplicationTypeBackend extends N2ApplicationType {
 
     protected function autoload() {
 
+
         N2Loader::import(array(
-            'libraries.embedwidget.embedwidget',
-            'libraries.plugin.plugin',
-            'libraries.form.form',
             'libraries.image.color',
             'libraries.parse.parse'
         ));
+
+
+        N2Form::import(dirname(__FILE__) . '/elements');
 
         N2Loader::import(array(
             'libraries.settings.settings'
         ), 'smartslider');
 
-        N2Loader::import('helpers.controller.N2SmartSliderController', 'smartslider.backend');
+        require_once dirname(__FILE__) . '/SmartSliderController.php';
+
+        require_once dirname(__FILE__) . '/fragments.php';
     }
 
     protected function onControllerReady() {

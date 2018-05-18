@@ -1,7 +1,6 @@
 <?php
 
-class N2GoogleFonts
-{
+class N2GoogleFonts {
 
     public static $enabled = false;
 

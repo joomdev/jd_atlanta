@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <extension version="2.5" type="plugin" group="vmpayment" method="upgrade">
     <name>PayPal</name>
-    <creationDate>December 06 2017</creationDate>
+    <creationDate>April 05 2018</creationDate>
     <author>VirtueMart Development Team</author>
     <authorUrl>https://virtuemart.net</authorUrl>
-    <copyright>Copyright (C) 2004 - 2017 Virtuemart Team. All rights reserved.</copyright>
+    <copyright>Copyright (C) 2004 - 2018 Virtuemart Team. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
-    <version>3.2.8</version>
+    <version>3.2.14</version>
     <description>PayPal</description>
     <files>
         <filename plugin="paypal">paypal.php</filename>
@@ -138,6 +138,7 @@
                     <option value="_xclick-payment-plan">VMPAYMENT_PAYPAL_PAYMENT_PLAN</option>
                     <option value="_xclick-auto-billing">VMPAYMENT_PAYPAL_AUTOBILLING</option-->
                 </field>
+
                 <!-- Cart -->
                 <field class="cart" type="vmtitle" default=""
                        description="VMPAYMENT_PAYPAL_PAYMENT_SHOPPING_CART_DESC"/>
@@ -234,6 +235,12 @@
                 <field class="billing billing_max_amount" name="billing_max_amount" type="text"
                        label="VMPAYMENT_PAYPAL_PAYMENT_BILLING_MAX_AMOUNT"/>
 
+                <field name="check_ips" class="check_ips" type="list" default="1"
+                       label="VMPAYMENT_PAYPAL_CHECK_IPS"
+                       description="VMPAYMENT_PAYPAL_CHECK_IPS_DESC">
+                    <option value="0">COM_VIRTUEMART_NO</option>
+                    <option value="1">COM_VIRTUEMART_YES</option>
+                </field>
                 <!-- Order status -->
                 <!-- ============ -->
 

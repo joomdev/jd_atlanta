@@ -1,8 +1,8 @@
 <?php
 
-class N2Data
-{
+class N2Data {
 
+    /** @var array */
     public $_data;
 
     public function __construct($data = null, $json = false) {
@@ -64,11 +64,13 @@ class N2Data
      */
     public function get($key, $default = '') {
         if (isset($this->_data[$key])) return $this->_data[$key];
+
         return $default;
     }
 
     public function getIfEmpty($key, $default = '') {
         if (isset($this->_data[$key]) && !empty($this->_data[$key])) return $this->_data[$key];
+
         return $default;
     }
 

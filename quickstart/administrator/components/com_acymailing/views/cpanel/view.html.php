@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.9.1
+ * @version	5.9.6
  * @author	acyba.com
  * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -29,6 +29,13 @@ class CpanelViewCpanel extends acymailingView{
 			if($config->get('errorlanguageupdate', 1)){
 				$notremind = '<small style="'.$styleRemind.'">'.$toggleClass->delete('acymailing_messages_warning', 'errorlanguageupdate_0', 'config', false, acymailing_translation('DONT_REMIND')).'</small>';
 				acymailing_enqueueMessage(acymailing_translation('UPDATE_LANGUAGE').' '.$loadLink.' '.$notremind, 'warning');
+			}
+		}
+
+		if($config->get('wronghttpsoption', 1) && $config->get('ssl_links', 1) == 0){
+			if((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443) {
+				$notremind = '<small style="'.$styleRemind.'">'.$toggleClass->delete('acymailing_messages_error', 'wronghttpsoption_0', 'config', false, acymailing_translation('DONT_REMIND')).'</small>';
+				acymailing_enqueueMessage('If your site uses HTTPS on front-end, please make sure to turn On the "'.acymailing_translation('ACY_SSLCHOICE').'" option otherwise the links in your newsletters may not work properly (the unsubscribe link for instance).'.$notremind, 'error');
 			}
 		}
 

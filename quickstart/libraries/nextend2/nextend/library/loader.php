@@ -37,14 +37,28 @@ class N2Loader {
         }
     }
 
+    public static function importPathAll($path) {
+        $dirContent = scandir($path);
+
+        if ($dirContent) {
+            foreach ($dirContent as $file) {
+                if (is_file($path . NDS . $file) && substr($file, -4) == '.php') {
+                    self::importPath($path . NDS . $file, true);
+                }
+            }
+        }
+    }
+
     public static function importPath($file, $hasExtension = false) {
         if (!$hasExtension) {
             $file .= '.php';
         }
         if (file_exists($file)) {
             require_once($file);
+
             return true;
         }
+
         return false;
     }
 

@@ -123,9 +123,11 @@ class N2HTTP {
         }
         if (IsSet($found)) {
             $this->next_token = substr($string, $found + 1);
+
             return (substr($string, 0, $found));
         } else {
             $this->next_token = "";
+
             return ($string);
         }
     }
@@ -136,11 +138,13 @@ class N2HTTP {
 
     Function SetError($error, $error_code = HTTP_CLIENT_ERROR_UNSPECIFIED_ERROR) {
         $this->error_code = $error_code;
+
         return ($this->error = $error);
     }
 
     Function SetPHPError($error, &$php_error_message, $error_code = HTTP_CLIENT_ERROR_UNSPECIFIED_ERROR) {
         if (IsSet($php_error_message) && strlen($php_error_message)) $error .= ": " . $php_error_message;
+
         return ($this->SetError($error, $error_code));
     }
 
@@ -174,12 +178,14 @@ class N2HTTP {
             } else {
                 if (feof($this->connection)) {
                     $this->SetDataAccessError("reached the end of data while reading from the HTTP server connection");
+
                     return (0);
                 }
                 $data = fgets($this->connection, 100);
             }
             if (GetType($data) != "string" || strlen($data) == 0) {
                 $this->SetDataAccessError("it was not possible to read line from the HTTP server");
+
                 return (0);
             }
             $line .= $data;
@@ -188,6 +194,7 @@ class N2HTTP {
                 $length -= (($length >= 2 && !strcmp(substr($line, $length - 2, 1), "\r")) ? 2 : 1);
                 $line = substr($line, 0, $length);
                 if ($this->debug) $this->OutputDebug("S $line");
+
                 return ($line);
             }
         }
@@ -197,8 +204,10 @@ class N2HTTP {
         if ($this->debug) $this->OutputDebug("C $line");
         if (!fputs($this->connection, $line . "\r\n")) {
             $this->SetDataAccessError("it was not possible to send a line to the HTTP server");
+
             return (0);
         }
+
         return (1);
     }
 
@@ -207,17 +216,21 @@ class N2HTTP {
             if ($this->debug) $this->OutputDebug('C ' . $data);
             if (!fputs($this->connection, $data)) {
                 $this->SetDataAccessError("it was not possible to send data to the HTTP server");
+
                 return (0);
             }
         }
+
         return (1);
     }
 
     Function FlushData() {
         if (!fflush($this->connection)) {
             $this->SetDataAccessError("it was not possible to send data to the HTTP server");
+
             return (0);
         }
+
         return (1);
     }
 
@@ -236,6 +249,7 @@ class N2HTTP {
                 if (GetType($line) != "string") return ($this->SetError("could not read chunk end: " . $this->error, $this->error_code));
             }
         }
+
         return ("");
     }
 
@@ -257,6 +271,7 @@ class N2HTTP {
                     $read  = strlen($chunk);
                     if ($read == 0) {
                         $this->SetDataAccessError("it was not possible to read data chunk from the HTTP server");
+
                         return ("");
                     }
                     if ($this->debug && $this->debug_response_body) $this->OutputDebug("S " . $chunk);
@@ -268,6 +283,7 @@ class N2HTTP {
                         $data = @fread($this->connection, 2);
                         if (strcmp($data, "\r\n")) {
                             $this->SetDataAccessError("it was not possible to read end of data chunk from the HTTP server");
+
                             return ("");
                         }
                     }
@@ -280,6 +296,7 @@ class N2HTTP {
                     $this->SetDataAccessError("it was not possible to read data from the HTTP server", $this->connection_close);
             }
         }
+
         return ($bytes);
     }
 
@@ -287,6 +304,7 @@ class N2HTTP {
         if ($this->use_curl) return ($this->read_response >= strlen($this->response));
         if ($this->chunked) return ($this->last_chunk_read);
         if ($this->content_length_set) return ($this->content_length <= $this->read_length);
+
         return (feof($this->connection));
     }
 
@@ -296,6 +314,7 @@ class N2HTTP {
             if (!strcmp($ip = @gethostbyname($domain), $domain)) $ip = "";
         }
         if (strlen($ip) == 0 || (strlen($this->exclude_address) && !strcmp(@gethostbyname($this->exclude_address), $ip))) return ($this->SetError("could not resolve the host domain \"" . $domain . "\"", HTTP_CLIENT_ERROR_INVALID_SERVER_ADDRESS));
+
         return ('');
     }
 
@@ -403,6 +422,7 @@ class N2HTTP {
                 }
                 if (strlen($error)) {
                     fclose($this->connection);
+
                     return ($error);
                 }
             }
@@ -414,6 +434,7 @@ class N2HTTP {
                 }
             } else
                 $this->state = "Connected";
+
             return ("");
         }
     }
@@ -426,6 +447,7 @@ class N2HTTP {
         } else
             fclose($this->connection);
         $this->state = "Disconnected";
+
         return ("");
     }
 
@@ -466,6 +488,7 @@ class N2HTTP {
         $arguments["RequestURI"] = (IsSet($parameters["path"]) ? $parameters["path"] : "/") . (IsSet($parameters["query"]) ? "?" . $parameters["query"] : "");
         if (strlen($this->user_agent)) $arguments["Headers"]["User-Agent"] = $this->user_agent;
         if (strlen($this->accept)) $arguments["Headers"]["Accept"] = $this->accept;
+
         return ("");
     }
 
@@ -507,6 +530,7 @@ class N2HTTP {
             case 'Connected':
                 if (!strcmp($host_name, $this->connected_host) && intval($host_port) == $this->connected_port && intval($ssl) == $this->connected_ssl) {
                     if ($this->debug) $this->OutputDebug("Reusing connection to " . $this->connected_host);
+
                     return ('');
                 }
                 if (strlen($error = $this->Disconnect())) return ($error);
@@ -548,6 +572,7 @@ class N2HTTP {
         $this->connected_host = $host_name;
         $this->connected_port = intval($host_port);
         $this->connected_ssl  = intval($ssl);
+
         return ("");
     }
 
@@ -556,8 +581,10 @@ class N2HTTP {
         if (!$this->force_close && $this->keep_alive && !$force && $this->state == 'ResponseReceived') {
             if ($this->debug) $this->OutputDebug('Keeping the connection alive to ' . $this->connected_host);
             $this->state = 'Connected';
+
             return ('');
         }
+
         return ($this->Disconnect());
     }
 
@@ -761,6 +788,7 @@ class N2HTTP {
                 $error = "it was not possible to determine the length of the file " . $file["FileName"];
                 if (IsSet($php_errormsg) && strlen($php_errormsg)) $error .= ": " . $php_errormsg;
                 if (!file_exists($file["FileName"])) $error = "it was not possible to access the file " . $file["FileName"];
+
                 return ($error);
             }
             $definition["FILENAME"]       = $file["FileName"];
@@ -768,12 +796,14 @@ class N2HTTP {
         } elseif (IsSet($file["Data"])) $definition["Content-Length"] = strlen($definition["DATA"] = $file["Data"]);
         else
             return ("it was not specified a valid file name");
+
         return ("");
     }
 
     Function ConnectFromProxy($arguments, &$headers) {
         if (!$this->PutLine('CONNECT ' . $this->host_name . ':' . ($this->host_port ? $this->host_port : 443) . ' HTTP/1.0') || (strlen($this->user_agent) && !$this->PutLine('User-Agent: ' . $this->user_agent)) || (strlen($this->accept) && !$this->PutLine('Accept: ' . $this->accept)) || (IsSet($arguments['Headers']['Proxy-Authorization']) && !$this->PutLine('Proxy-Authorization: ' . $arguments['Headers']['Proxy-Authorization'])) || !$this->PutLine('')) {
             $this->Disconnect();
+
             return ($this->error);
         }
         $this->state = "ConnectSent";
@@ -788,6 +818,7 @@ class N2HTTP {
                 if (!@stream_socket_enable_crypto($this->connection, 1, STREAM_CRYPTO_METHOD_SSLv23_CLIENT)) {
                     $this->SetPHPError('it was not possible to start a SSL encrypted connection via this proxy', $php_errormsg, HTTP_CLIENT_ERROR_COMMUNICATION_FAILURE);
                     $this->Disconnect();
+
                     return ($this->error);
                 }
                 $this->state = "Connected";
@@ -798,6 +829,7 @@ class N2HTTP {
             default:
                 return ($this->SetError("unable to send request via proxy", HTTP_CLIENT_ERROR_PROTOCOL_FAILURE));
         }
+
         return ("");
     }
 
@@ -907,6 +939,7 @@ class N2HTTP {
                             if (GetType($block = @fread($file, $this->file_buffer_length)) != "string") {
                                 $error = $this->SetPHPError("could not read body stream file " . $stream[$part]["File"], $php_errormsg, HTTP_CLIENT_ERROR_CANNOT_ACCESS_LOCAL_FILE);
                                 fclose($file);
+
                                 return ($error);
                             }
                             $this->request_body .= $block;
@@ -1048,6 +1081,7 @@ class N2HTTP {
         }
         if (!$success) return ($this->SetError("could not send the HTTP request: " . $this->error, $this->error_code));
         $this->state = $next_state;
+
         return ("");
     }
 
@@ -1071,6 +1105,7 @@ class N2HTTP {
             "expires" => $expires,
             "secure"  => $secure
         );
+
         return ("");
     }
 
@@ -1099,6 +1134,7 @@ class N2HTTP {
             if (!$this->PutData($size)) return ($this->error);
             $this->state = "RequestSent";
         }
+
         return ("");
     }
 
@@ -1204,6 +1240,7 @@ class N2HTTP {
         }
         $this->chunked = $chunked;
         if ($this->content_length_set) $this->connection_close = 0;
+
         return ("");
     }
 
@@ -1229,6 +1266,7 @@ class N2HTTP {
             }
             if (strlen($error)) return ($this->SetError($error, $this->error_code));
         }
+
         return ("");
     }
 
@@ -1325,6 +1363,7 @@ class N2HTTP {
                             $authenticated       = 1;
                             break;
                         }
+
                         return ($this->SetError(($proxy ? "proxy " : "") . "authentication error: " . $this->response_status . " " . $this->response_message, HTTP_CLIENT_ERROR_PROTOCOL_FAILURE));
                 }
             }
@@ -1377,6 +1416,7 @@ class N2HTTP {
                                     $authenticated       = 1;
                                     break;
                                 }
+
                                 return ($this->SetError(($proxy ? "proxy " : "") . "authentication error: " . $this->response_status . " " . $this->response_message));
                         }
                         break;
@@ -1385,6 +1425,7 @@ class N2HTTP {
                 }
             }
         }
+
         return ("");
     }
 
@@ -1408,6 +1449,7 @@ class N2HTTP {
             case "401":
                 return ($this->Authenticate($headers, 0, $proxy_authorization, $this->request_user, $this->request_password, $this->request_realm, $this->request_workstation));
         }
+
         return ("");
     }
 
@@ -1427,6 +1469,7 @@ class N2HTTP {
                 break;
             case 'ResponseReceived':
                 $body = '';
+
                 return ('');
             default:
                 return ($this->SetError("can not get request headers in the current connection state", HTTP_CLIENT_ERROR_INVALID_PARAMETERS));
@@ -1440,6 +1483,7 @@ class N2HTTP {
             $this->read_length += strlen($body);
             if ($this->EndOfInput()) $this->state = 'ResponseReceived';
         }
+
         return ("");
     }
 
@@ -1457,19 +1501,23 @@ class N2HTTP {
         for (; ;) {
             if (strlen($error = $this->ReadReplyBody($block, $this->file_buffer_length))) {
                 fclose($file);
+
                 return ($error);
             }
             if (strlen($block) == 0) {
                 if (@fseek($file, 0) != 0) {
                     $error = $this->SetPHPError('could not seek to the beginning of temporary file with the response', $php_errormsg, HTTP_CLIENT_ERROR_CANNOT_ACCESS_LOCAL_FILE);
                     fclose($file);
+
                     return $error;
                 }
+
                 return ('');
             }
             if (!@fwrite($file, $block)) {
                 $error = $this->SetPHPError('could not write to the temporary file to save the response', $php_errormsg, HTTP_CLIENT_ERROR_CANNOT_ACCESS_LOCAL_FILE);
                 fclose($file);
+
                 return $error;
             }
         }
@@ -1536,6 +1584,7 @@ class N2HTTP {
             }
         }
         $this->cookies = $new_cookies;
+
         return ("");
     }
 }

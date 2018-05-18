@@ -1,7 +1,7 @@
 /*
  * @version   $Id: resizable-textbox.js 10889 2013-05-30 07:48:35Z btowles $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 ((function(){this.ResizableTextbox=new Class({Implements:Options,options:{min:1,max:180,step:8},initialize:function(b,a){this.setOptions(a);

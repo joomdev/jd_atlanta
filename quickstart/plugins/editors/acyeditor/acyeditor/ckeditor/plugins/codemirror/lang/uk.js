@@ -1,7 +1,3 @@
-﻿/*
-Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
-For licensing, see LICENSE.html or http://ckeditor.com/license
-*/
 CKEDITOR.plugins.setLang( 'codemirror', 'uk', {
 	toolbar: 'Джерело',
 	searchCode: 'Search Source',
@@ -10,3 +6,4 @@ CKEDITOR.plugins.setLang( 'codemirror', 'uk', {
 	uncommentSelectedRange: 'Uncomment Selection',
 	autoCompleteToggle: 'Enable/Disable HTML Tag Autocomplete'
 });
+

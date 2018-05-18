@@ -18,7 +18,8 @@ if (!defined('NEXTEND_RELATIVE_CACHE_NOTWEB')) {
 abstract class N2FilesystemAbstract {
 
     /**
-     * @var string /home/path/www/path/
+     * @var string Absolute path which match to the baseuri. It must not end with /
+     * @example /asd/xyz/wordpress
      */
     public $_basepath;
 
@@ -84,9 +85,6 @@ abstract class N2FilesystemAbstract {
     }
 
     public static function getWebCachePath() {
-        if (!NEXTEND_CUSTOM_CACHE && !defined('NEXTEND_CACHE_STORAGE')) {
-            self::check(self::getBasePath(), 'cache');
-        }
 
         return self::getBasePath() . NEXTEND_RELATIVE_CACHE_WEB;
     }
@@ -157,11 +155,11 @@ abstract class N2FilesystemAbstract {
      * @return mixed
      */
     public static function absoluteURLToPath($url) {
-        $baseUri = N2Uri::getBaseUri();
-        if (substr($url, 0, strlen($baseUri)) == $baseUri) {
+        $fullUri = N2Uri::getFullUri();
+        if (substr($url, 0, strlen($fullUri)) == $fullUri) {
             $i = N2Filesystem::getInstance();
 
-            return str_replace($baseUri, $i->_basepath, $url);
+            return str_replace($fullUri, $i->_basepath, $url);
         }
 
         return $url;

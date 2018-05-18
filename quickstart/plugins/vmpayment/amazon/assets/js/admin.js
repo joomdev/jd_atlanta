@@ -6,7 +6,7 @@
  * @version $Id$
  * @package VirtueMart
  * @subpackage payment
- * Copyright (C) 2004 - 2017 Virtuemart Team. All rights reserved.
+ * Copyright (C) 2004 - 2018 Virtuemart Team. All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL, see LICENSE.php
  * VirtueMart is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -46,7 +46,7 @@ jQuery().ready(function ($) {
             $('.status_refunded').parents('.control-group').hide();
             $('.ipnurl').parents('.control-group').hide();
             $('.ipn_warning').parents('.control-group').hide();
-            $('.soft_decline').parents('.control-group').hide();
+            //$('.soft_decline').parents('.control-group').hide();
             $('.sandbox_error_simulation').parents('.control-group').hide();
 
         } else {
@@ -55,7 +55,7 @@ jQuery().ready(function ($) {
             $('.status_authorization').parents('.control-group').show();
             $('.ipnurl').parents('.control-group').show();
             $('.ipn_warning').parents('.control-group').show();
-            $('.soft_decline').parents('.control-group').show();
+            //$('.soft_decline').parents('.control-group').show();
             $('.sandbox_error_simulation').parents('.control-group').show();
             handleCaptureMode();
         }

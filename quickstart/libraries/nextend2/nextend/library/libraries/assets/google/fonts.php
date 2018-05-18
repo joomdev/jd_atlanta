@@ -2,6 +2,8 @@
 
 class N2AssetsGoogleFonts extends N2AssetsAbstract {
 
+    public static $hasWebFontLoader = false;
+
     function addSubset($subset = 'latin') {
         if (!in_array($subset, $this->inline)) {
             $this->inline[] = $subset;
@@ -9,6 +11,7 @@ class N2AssetsGoogleFonts extends N2AssetsAbstract {
     }
 
     function addFont($family, $style = '400') {
+        $style = (string)$style;
         if (!isset($this->files[$family])) {
             $this->files[$family] = array();
         }
@@ -29,12 +32,14 @@ class N2AssetsGoogleFonts extends N2AssetsAbstract {
         if (empty($familyQuery)) {
             return false;
         }
-        $subsets = array_unique($this->inline);
+        $subsets                              = array_unique($this->inline);
         $familyQuery[count($familyQuery) - 1] .= ':' . implode(',', $subsets);
+
+        self::$hasWebFontLoader = true;
         N2JS::addStaticGroup(N2LIBRARYASSETS . "/dist/nextend-webfontloader.min.js", 'nextend-webfontloader');
     
 
-        N2JS::addInline("
+        N2JS::addGlobalInline("
         nextend.fontsLoaded = false;
         nextend.fontsLoadedActive = function () {nextend.fontsLoaded = true;};
         var fontData = {
@@ -66,10 +71,10 @@ class N2AssetsGoogleFonts extends N2AssetsAbstract {
             window.WebFontConfig = fontData;
         }else{
             WebFont.load(fontData);
-        }", true);
+        }");
 
         N2JS::addFirstCode("
-        nextend.fontsDeferred = n2.Deferred();
+        nextend.fontsDeferred = $.Deferred();
         if(nextend.fontsLoaded){
             nextend.fontsDeferred.resolve();
         }else{

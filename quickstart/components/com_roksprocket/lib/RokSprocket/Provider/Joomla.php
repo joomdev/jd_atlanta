@@ -3,7 +3,7 @@
 /**
  * @version   $Id: Joomla.php 23375 2014-10-06 15:30:20Z james $
  * @author    RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 class RokSprocket_Provider_Joomla extends RokSprocket_Provider_AbstarctJoomlaBasedProvider

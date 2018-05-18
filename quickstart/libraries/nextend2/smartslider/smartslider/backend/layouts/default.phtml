@@ -42,4 +42,4 @@ if (intval(N2SmartSliderSettings::get('force-rtl-backend', 0))) {
 N2Message::show();
 $isPro = 0;
 
-N2JS::addInline("new NextendExpertMode('smartslider', " . $isPro . ");");
+N2JS::addInline("N2Classes.ExpertMode(" . $isPro . ");");

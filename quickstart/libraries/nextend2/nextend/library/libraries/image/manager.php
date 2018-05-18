@@ -32,9 +32,10 @@ class N2ImageManager {
 
     public static function hasImageData($image) {
         $image = self::$model->getByImage($image);
-        if(!empty($image)){
+        if (!empty($image)) {
             return true;
         }
+
         return false;
     }
 

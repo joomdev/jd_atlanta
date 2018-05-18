@@ -2,6 +2,8 @@
 
 N2Loader::import('libraries.parse.font');
 
+N2Loader::importAll("libraries.renderable", "smartslider");
+
 N2Loader::import('libraries.slider.type', 'smartslider');
 N2Loader::import('libraries.slider.css', 'smartslider');
 N2Loader::import('libraries.slider.group', 'smartslider');
@@ -10,7 +12,7 @@ N2Loader::importAll("libraries.slider.slides", "smartslider");
 N2Loader::import('libraries.settings.settings', 'smartslider');
 N2Loader::import('libraries.slider.widget.widgets', 'smartslider');
 
-abstract class N2SmartSliderAbstract {
+abstract class N2SmartSliderAbstract extends N2SmartSliderRenderableAbstract {
 
     public $manifestData = array(
         'generator' => array()
@@ -19,8 +21,6 @@ abstract class N2SmartSliderAbstract {
     protected $isGroup = false;
 
     public $sliderId = 0;
-
-    public $elementId = '';
 
     public $cacheId = '';
 
@@ -38,6 +38,8 @@ abstract class N2SmartSliderAbstract {
     public $disableResponsive = false;
 
     protected $parameters = null;
+
+    public $fontSize = 16;
 
     /**
      * @var N2SmartSliderSlides
@@ -63,8 +65,6 @@ abstract class N2SmartSliderAbstract {
     protected $cache = false;
 
     public static $_identifier = 'n2-ss';
-
-    public $fontSize = 16;
 
     /** @var N2SmartSliderSlide[] */
     public $staticSlides = array();
@@ -119,22 +119,18 @@ abstract class N2SmartSliderAbstract {
 
         $type = $this->data->get('type', 'simple');
 
-
         $class = 'N2SmartSlider' . $resourceName . $type;
 
         if (!class_exists($class, false)) {
-            N2Loader::importPath(call_user_func(array(
-                    'N2SSPluginType' . $type,
-                    "getPath"
-                )) . NDS . $resourceName);
+
+            N2Loader::importPath(N2SSPluginSliderType::getSliderType($type)
+                                                     ->getPath() . $resourceName);
         }
 
         return new $class($this);
     }
 
     abstract public function parseSlider($slider);
-
-    abstract public function addCMSFunctions($slider);
 
     public function loadSliderParams() {
 
@@ -189,7 +185,22 @@ abstract class N2SmartSliderAbstract {
         }
 
         $this->sliderType = $this->getSliderTypeResource('type');
-        $this->params->fillDefault($this->sliderType->getDefaults());
+        $defaults         = $this->sliderType->getDefaults();
+
+        $parallaxOverlap = $this->params->get('animation-parallax-overlap', false);
+
+        if ($parallaxOverlap === false) {
+            $animationParallax = $this->params->get('animation-parallax', false);
+            if ($animationParallax !== false) {
+                $parallaxOverlap = 100 - floatval($animationParallax) * 100;
+            } else {
+                $parallaxOverlap = 0;
+            }
+            $this->params->set('animation-parallax-overlap', $parallaxOverlap);
+            $this->params->un_set('animation-parallax');
+        }
+
+        $this->params->fillDefault($defaults);
         $this->sliderType->limitParams($this->params);
 
         if (!$this->isGroup) {
@@ -229,7 +240,7 @@ abstract class N2SmartSliderAbstract {
             return false;
         }
         $this->assets = $this->getSliderTypeResource('css');
-        $this->assets->render();
+
         if (!$this->isGroup) {
             $this->slides[$this->firstSlideIndex]->setFirst();
             for ($i = 0; $i < count($this->slides); $i++) {
@@ -239,15 +250,7 @@ abstract class N2SmartSliderAbstract {
 
             $this->renderStaticSlide();
         }
-        $slider = $this->sliderType->render();
-
-        if (!$this->isAdmin) {
-            N2Plugin::callPlugin('ssitem', 'onNextendSliderRender', array(
-                &$slider,
-                $this->elementId
-            ));
-        }
-
+        $slider = $this->sliderType->render($this->assets);
 
         $slider = str_replace('n2-ss-0', $this->elementId, $slider);
         if (!N2Platform::$isAdmin) {
@@ -272,13 +275,33 @@ abstract class N2SmartSliderAbstract {
                     ), $slider) . '</script>';
             }
         }
-
         if (!$this->isGroup) {
             $slider = $this->features->translateUrl->renderSlider($slider);
 
             $slider = $this->features->loadSpinner->renderSlider($this, $slider);
             $slider = $this->features->align->renderSlider($slider, $this->assets->sizes['width']);
             $slider = $this->features->margin->renderSlider($slider);
+
+
+            $style = $this->sliderType->getStyle();
+            if (N2Platform::$isAdmin) {
+                $slider = '<style type="text/css">' . $style . '</style>' . $slider;
+            } else {
+                $cssMode = N2Settings::get('css-mode', 'normal');
+                switch ($cssMode) {
+                    case 'inline':
+                        N2CSS::addInline($style);
+                        break;
+                    case 'async':
+                        $this->sliderType->setJavaScriptProperty('css', $style);
+                        break;
+                    default:
+                        $slider = '<style>' . $style . '</style>' . $slider;
+                        break;
+                }
+            }
+
+            $slider .= $this->sliderType->getScript();
 
             $slider .= $this->features->fadeOnLoad->renderPlaceholder($this->assets->sizes);
         }
@@ -341,19 +364,20 @@ abstract class N2SmartSliderAbstract {
     }
 
     public function canDisplayOnCurrentDevice() {
-        $this->getSliderFromDB();
-        N2Loader::import('libraries.mobiledetect');
+        if ($this->getSliderFromDB()) {
+            N2Loader::import('libraries.mobiledetect');
 
-        if (N2MobileDetect::$current['isMobile'] && $this->params->get('mobile', '1') == '0') {
-            return false;
-        }
+            if (N2MobileDetect::$current['isMobile'] && $this->params->get('mobile', '1') == '0') {
+                return false;
+            }
 
-        if (N2MobileDetect::$current['isTablet'] && $this->params->get('tablet', '1') == '0') {
-            return false;
-        }
+            if (N2MobileDetect::$current['isTablet'] && $this->params->get('tablet', '1') == '0') {
+                return false;
+            }
 
-        if (N2MobileDetect::$current['isDesktop'] && $this->params->get('desktop', '1') == '0') {
-            return false;
+            if (N2MobileDetect::$current['isDesktop'] && $this->params->get('desktop', '1') == '0') {
+                return false;
+            }
         }
 
         return true;

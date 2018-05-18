@@ -50,52 +50,30 @@ class N2SmartSliderExport {
                 $slidesModel          = new N2SmartsliderSlidesModel();
                 $this->backup->slides = $slidesModel->getAll($this->backup->slider['id']);
 
-                $class = 'N2SSPluginType' . $this->backup->slider['type'];
-                N2Loader::importPath(call_user_func(array(
-                        $class,
-                        "getPath"
-                    )) . NDS . 'backup');
 
-                $class = 'N2SmartSliderBackup' . $this->backup->slider['type'];
-                call_user_func_array(array(
-                    $class,
-                    'export'
-                ), array(
-                    $this,
-                    $this->backup->slider
-                ));
+                $sliderType = N2SSPluginSliderType::getSliderType($this->backup->slider['type']);
+                $sliderType->export($this, $this->backup->slider);
 
+                /** @var N2SSPluginWidgetAbstract[] $enabledWidgets */
                 $enabledWidgets = array();
-                $plugins        = array();
-                N2Plugin::callPlugin('sswidget', 'onWidgetList', array(&$plugins));
 
+                $widgetGroups = N2SmartSliderWidgets::getGroups();
 
                 $params = $this->backup->slider['params'];
-                foreach ($plugins AS $k => $v) {
-                    $widget = $params->get('widget' . $k);
-                    if ($widget && $widget != 'disabled') {
-                        $enabledWidgets[$k] = $widget;
+                foreach ($widgetGroups AS $groupName => $group) {
+                    $widgetName = $params->get('widget' . $groupName);
+                    if ($widgetName && $widgetName != 'disabled') {
+                        $widget = $group->getWidget($widgetName);
+                        if ($widget) {
+                            $enabledWidgets[$groupName] = $widget;
+                        }
                     }
                 }
 
-                foreach ($enabledWidgets AS $k => $v) {
-                    $class = 'N2SSPluginWidget' . $k . $v;
-                    if (class_exists($class, false)) {
-                        $params->fillDefault(call_user_func(array(
-                            $class,
-                            'getDefaults'
-                        )));
+                foreach ($enabledWidgets AS $k => $widget) {
+                    $params->fillDefault($widget->getDefaults());
 
-                        call_user_func_array(array(
-                            $class,
-                            'prepareExport'
-                        ), array(
-                            $this,
-                            &$params
-                        ));
-                    } else {
-                        unset($enabledWidgets);
-                    }
+                    $widget->prepareExport($this, $params);
                 }
 
                 for ($i = 0; $i < count($this->backup->slides); $i++) {
@@ -165,7 +143,7 @@ class N2SmartSliderExport {
                 echo $zip->file();
                 n2_exit(true);
             } else {
-                $file   = preg_replace('/[^a-zA-Z0-9_-]/', '', $this->backup->slider['title']) . '.ss3';
+                $file   = $this->sliderId . '-' . preg_replace('/[^a-zA-Z0-9_-]/', '', $this->backup->slider['title']) . '.ss3';
                 $folder = N2Platform::getPublicDir();
                 $folder .= '/export/';
                 if (!N2Filesystem::existsFolder($folder)) {
@@ -242,19 +220,7 @@ class N2SmartSliderExport {
     
 
         foreach ($css['files'] AS $file) {
-            $path = 'css/' . basename($file);
-
-            $this->basePath = dirname($file);
-            $this->baseUrl  = N2Filesystem::pathToAbsoluteURL($this->basePath);
-
-            $this->files[$path] = preg_replace_callback('#url\([\'"]?([^"\'\)]+)[\'"]?\)#', array(
-                $this,
-                'replaceCSSImage'
-            ), file_get_contents($file));
-
-            $headHTML .= N2Html::style($path, true, array(
-                    'media' => 'screen, print'
-                )) . "\n";
+            $headHTML .= $this->addCSSFile($file);
         }
 
         if ($css['inline'] != '') {
@@ -273,7 +239,7 @@ class N2SmartSliderExport {
         foreach ($js['files'] AS $file) {
             $path               = 'js/' . basename($file);
             $this->files[$path] = file_get_contents($file);
-            $headHTML .= N2Html::script($path, true) . "\n";
+            $headHTML           .= N2Html::script($path, true) . "\n";
         }
 
         if ($js['inline'] != '') {
@@ -337,6 +303,11 @@ class N2SmartSliderExport {
 
     public function replaceHTMLImage($found) {
         $path = N2Filesystem::absoluteURLToPath(self::addProtocol($found[2]));
+        if (strpos($path, N2Filesystem::getBasePath()) !== 0) {
+            $imageUrl = N2Uri::relativetoabsolute($path);
+            $path     = N2Filesystem::absoluteURLToPath($imageUrl);
+        }
+
         if ($path == $found[2]) {
             return $found[0];
         }
@@ -362,39 +333,6 @@ class N2SmartSliderExport {
 
     public function replaceHTMLImageHrefLightbox($found) {
         return $this->replaceHTMLImage($found);
-    }
-
-    public function replaceCSSImage($matches) {
-        if (substr($matches[1], 0, 5) == 'data:') return $matches[0];
-        if (substr($matches[1], 0, 4) == 'http') return $matches[0];
-        if (substr($matches[1], 0, 2) == '//') return $matches[0];
-
-        $exploded = explode('?', $matches[1]);
-
-        $path = realpath($this->basePath . '/' . $exploded[0]);
-        if ($path === false) {
-            return 'url(' . str_replace(array(
-                    'http://',
-                    'https://'
-                ), '//', $this->baseUrl) . '/' . $matches[1] . ')';
-        }
-
-        $path = N2Filesystem::fixPathSeparator($path);
-
-        if (!isset($this->imageTranslation[$path])) {
-            $fileName = strtolower(basename($path));
-            while (in_array($fileName, $this->usedNames)) {
-                $fileName = $this->uniqueCounter . $fileName;
-                $this->uniqueCounter++;
-            }
-            $this->usedNames[]                  = $fileName;
-            $this->files['images/' . $fileName] = file_get_contents($path);
-            $this->imageTranslation[$path]      = $fileName;
-        } else {
-            $fileName = $this->imageTranslation[$path];
-        }
-
-        return str_replace($matches[1], '../images/' . $fileName, $matches[0]);
     }
 
     public function replaceLightboxImages($found) {
@@ -453,5 +391,58 @@ class N2SmartSliderExport {
         if (is_numeric($id) && $id > 10000) {
             $this->visuals[] = $id;
         }
+    }
+
+    private function addCSSFile($file) {
+        $path = 'css/' . basename($file);
+
+        $this->basePath = dirname($file);
+        $this->baseUrl  = N2Filesystem::pathToAbsoluteURL($this->basePath);
+
+        $fileContent = file_get_contents($file);
+
+        $fileContent = preg_replace_callback('#url\([\'"]?([^"\'\)]+)[\'"]?\)#', array(
+            $this,
+            'replaceCSSImage'
+        ), $fileContent);
+
+        $this->files[$path] = $fileContent;
+
+        return N2Html::style($path, true, array(
+                'media' => 'screen, print'
+            )) . "\n";
+    }
+
+    public function replaceCSSImage($matches) {
+        if (substr($matches[1], 0, 5) == 'data:') return $matches[0];
+        if (substr($matches[1], 0, 4) == 'http') return $matches[0];
+        if (substr($matches[1], 0, 2) == '//') return $matches[0];
+
+        $exploded = explode('?', $matches[1]);
+
+        $path = realpath($this->basePath . '/' . $exploded[0]);
+        if ($path === false) {
+            return 'url(' . str_replace(array(
+                    'http://',
+                    'https://'
+                ), '//', $this->baseUrl) . '/' . $matches[1] . ')';
+        }
+
+        $path = N2Filesystem::fixPathSeparator($path);
+
+        if (!isset($this->imageTranslation[$path])) {
+            $fileName = strtolower(basename($path));
+            while (in_array($fileName, $this->usedNames)) {
+                $fileName = $this->uniqueCounter . $fileName;
+                $this->uniqueCounter++;
+            }
+            $this->usedNames[]                      = $fileName;
+            $this->files['css/assets/' . $fileName] = file_get_contents($path);
+            $this->imageTranslation[$path]          = $fileName;
+        } else {
+            $fileName = $this->imageTranslation[$path];
+        }
+
+        return str_replace($matches[1], 'assets/' . $fileName, $matches[0]);
     }
 }

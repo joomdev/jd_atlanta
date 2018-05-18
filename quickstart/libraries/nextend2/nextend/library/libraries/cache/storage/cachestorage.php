@@ -14,6 +14,8 @@ abstract class N2CacheStorage {
         return false;
     }
 
+    public abstract function clearAll($scope = 'notweb');
+
     public abstract function clear($group, $scope = 'notweb');
 
     public abstract function exists($group, $key, $scope = 'notweb');

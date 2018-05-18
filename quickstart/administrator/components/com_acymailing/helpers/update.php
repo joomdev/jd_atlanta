@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.9.1
+ * @version	5.9.6
  * @author	acyba.com
  * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -539,7 +539,7 @@ class acyupdateHelper{
 		$extensioninfo['plg_acymailing_tagsubscription'] = array('AcyMailing Tag : Manage the Subscription', 1, 1);
 		$extensioninfo['plg_acymailing_tagtime'] = array('AcyMailing Tag : Date / Time', 5, 1);
 		$extensioninfo['plg_acymailing_taguser'] = array('AcyMailing Tag : Joomla User Information', 3, 1);
-		$extensioninfo['plg_acymailing_template'] = array('AcyMailing Template Class Replacer', 25, 1);
+		$extensioninfo['plg_acymailing_template'] = array('AcyMailing Template Class Replacer', 52, 1);
 		$extensioninfo['plg_acymailing_urltracker'] = array('AcyMailing : Handle Click tracking part1', 24, 1);
 		$extensioninfo['plg_system_acymailingurltracker'] = array('AcyMailing : Handle Click tracking part2', 1, 1);
 		$extensioninfo['plg_system_regacymailing'] = array('AcyMailing : (auto)Subscribe during Joomla registration', 0, 1);

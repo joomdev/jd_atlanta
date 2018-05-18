@@ -14,8 +14,7 @@ class N2SmartsliderApplicationTypeFrontend extends N2ApplicationType
 
     protected function autoload() {
         N2Loader::import(array(
-            'libraries.cache.NextendModuleCache',
-            'libraries.embedwidget.embedwidget',
+            'libraries.cache.NextendModuleCache'
         ));
 
         N2Loader::import(array(

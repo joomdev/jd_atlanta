@@ -1,6 +1,6 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.9.1
+ * @version    5.9.6
  * @author     acyba.com
  * @copyright  (C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -1837,10 +1837,14 @@ img.captchaimagemodule{
 	display: inline-block;
 	width: 40px;
 	height: 30px;
-	line-height: 25px;
+	line-height: 30px;
 	border: 1px solid #ddd;
 	border-left-width: 0;
 	font-family: 'acyicon';
+}
+
+.acypagination li.selectedPage{
+	width: 200px;
 }
 
 .acypagination li input{
@@ -1864,7 +1868,7 @@ img.captchaimagemodule{
 .acypagination li span {
 	cursor: pointer;
 	display: block;
-	line-height: 25px;
+	line-height: 30px;
 }
 
 .acypagination li span.acypaginactive{
@@ -1874,4 +1878,8 @@ img.captchaimagemodule{
 
 .acypagination li span:not(.acypaginactive):hover{
 	background-color: #e8e8e8;
+}
+
+.acypagination .selectedPage #acypagination{
+	vertical-align: baseline;
 }

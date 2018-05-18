@@ -1,14 +1,13 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.itemFactory', 'smartslider');
+N2Loader::import('libraries.renderable.layers.itemFactory', 'smartslider');
 
 class N2SSItemYouTube extends N2SSItemAbstract {
 
     protected $type = 'youtube';
 
     public function render() {
-        $slide  = $this->layer->getSlide();
-        $slider = $slide->getSlider();
+        $owner = $this->layer->getOwner();
         /**
          * @var $this ->data N2Data
          */
@@ -26,7 +25,7 @@ class N2SSItemYouTube extends N2SSItemAbstract {
             'vq'       => 'default'
         ));
 
-        $rawYTUrl = $slide->fill($this->data->get('youtubeurl', ''));
+        $rawYTUrl = $owner->fill($this->data->get('youtubeurl', ''));
 
         $url_parts = parse_url($rawYTUrl);
         if (!empty($url_parts['query'])) {
@@ -39,14 +38,14 @@ class N2SSItemYouTube extends N2SSItemAbstract {
 
         $youTubeUrl = $this->parseYoutubeUrl($rawYTUrl);
 
-        $start = $slide->fill($this->data->get('start', ''));
+        $start = $owner->fill($this->data->get('start', ''));
         $this->data->set("youtubecode", $youTubeUrl);
         $this->data->set("start", $start);
 
         $style = '';
 
         $hasImage = 0;
-        $image    = $slide->fill($this->data->get('image'));
+        $image    = $owner->fill($this->data->get('image'));
 
         $playImage = '';
         if (!empty($image)) {
@@ -81,9 +80,7 @@ class N2SSItemYouTube extends N2SSItemAbstract {
             }
         }
 
-        N2JS::addInline('window["' . $slider->elementId . '"].ready(function(){
-            new N2Classes.FrontendItemYouTube(this, "' . $this->id . '", ' . $this->data->toJSON() . ', ' . $hasImage . ');
-        });');
+        $owner->addScript('new N2Classes.FrontendItemYouTube(this, "' . $this->id . '", ' . $this->data->toJSON() . ', ' . $hasImage . ');');
 
         return N2Html::tag('div', array(
             'id'    => $this->id,
@@ -93,15 +90,15 @@ class N2SSItemYouTube extends N2SSItemAbstract {
     }
 
     public function _renderAdmin() {
-        $slide = $this->layer->getSlide();
 
-        $image = $slide->fill($this->data->get('image'));
+        $image = $this->layer->getOwner()
+                             ->fill($this->data->get('image'));
         $this->data->set('image', $image);
 
         return N2Html::tag('div', array(
             'class' => 'n2-ow',
             "style" => 'width: 100%; height: 100%; background: URL(' . N2ImageHelper::fixed($this->data->getIfEmpty('image', '$system$/images/placeholder/video.png')) . ') no-repeat 50% 50%; background-size: cover;'
-        ), $this->data->get('playbutton', 1) ? '<img class="n2-video-play n2-ow" alt="" src="' . N2ImageHelperAbstract::SVGToBase64('$ss$/images/play.svg') . '"/>' : '');
+        ), $this->data->get('playbutton', 1) ? '<div class="n2-video-play n2-ow">' . file_get_contents(N2ImageHelperAbstract::fixed('$ss$/images/play.svg', true)) . '</div>' : '');
 
     }
 

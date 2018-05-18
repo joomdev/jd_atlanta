@@ -25,6 +25,10 @@ class N2SmartSliderImport {
             if (!is_writable($folder)) {
                 $folder = N2Filesystem::getNotWebCachePath();
             }
+            if (!is_writable($folder)){
+                N2Message::error(sprintf(n2_('Slider can\'t be imported. The destination folder ( %s ) is not writable. Contact your host to fix the permission issue.'), $folder));
+                return false;
+            }
             $tmp = tempnam($folder, 'ss3');
             file_put_contents($tmp, $filePathOrData);
             $filePathOrData = $tmp;
@@ -126,52 +130,28 @@ class N2SmartSliderImport {
 
             unset($importData);
 
-            $class = 'N2SSPluginType' . $this->backup->slider['type'];
-            N2Loader::importPath(call_user_func(array(
-                    $class,
-                    "getPath"
-                )) . NDS . 'backup');
-
-            $class = 'N2SmartSliderBackup' . $this->backup->slider['type'];
-            call_user_func_array(array(
-                $class,
-                'import'
-            ), array(
-                $this,
-                &$this->backup->slider
-            ));
+            $sliderType = N2SSPluginSliderType::getSliderType($this->backup->slider['type']);
+            $sliderType->import($this, $this->backup->slider);
 
 
             $enabledWidgets = array();
-            $plugins        = array();
-            N2Plugin::callPlugin('sswidget', 'onWidgetList', array(&$plugins));
+            $widgetGroups   = N2SmartSliderWidgets::getGroups();
 
             $params = $this->backup->slider['params'];
-            foreach ($plugins AS $k => $v) {
-                $widget = $params->get('widget' . $k);
-                if ($widget && $widget != 'disabled') {
-                    $enabledWidgets[$k] = $widget;
+            foreach ($widgetGroups AS $groupName => $group) {
+                $widgetName = $params->get('widget' . $groupName);
+                if ($widgetName && $widgetName != 'disabled') {
+                    $widget = $group->getWidget($widgetName);
+                    if ($widget) {
+                        $enabledWidgets[$groupName] = $widget;
+                    }
                 }
             }
 
-            foreach ($enabledWidgets AS $k => $v) {
-                $class = 'N2SSPluginWidget' . $k . $v;
-                if (class_exists($class, false)) {
-                    $params->fillDefault(call_user_func(array(
-                        $class,
-                        'getDefaults'
-                    )));
+            foreach ($enabledWidgets AS $k => $widget) {
+                $params->fillDefault($widget->getDefaults());
 
-                    call_user_func_array(array(
-                        $class,
-                        'prepareImport'
-                    ), array(
-                        $this,
-                        $params
-                    ));
-                } else {
-                    unset($enabledWidgets);
-                }
+                $widget->prepareImport($this, $params);
             }
 
 

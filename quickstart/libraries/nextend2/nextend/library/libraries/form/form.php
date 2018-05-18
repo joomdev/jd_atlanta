@@ -1,154 +1,106 @@
 <?php
-N2Loader::import('libraries.xml.helper');
 
-class N2FormAbstract extends N2Data {
+N2Loader::import('libraries.form.tabcontainer');
+N2Loader::import('libraries.form.elementcontainer');
+N2Loader::import('libraries.form.tab');
+N2Loader::import('libraries.form.element');
 
-    public static $documentation = '';
+class N2FormAbstract extends N2Data implements N2FormTabContainer {
 
     public $appType;
 
-    var $_xml;
+    //public static $importPaths = array();
 
-    var $_xmlfile;
+    /**
+     * @var N2Data
+     */
+    protected $context;
 
-    var $_tabs;
+    /** @var N2Tab[] */
+    protected $tabs = array();
 
-    public static $importPaths = array();
-
-    public $xmlFolder = '';
 
     /**
      *
-     * App type must be decalred if you need to route in the parameters. Route is needed for example for subform!!!
+     * App type must be declared if you need to route in the parameters. Route is needed for example for subform!!!
      *
      * @param $appType N2ApplicationType|bool
      */
     public function __construct($appType = false) {
+
+        self::initialize();
+
         $this->appType = $appType;
-        $this->_xml    = null;
-        $this->_tabs   = array();
+
+        $this->context = new N2Data();
         parent::__construct();
 
     }
 
-    function initTabs($removeImportPath = true) {
-        if ($this->xmlFolder) {
-            N2Form::$importPaths[] = $this->xmlFolder;
-        }
-        if (count($this->_tabs) == 0 && $this->_xml->params && count($this->_xml->params)) {
-            foreach ($this->_xml->params as $tab) {
-                $type = N2XmlHelper::getAttribute($tab, 'type');
-                if ($type == '') {
-                    $type = 'default';
-                }
-
-                $class                                                = self::importTab($type);
-                $this->_tabs[N2XmlHelper::getAttribute($tab, 'name')] = new $class($this, $tab);
-
-            }
-        }
-        if ($removeImportPath && $this->xmlFolder) {
-            array_pop(N2Form::$importPaths);
-        }
+    public function getForm() {
+        return $this;
     }
 
-    function render($control_name) {
-        $this->initTabs(false);
+    /**
+     * @return N2Data
+     */
+    public function getContext() {
+        return $this->context;
+    }
+
+    public function addTab($tab) {
+        $this->tabs[$tab->getName()] = $tab;
+    }
+
+    public function getTab($tab) {
+        return $this->tabs[$tab];
+    }
+
+    public function render($control_name) {
+        //$this->initTabs(false);
         $this->decorateFormStart();
-        foreach ($this->_tabs AS $tabname => $tab) {
+        foreach ($this->tabs AS $tabName => $tab) {
             $tab->render($control_name);
         }
         $this->decorateFormEnd();
-        if ($this->xmlFolder) {
-            array_pop(N2Form::$importPaths);
-        }
+
     }
 
-    function decorateFormStart() {
+    protected function decorateFormStart() {
         echo N2Html::openTag("div", array("class" => "n2-form"));
     }
 
-    function decorateFormEnd() {
+    protected function decorateFormEnd() {
         echo N2Html::closeTag("div");
     }
 
-    function loadXMLFile($file) {
-        if (!N2Filesystem::existsFile($file)) {
-            throw new Exception("xml file not found ('{$file}')! <br /><strong>" . __FILE__ . ":" . __LINE__ . "</strong>");
-        }
+    private static $isInitialized = false;
+    private static $paths = array();
 
-        if (!function_exists('simplexml_load_string')) {
-            throw new Exception(n2_("SimpleXML extension must be enabled in php.ini. Please contact your server administrator to enable it for you."));
-        }
+    private static function initialize() {
+        if (!self::$isInitialized) {
+            array_unshift(self::$paths, dirname(__FILE__) . '/elements');
+            array_unshift(self::$paths, dirname(__FILE__) . '/tabs');
 
-        // @fix Warning: simplexml_load_file(): I/O warning : failed to load external entity
-        $this->_xml      = simplexml_load_string(file_get_contents($file));
-        $this->_xmlfile  = $file;
-        $this->xmlFolder = dirname($file);
+            for ($i = 0; $i < count(self::$paths); $i++) {
+                self::doImport(self::$paths[$i]);
+            }
+            self::$isInitialized = true;
+        }
     }
 
-    function setXML(&$xml) {
-
-        $this->_xml = $xml;
+    public static function import($path) {
+        if (self::$isInitialized) {
+            self::doImport($path);
+        } else {
+            self::$paths[] = $path;
+        }
     }
 
-    function getSubFormAjax($tab, $name) {
-        $tabsFound = $this->_xml->xpath('//params[@name="' . $tab . '"]');
-        if (count($tabsFound) > 0) {
-            if ($this->xmlFolder) {
-                N2Form::$importPaths[] = $this->xmlFolder;
-            }
-
-            $type = N2XmlHelper::getAttribute($tabsFound[0], 'type');
-            if ($type == '') {
-                $type = 'default';
-            }
-
-            $class     = self::importTab($type);
-            $tabObject = new $class($this, $tabsFound[0]);
-            if (isset($tabObject->_elements[$name])) {
-                return $tabObject->_elements[$name];
-            }
-        }
-
-        return null;
-    }
-
-    public function makeTest($key) {
-        if ($key != '' && (!defined($key) || !constant($key))) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public static function importTab($type) {
-        $class = 'N2Tab' . $type;
-        if (!class_exists($class, false)) {
-            for ($i = count(N2Form::$importPaths) - 1; $i >= 0; $i--) {
-                if (N2Loader::importPath(N2Form::$importPaths[$i] . '/tabs/' . $type)) {
-                    break;
-                }
-            }
-        }
-
-        return $class;
-    }
-
-    public static function importElement($type) {
-        $class = 'N2Element' . $type;
-        if (!class_exists($class, false)) {
-            for ($i = count(N2Form::$importPaths) - 1; $i >= 0; $i--) {
-                if (N2Loader::importPath(N2Form::$importPaths[$i] . '/element/' . $type)) {
-                    break;
-                }
-            }
-        }
-
-        return $class;
+    private static function doImport($path) {
+        N2Loader::importPathAll($path);
     }
 }
 
 N2Loader::import('libraries.form.form', 'platform');
 
-N2Form::$importPaths[] = dirname(__FILE__);

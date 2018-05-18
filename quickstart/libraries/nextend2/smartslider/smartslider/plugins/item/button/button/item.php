@@ -1,6 +1,6 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.itemFactory', 'smartslider');
+N2Loader::import('libraries.renderable.layers.itemFactory', 'smartslider');
 
 class N2SSItemButton extends N2SSItemAbstract {
 
@@ -15,23 +15,23 @@ class N2SSItemButton extends N2SSItemAbstract {
     }
 
     private function getHtml() {
-        $slide  = $this->layer->getSlide();
-        $slider = $slide->getSlider();
+        $owner = $this->layer->getOwner();
 
-        $this->loadResources($slider);
+        $this->loadResources($owner);
 
-        $font = N2FontRenderer::render($this->data->get('font'), 'link', $slider->elementId, 'div#' . $slider->elementId . ' ', $slider->fontSize);
+        $font = $owner->addFont($this->data->get('font'), 'link');
 
         $html = N2Html::openTag("div", array(
             "class" => "n2-ss-button-container n2-ow " . $font . ($this->data->get('fullwidth', 0) ? ' n2-ss-fullwidth' : '') . ($this->data->get('nowrap', 1) ? ' n2-ss-nowrap' : '')
         ));
 
-        $content = '<span>' . $slide->fill($this->data->get("content")) . '</span>';
+        $content = '<div>' . $owner->fill($this->data->get("content")) . '</div>';
 
         $attrs = array();
 
-        $style = N2StyleRenderer::render($this->data->get('style'), 'heading', $slider->elementId, 'div#' . $slider->elementId . ' ');
-        $html .= $this->getLink('<span>' . $content . '</span>', $attrs + array(
+        $style = $owner->addStyle($this->data->get('style'), 'heading');
+
+        $html  .= $this->getLink('<div>' . $content . '</div>', $attrs + array(
                 "class" => "{$style} n2-ow {$this->data->get('class', '')}"
             ), true);
 
@@ -40,9 +40,12 @@ class N2SSItemButton extends N2SSItemAbstract {
         return $html;
     }
 
-    public function loadResources($slider) {
-        N2LESS::addFile(dirname(__FILE__) . "/button.n2less", $slider->cacheId, array(
-            "sliderid" => $slider->elementId
-        ), NEXTEND_SMARTSLIDER_ASSETS . '/less' . NDS);
+    /**
+     * @param N2SmartSliderComponentOwnerAbstract $owner
+     */
+    public function loadResources($owner) {
+        $owner->addLess(dirname(__FILE__) . "/button.n2less", array(
+            "sliderid" => $owner->getElementID()
+        ));
     }
 }

@@ -45,6 +45,7 @@ class N2SmartSliderFeatureResponsive {
     public $maximumSlideWidthConstrainHeight = 0;
 
     public $verticalOffsetSelectors = '';
+    public $responsiveDecreaseSliderHeight = 0;
 
     public $basedOn = 'combined';
 
@@ -71,11 +72,10 @@ class N2SmartSliderFeatureResponsive {
         $this->mobile  = intval($slider->params->get('mobile', 1));
 
         $this->type = $slider->params->get('responsive-mode', 'auto');
-        $class      = 'N2SSResponsive' . $this->type;
-        if (!class_exists($class)) {
-            $class = 'N2SSResponsiveAuto';
-        }
-        $this->modeObject      = new $class($slider->params, $this, $features);
+
+        $this->responsivePlugin = N2SSPluginSliderResponsive::getType($this->type);
+        $this->responsivePlugin->parse($slider->params, $this, $features);
+
         $this->onResizeEnabled = !$slider->disableResponsive;
 
         if (!$this->scaleDown && !$this->scaleUp) {
@@ -417,6 +417,7 @@ class N2SmartSliderFeatureResponsive {
             'forceFullHorizontalSelector'      => $this->forceFullHorizontalSelector,
             'constrainRatio'                   => $this->constrainRatio,
             'verticalOffsetSelectors'          => $this->verticalOffsetSelectors,
+            'decreaseSliderHeight'             => $this->responsiveDecreaseSliderHeight,
 
             'focusUser'     => $this->focusUser,
             'focusAutoplay' => $this->focusAutoplay,
@@ -428,12 +429,8 @@ class N2SmartSliderFeatureResponsive {
             'ratioToDevice'          => $this->sliderRatioToDevice,
             'sliderWidthToDevice'    => $this->sliderWidthToDevice,
 
-            'basedOn'                    => $this->basedOn,
-            'tabletPortraitScreenWidth'  => $this->tabletPortraitScreenWidth,
-            'mobilePortraitScreenWidth'  => $this->mobilePortraitScreenWidth,
-            'tabletLandscapeScreenWidth' => $this->tabletLandscapeScreenWidth,
-            'mobileLandscapeScreenWidth' => $this->mobileLandscapeScreenWidth,
-            'orientationMode'            => $this->orientationMode,
+            'basedOn'         => $this->basedOn,
+            'orientationMode' => $this->orientationMode,
 
             'scrollFix'          => intval($this->slider->params->get('scroll-fix', 0)),
             'overflowHiddenPage' => intval($this->slider->params->get('overflow-hidden-page', 0)),

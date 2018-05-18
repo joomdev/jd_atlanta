@@ -5,14 +5,16 @@ if (!defined('N2SSPRO')) {
 
 }
 
-class N2SmartsliderApplicationInfoFilter
-{
+class N2SmartsliderApplicationInfoFilter {
 
     /**
      * @param $info NextendApplicationInfo
      */
     public static function filter($info) {
         $info->setUrl(JUri::root() . 'administrator/index.php?option=com_smartslider3');
+
+        $info->setAssetsPath(JPATH_SITE . '/media/n2/ss3');
+
         $info->setAcl('com_smartslider3');
     }
 }

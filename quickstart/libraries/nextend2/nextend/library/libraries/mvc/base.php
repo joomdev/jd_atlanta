@@ -2,14 +2,14 @@
 
 class N2Base {
 
-    public static $isReady = false;
+    private static $isReady = false;
 
-    /**
-     * @var array
-     */
-    public static $applicationInfos = array();
 
-    public static $applications = array();
+    /** @var N2ApplicationInfo[] */
+    private static $applicationInfo = array();
+
+    /** @var N2Application[] */
+    private static $applications = array();
 
     /**
      * @var N2ApplicationType
@@ -17,10 +17,10 @@ class N2Base {
     public static $currentApplicationType;
 
     private static function init() {
-        static $initialized = false;
-        if (!$initialized) {
+        if (!self::$isReady) {
             N2Loader::importAll('libraries.mvc.application');
             N2Loader::importAll('libraries.mvc');
+            N2Loader::import('libraries.mvc.controllers.backend');
             N2Loader::importAll('libraries.mvc.controllers');
             N2Loader::importAll('libraries.cache');
             N2Loader::importAll('libraries.assets');
@@ -35,9 +35,11 @@ class N2Base {
 
             N2Loader::import('libraries.image.helper');
 
-            $initialized   = true;
             self::$isReady = true;
-            N2Pluggable::doAction('nextendBaseReady');
+
+            foreach (self::$applicationInfo AS $applicationInfo) {
+                $applicationInfo->onReady();
+            }
         }
     }
 
@@ -47,162 +49,52 @@ class N2Base {
          */
         $info = require_once($infoPath);
         if (is_object($info)) {
-            self::$applicationInfos[$info->getName()] = $info;
-        }
-    }
-
-    private static function _createApplication($name) {
-        if (isset(self::$applicationInfos[$name])) {
-            self::init();
-            /**
-             * @var $nextendApp N2Application
-             */
-            self::$applications[$name] = self::$applicationInfos[$name]->getInstance();
-
-        } else {
-            throw new Exception("Application not available: {$name}");
+            if (self::$isReady) {
+                $info->onReady();
+            }
+            self::$applicationInfo[$info->getName()] = $info;
         }
     }
 
     /**
      * @param $name
      *
-     * @return N2ApplicationInfo
+     * @return bool|N2ApplicationInfo
      */
     public static function getApplicationInfo($name) {
-        if (!isset(self::$applicationInfos[$name])) {
+        if (!isset(self::$applicationInfo[$name])) {
             return false;
         }
 
-        return self::$applicationInfos[$name];
-    }
-
-    public static function getApplications() {
-        return self::$applicationInfos;
+        return self::$applicationInfo[$name];
     }
 
     /**
      * @param $name
      *
      * @return N2Application
+     * @throws Exception
      */
     public static function getApplication($name) {
         if (!isset(self::$applications[$name])) {
-            self::_createApplication($name);
-            N2Plugin::callPlugin('application', 'applicationLoaded', array($name));
+            self::createApplication($name);
+
+            N2Pluggable::doAction('applicationLoaded', array($name));
         }
 
         return self::$applications[$name];
     }
 
-    public static function hasApplication($name) {
-        if (isset(self::$applicationInfos[$name])) {
-            return true;
-        }
+    private static function createApplication($name) {
+        if (isset(self::$applicationInfo[$name])) {
+            self::init();
+            /**
+             * @var $nextendApp N2Application
+             */
+            self::$applications[$name] = self::$applicationInfo[$name]->getInstance();
 
-        return false;
-    }
-
-}
-
-abstract class N2ApplicationInfo {
-
-    private $acl = '';
-    private $url = '';
-
-    protected $path = '';
-    protected $assetPath = '';
-
-    public function __construct() {
-
-        N2Loader::addPath($this->getName(), $this->getPath());
-        $platformPath = N2Filesystem::realpath($this->getPath() . '/../' . N2Platform::getPlatform());
-        if ($platformPath) {
-            N2Loader::addPath($this->getName() . '.platform', $platformPath);
-        }
-        $this->loadLocale();
-
-        $filterClass = 'N2' . ucfirst($this->getName()) . 'ApplicationInfoFilter';
-        N2Loader::import($filterClass, $this->getName() . '.platform');
-        $callable = $filterClass . '::filter';
-        if (is_callable($callable)) {
-            call_user_func($filterClass . '::filter', $this);
-        }
-
-        if (N2Base::$isReady) {
-            $this->onNextendBaseReady();
         } else {
-            N2Pluggable::addAction('nextendBaseReady', array(
-                $this,
-                'onNextendBaseReady'
-            ));
+            throw new Exception("Application not available: {$name}");
         }
-    }
-
-    public function loadLocale() {
-        static $loaded;
-        if ($loaded == null) {
-            N2Localization::load_plugin_textdomain($this->getPath());
-            $loaded = true;
-        }
-    }
-
-    public function onNextendBaseReady() {
-        N2Loader::import('libraries.image.helper');
-        N2ImageHelper::addKeyword($this->getPathKey(), $this->getAssetsPath(), $this->getUri());
-    }
-
-    public abstract function isPublic();
-
-    public abstract function getLabel();
-
-    public abstract function getName();
-
-    public function getUrl() {
-        return $this->url;
-    }
-
-    public function getAcl() {
-        return $this->acl;
-    }
-
-    public function setAcl($acl) {
-        $this->acl = $acl;
-    }
-
-    public abstract function getInstance();
-
-    public abstract function getPathKey();
-
-    public function getUri() {
-        return N2Uri::pathToUri($this->getAssetsPath());
-    }
-
-    public function assetsBackend() {
-
-    }
-
-    public function assetsFrontend() {
-
-    }
-
-    public function setUrl($url) {
-        $this->url = $url;
-    }
-
-    public function setAssetsPath($path) {
-        $this->assetPath = $path;
-    }
-
-    public function setPath($path) {
-        $this->path = $path;
-    }
-
-    public function getAssetsPath() {
-        return $this->assetPath;
-    }
-
-    public function getPath() {
-        return $this->path;
     }
 }

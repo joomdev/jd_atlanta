@@ -18,8 +18,10 @@ class N2Request {
             return self::$storage[$var];
         } else if (isset(self::$originalStorage[$var])) {
             self::$storage[$var] = is_array(self::$originalStorage[$var]) ? self::stripslashesRecursive(self::$originalStorage[$var]) : stripslashes(self::$originalStorage[$var]);
+
             return self::$storage[$var];
         }
+
         return $default;
     }
 
@@ -41,6 +43,7 @@ class N2Request {
         } else if (isset(self::$originalStorage[$var])) {
             return true;
         }
+
         return false;
     }
 
@@ -101,6 +104,7 @@ class N2Request {
         foreach ($array as $key => $value) {
             $array[$key] = is_array($value) ? self::stripslashesRecursive($value) : stripslashes($value);
         }
+
         return $array;
     }
 }
@@ -123,8 +127,10 @@ class N2Get {
             return self::$storage[$var];
         } else if (isset(self::$originalStorage[$var])) {
             self::$storage[$var] = is_array(self::$originalStorage[$var]) ? N2Request::stripslashesRecursive(self::$originalStorage[$var]) : stripslashes(self::$originalStorage[$var]);
+
             return self::$storage[$var];
         }
+
         return $default;
     }
 
@@ -159,8 +165,10 @@ class N2Post {
             return self::$storage[$var];
         } else if (isset(self::$originalStorage[$var])) {
             self::$storage[$var] = is_array(self::$originalStorage[$var]) ? N2Request::stripslashesRecursive(self::$originalStorage[$var]) : stripslashes(self::$originalStorage[$var]);
+
             return self::$storage[$var];
         }
+
         return $default;
     }
 
@@ -195,8 +203,10 @@ class N2Cookie {
             return self::$storage[$var];
         } else if (isset(self::$originalStorage[$var])) {
             self::$storage[$var] = is_array(self::$originalStorage[$var]) ? N2Request::stripslashesRecursive(self::$originalStorage[$var]) : stripslashes(self::$originalStorage[$var]);
+
             return self::$storage[$var];
         }
+
         return $default;
     }
 

@@ -1,18 +1,23 @@
 <?php
 
-
-class N2SystemLoginModel extends N2Model
-{
+class N2SystemLoginModel extends N2Model {
 
     public static function renderForm() {
 
-        $configurationXmlFile = dirname(__FILE__) . '/forms/login.xml';
-
         N2Loader::import('libraries.form.form');
-        $form = new N2Form(N2Base::getApplication('system')->getApplicationType('backend'));
+        $form = new N2Form(N2Base::getApplication('system')
+                                 ->getApplicationType('backend'));
 
 
-        $form->loadXMLFile($configurationXmlFile);
+        $loginTab = new N2Tab($form, 'login', n2_('Login'));
+        new N2ElementText($loginTab, 'user_name', n2_('User name'), '', array(
+            'style' => 'width:200px;'
+        ));
+        new N2ElementPassword($loginTab, 'user_password', n2_('Password'), '', array(
+            'style' => 'width:200px;'
+        ));
+
+        new N2ElementToken($loginTab);
 
         return $form->render('login');
     }

@@ -1,7 +1,6 @@
 <?php
 
-abstract class N2DBConnectorAbstract
-{
+abstract class N2DBConnectorAbstract {
 
     public $tableName;
 

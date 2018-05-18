@@ -9,14 +9,14 @@ class N2Cache {
     /** @var N2CacheStorage */
     public $storage;
 
-    protected $_storageEngine = 'default';
+    protected $_storageEngine = 'filesystem';
 
     /**
      * @param string $engine
      *
      * @return N2CacheStorage
      */
-    public static function getStorage($engine = "default") {
+    public static function getStorage($engine = "filesystem") {
         static $storage = null;
         if ($storage === null) {
             $storage = array(
@@ -24,21 +24,26 @@ class N2Cache {
                 'database'   => new N2CacheStorageDatabase()
             );
         }
-        if ($engine == 'default') {
-            if (defined('NEXTEND_CACHE_STORAGE')) {
-                return $storage[NEXTEND_CACHE_STORAGE];
-            }
-
-            return $storage['filesystem'];
-        }
 
         return $storage[$engine];
     }
 
+    public static function clearAll() {
+        self::getStorage('filesystem')
+            ->clearAll();
+        self::getStorage('filesystem')
+            ->clearAll('web');
+    }
+
     public static function clearGroup($group) {
-        $storage = self::getStorage();
-        $storage->clear($group);
-        $storage->clear($group, 'web');
+        self::getStorage('filesystem')
+            ->clear($group);
+        self::getStorage('filesystem')
+            ->clear($group, 'web');
+        self::getStorage('database')
+            ->clear($group);
+        self::getStorage('database')
+            ->clear($group, 'web');
     }
 
     public function __construct($group, $isAccessible = false) {

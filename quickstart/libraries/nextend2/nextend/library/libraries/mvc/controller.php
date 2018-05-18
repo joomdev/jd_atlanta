@@ -6,6 +6,8 @@
  */
 class N2ControllerAbstract {
 
+    protected $path = '';
+
     /** @var  N2Layout */
     public $layout;
     public $layoutName = 'default';
@@ -20,7 +22,9 @@ class N2ControllerAbstract {
      */
     public $assets;
 
-    public function __construct($appType, $defaultParams) {
+    public function __construct($path, $appType, $defaultParams) {
+        $this->path = $path;
+
         $this->appType = $appType;
 
         $this->initLayout();
@@ -29,8 +33,12 @@ class N2ControllerAbstract {
         $this->initialize();
     }
 
+    public function getPath() {
+        return $this->path;
+    }
+
     protected function initLayout() {
-        $this->layout = new N2Layout($this->appType);
+        $this->layout = new N2Layout($this, $this->appType);
     }
 
     public function initialize() {
@@ -56,12 +64,18 @@ class N2ControllerAbstract {
      * @param array  $params
      * @param string $position - position on layout. default is 'content'
      */
-    public function addView($viewName, $params = array(), $position = 'content') {
-        //if ($this->ajaxResponse) return;
+    public function addView($viewName = null, $params = array(), $position = 'content') {
         if (is_null($viewName)) {
             $viewName = "index";
         }
         $this->layout->addView($viewName, $position, $params);
+    }
+
+    public function addViewFile($path, $viewName, $params = array(), $position = 'content') {
+        if (is_null($viewName)) {
+            $viewName = "index";
+        }
+        $this->layout->addView($viewName, $position, $params, $path);
     }
 
     public function render($params = array()) {
@@ -72,7 +86,7 @@ class N2ControllerAbstract {
      * This method display no access screen
      */
     public function noAccess() {
-        $this->addView("../defaults/noaccess");
+        $this->addViewFile(N2LIBRARY . '/libraries/', "noaccess");
         $this->render();
     }
 
@@ -91,8 +105,7 @@ class N2ControllerAbstract {
     protected function validatePermission($permission) {
 
         if (!$this->canDo($permission)) {
-            $this->addView("../defaults/noaccess");
-            $this->render();
+            $this->noAccess();
 
             return false;
         }
@@ -103,8 +116,7 @@ class N2ControllerAbstract {
     protected function validateVariable($condition, $property) {
 
         if (!$condition) {
-            $this->addView("../defaults/noaccess");
-            $this->render();
+            $this->noAccess();
 
             return false;
         }
@@ -114,8 +126,7 @@ class N2ControllerAbstract {
 
     protected function validateDatabase($condition) {
         if (!$condition) {
-            $this->addView("../defaults/noaccess");
-            $this->render();
+            $this->noAccess();
 
             return false;
         }
@@ -150,15 +161,15 @@ class N2ControllerAjax extends N2Controller {
     /** @var N2AjaxResponse */
     protected $response;
 
-    public function __construct($appType, $defaultParams) {
+    public function __construct($path, $appType, $defaultParams) {
         n2_ob_end_clean_all();
 
         $this->response = new N2AjaxResponse($appType);
-        parent::__construct($appType, $defaultParams);
+        parent::__construct($path, $appType, $defaultParams);
     }
 
     protected function initLayout() {
-        $this->layout = new N2LayoutAjax($this->appType);
+        $this->layout = new N2LayoutAjax($this, $this->appType);
     }
 
     public function render($params = array()) {

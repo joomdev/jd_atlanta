@@ -5,11 +5,11 @@ N2Loader::import('libraries.image.color');
 
 class N2SSPluginWidgetBulletTransition extends N2SSPluginWidgetAbstract {
 
-    var $_name = 'transition';
+    protected $name = 'transition';
 
     private static $key = 'widget-bullet-';
 
-    static function getDefaults() {
+    public function getDefaults() {
         return array(
             'widget-bullet-position-mode'        => 'simple',
             'widget-bullet-position-area'        => 10,
@@ -29,15 +29,31 @@ class N2SSPluginWidgetBulletTransition extends N2SSPluginWidgetAbstract {
         );
     }
 
-    function onBulletList(&$list) {
-        $list[$this->_name] = $this->getPath();
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'bullet-transition');
+
+        new N2ElementWidgetPosition($settings, 'widget-bullet-position', n2_('Position'));
+
+        new N2ElementStyle($settings, 'widget-bullet-style', n2_('Dot style'), '', array(
+            'previewMode' => 'dot',
+            'style2'      => 'sliderwidget-bullet-bar',
+            'set'         => 1900,
+            'preview'     => '<div class="{styleClassName2}" style="display:inline-block;"><div class="{styleClassName}" style="display: inline-block; vertical-align:top;"></div><div class="{styleClassName} n2-active" style="display: inline-block; vertical-align:top;"></div><div class="{styleClassName}" style="display: inline-block; vertical-align:top;"></div></div>'
+        ));
+
+        new N2ElementStyle($settings, 'widget-bullet-bar', n2_('Bar style'), '', array(
+            'previewMode' => 'simple',
+            'style2'      => 'sliderwidget-bullet-style',
+            'set'         => 1900,
+            'preview'     => '<div class="{styleClassName}" style="display:inline-block;"><div class="{styleClassName2}" style="display: inline-block; vertical-align:top;"></div><div class="{styleClassName2} n2-active" style="display: inline-block; vertical-align:top;"></div><div class="{styleClassName2}" style="display: inline-block; vertical-align:top;"></div></div>'
+        ));
     }
 
-    function getPath() {
+    public function getPath() {
         return dirname(__FILE__) . DIRECTORY_SEPARATOR . 'transition' . DIRECTORY_SEPARATOR;
     }
 
-    static function getPositions(&$params) {
+    public function getPositions(&$params) {
         $positions                    = array();
         $positions['bullet-position'] = array(
             self::$key . 'position-',
@@ -54,26 +70,27 @@ class N2SSPluginWidgetBulletTransition extends N2SSPluginWidgetAbstract {
      *
      * @return string
      */
-    static function render($slider, $id, $params) {
-		if (count($slider->slides) <= 1) {
-			return '';
-		}
+    public function render($slider, $id, $params) {
+        if (count($slider->slides) <= 1) {
+            return '';
+        }
 
-        N2LESS::addFile(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'transition' . DIRECTORY_SEPARATOR . 'style.n2less'), $slider->cacheId, array(
+        $slider->addLess(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'transition' . DIRECTORY_SEPARATOR . 'style.n2less'), array(
             "sliderid" => $slider->elementId
-        ), NEXTEND_SMARTSLIDER_ASSETS . '/less' . NDS);
-        N2JS::addFile(N2Filesystem::translate(dirname(__FILE__) . '/transition/bullet.min.js'), $id);
+        ));
+        $slider->features->addInitCallback(N2Filesystem::readFile(N2Filesystem::translate(dirname(__FILE__) . '/transition/bullet.min.js')));
     
 
         list($displayClass, $displayAttributes) = self::getDisplayAttributes($params, self::$key);
 
-        $bulletStyle = N2StyleRenderer::render($params->get(self::$key . 'style'), 'dot', $slider->elementId, 'div#' . $slider->elementId . ' ');
-        $barStyle    = N2StyleRenderer::render($params->get(self::$key . 'bar'), 'simple', $slider->elementId, 'div#' . $slider->elementId . ' ');
+        $bulletStyle = $slider->addStyle($params->get(self::$key . 'style'), 'dot');
+        $barStyle    = $slider->addStyle($params->get(self::$key . 'bar'), 'simple');
 
         list($style, $attributes) = self::getPosition($params, self::$key);
         $attributes['data-offset'] = $params->get(self::$key . 'position-offset', 0);
 
-        $dots = array();        
+        $dots = array();
+
         for ($i = 0; $i < count($slider->slides); $i++) {
             $dots[] = N2Html::tag('div', array(
                 'class'    => 'n2-ow ' . $bulletStyle,
@@ -81,18 +98,9 @@ class N2SSPluginWidgetBulletTransition extends N2SSPluginWidgetAbstract {
             ), '');
         }
 
-        $orientation = self::getOrientationByPosition($params->get(self::$key . 'position-mode'), $params->get(self::$key . 'position-area'), $params->get(self::$key . 'orientation'));
-        if ($orientation == 'auto') {
-            $orientation = 'horizontal';
-        }
-        $html = '';
-        switch ($orientation) {
-            case 'vertical':
-                $html .= implode('<br>', $dots);
-                break;
-            default:
-                $html .= implode('', $dots);
-        }
+        $orientation = self::getOrientationByPosition($params->get(self::$key . 'position-mode'), $params->get(self::$key . 'position-area'), $params->get(self::$key . 'orientation'), 'horizontal');
+
+        $html = implode('', $dots);
 
         $parameters = array(
             'overlay' => $params->get(self::$key . 'position-mode') != 'simple' || $params->get(self::$key . 'overlay'),
@@ -106,7 +114,7 @@ class N2SSPluginWidgetBulletTransition extends N2SSPluginWidgetAbstract {
             }
             $parameters['thumbnailWidth']  = intval($params->get(self::$key . 'thumbnail-width'));
             $parameters['thumbnailHeight'] = intval($params->get(self::$key . 'thumbnail-height'));
-            $parameters['thumbnailStyle']  = N2StyleRenderer::render($params->get(self::$key . 'thumbnail-style'), 'simple', $slider->elementId, '');
+            $parameters['thumbnailStyle']  = $slider->addStyle($params->get(self::$key . 'thumbnail-style'), 'simple', '');
             $side                          = $params->get(self::$key . 'thumbnail-side');
 
 
@@ -129,28 +137,24 @@ class N2SSPluginWidgetBulletTransition extends N2SSPluginWidgetAbstract {
         $parameters['action']     = $params->get(self::$key . 'action');
         $parameters['numeric']    = 0;
 
-        N2JS::addInline('new N2Classes.SmartSliderWidgetBulletTransition("' . $id . '", ' . json_encode($parameters) . ');');
+        $slider->features->addInitCallback('new N2Classes.SmartSliderWidgetBulletTransition(this, ' . json_encode($parameters) . ');');
 
         $fullSize = intval($params->get(self::$key . 'bar-full-size'));
-        if ($fullSize) {
-            $barStyle .= " n2-bullet-bar-full-size";
-        }
 
         return N2Html::tag("div", $displayAttributes + $attributes + array(
-                "class" => $displayClass . ' n2-ss-control-bullet',
+                "class" => $displayClass . ' n2-flex n2-ss-control-bullet n2-ss-control-bullet-' . $orientation . ($fullSize ? ' n2-ss-control-bullet-fullsize' : ''),
                 "style" => $style
             ), N2HTML::tag("div", array(
-            "class" => $barStyle . " nextend-bullet-bar n2-ow nextend-bullet-bar-" . $orientation,
-            "style" => "text-align: " . $params->get(self::$key . 'align') . ";"
+            "class" => $barStyle . " nextend-bullet-bar n2-ow n2-bar-justify-content-" . $params->get(self::$key . 'align')
         ), $html));
     }
 
-    public static function prepareExport($export, $params) {
+    public function prepareExport($export, $params) {
         $export->addVisual($params->get(self::$key . 'style'));
         $export->addVisual($params->get(self::$key . 'bar'));
     }
 
-    public static function prepareImport($import, $params) {
+    public function prepareImport($import, $params) {
 
         $params->set(self::$key . 'style', $import->fixSection($params->get(self::$key . 'style')));
         $params->set(self::$key . 'bar', $import->fixSection($params->get(self::$key . 'bar')));
@@ -158,4 +162,4 @@ class N2SSPluginWidgetBulletTransition extends N2SSPluginWidgetAbstract {
 
 }
 
-N2Plugin::addPlugin('sswidgetbullet', 'N2SSPluginWidgetBulletTransition');
+N2SmartSliderWidgets::addWidget('bullet', new N2SSPluginWidgetBulletTransition);

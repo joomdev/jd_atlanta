@@ -1,7 +1,6 @@
 <?php
 
-class N2Parse
-{
+class N2Parse {
 
     function fromMixed($s) {
 
@@ -27,6 +26,7 @@ class N2Parse
                 if ($concat === false) $v[$i] = explode("||", $v[$i]); else $v[$i] = str_replace("||", $concat, $v[$i]);
             }
         }
+
         //if ($v[count($v) - 1] == '') unset($v[count($v) - 1]);
         return count($v) == 1 ? $v[0] : $v;
     }
@@ -40,6 +40,7 @@ class N2Parse
         foreach ($value AS $m) {
             $r .= $m . $unit . $concat;
         }
+
         return $r;
     }
 }

@@ -2,6 +2,7 @@
 
 class N2SmartSliderWidgets {
 
+    /** @var N2SSPluginWidgetAbstract[] */
     public $enabledWidgets = array();
 
     public $widgets = array();
@@ -164,55 +165,73 @@ class N2SmartSliderWidgets {
         )
     );
 
+    /** @var N2SSPluginSliderWidget[] */
+    public static $groups = array();
+
+    /**
+     * @param N2SSPluginSliderWidget $group
+     */
+    public static function addGroup($group) {
+        self::$groups[$group->getName()] = $group;
+    }
+
+    /**
+     * @return N2SSPluginSliderWidget[]
+     */
+    public static function getGroups() {
+        return self::$groups;
+    }
+
+    /**
+     * @param $name
+     *
+     * @return N2SSPluginSliderWidget
+     */
+    public static function getGroup($name) {
+        return self::$groups[$name];
+    }
+
+    public static function addWidget($groupName, $widget) {
+        self::getGroup($groupName)
+            ->addWidget($widget);
+    }
+
     /**
      * @param $slider N2SmartSlider
      */
     public function __construct($slider) {
 
         if (!$slider->isAdmin) {
-            $params  = $slider->params;
-            $plugins = array();
+            $params = $slider->params;
 
-            N2Plugin::callPlugin('sswidget', 'onWidgetList', array(&$plugins));
+            $widgetGroups = self::getGroups();
 
-            foreach ($plugins AS $k => $v) {
-                $widget = $params->get('widget' . $k);
-                if ($widget && $widget != 'disabled') {
-                    $this->enabledWidgets[$k] = $widget;
+            foreach ($widgetGroups AS $groupName => $group) {
+                $widgetName = $params->get('widget' . $groupName);
+                if ($widgetName && $widgetName != 'disabled') {
+                    $widget = $group->getWidget($widgetName);
+                    if ($widget) {
+                        $this->enabledWidgets[$groupName] = $widget;
+                    }
                 }
             }
 
             $positions = array();
-            foreach ($this->enabledWidgets AS $k => $v) {
-                $class = 'N2SSPluginWidget' . $k . $v;
-                if (class_exists($class, false)) {
-                    $params->fillDefault(call_user_func(array(
-                        $class,
-                        'getDefaults'
-                    )));
+            foreach ($this->enabledWidgets AS $widget) {
+                $params->fillDefault($widget->getDefaults());
 
-                    $positions += call_user_func_array(array(
-                        $class,
-                        'getPositions'
-                    ), array(&$params));
-                } else {
-                    unset($this->enabledWidgets[$k]);
-                }
+                $positions += $widget->getPositions($params);
             }
 
             $this->makePositions($positions, $params);
 
-            foreach ($this->enabledWidgets AS $k => $v) {
-                $class = 'N2SSPluginWidget' . $k . $v;
+            foreach ($this->enabledWidgets AS $widgetName => $widget) {
 
-                $rendered = call_user_func(array(
-                    $class,
-                    'render'
-                ), $slider, $slider->elementId, $params);
+                $rendered = $widget->render($slider, $slider->elementId, $params);
                 if (is_array($rendered)) {
                     $this->widgets = array_merge($this->widgets, $rendered);
                 } else {
-                    $this->widgets[$k] = $rendered;
+                    $this->widgets[$widgetName] = $rendered;
                 }
             }
             foreach ($this->above AS $name) {

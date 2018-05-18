@@ -90,13 +90,13 @@ class N2SmartSliderSlidesGenerator {
                 $this->currentGenerator['params']->toArray()
             );
 
-            $info = $this->generatorModel->getGeneratorInfo($this->currentGenerator['group'], $this->currentGenerator['type']);
+            $generatorGroup = $this->generatorModel->getGeneratorGroup($this->currentGenerator['group']);
+            if (!$generatorGroup) {
+                return array();
+            }
 
-
-            require_once($info->path . '/generator.php');
-            $class = 'N2Generator' . $this->currentGenerator['group'] . $this->currentGenerator['type'];
-            /** @var N2GeneratorAbstract $dataSource */
-            $this->dataSource = new $class($info, $this->currentGenerator['params']);
+            $this->dataSource = $generatorGroup->getSource($this->currentGenerator['type']);
+            $this->dataSource->setData($this->currentGenerator['params']);
 
             $cache = new N2CacheManifestGenerator($this->slider, $this);
             $name  = $this->dataSource->filterName('generator' . $this->currentGenerator['id']);

@@ -1,6 +1,6 @@
 <?php
-N2Loader::importAll("libraries.slider.slides.slide", "smartslider");
-N2Loader::importAll("libraries.slider.slides.slide.item", "smartslider");
+N2Loader::importAll("libraries.renderable.layers", "smartslider");
+N2Loader::importAll("libraries.renderable.layers.item", "smartslider");
 
 class N2SmartSliderSlides {
 
@@ -46,7 +46,7 @@ class N2SmartSliderSlides {
         //check slide number
         if (count($this->slides) === 0) {
             if (N2Platform::$isAdmin) {
-                N2Message::error(n2_('0 slides available for this slider.'));
+                N2Message::error(n2_('Slider is empty.'));
             }
 
             return false;

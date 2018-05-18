@@ -5,7 +5,7 @@ defined('_JEXEC') or  die( 'Direct Access to '.basename(__FILE__).' is not allow
 *
 * NOTE: THIS MODULE REQUIRES THE VIRTUEMART COMPONENT!
 /*
-* @version $Id: mod_virtuemart_currencies.php 9422 2017-01-16 18:12:35Z Milbo $
+* @version $Id: mod_virtuemart_currencies.php 9766 2018-02-21 11:24:10Z Milbo $
 * @package VirtueMart
 * @subpackage modules
 *
@@ -28,7 +28,7 @@ defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 if (!class_exists( 'VmConfig' )) require(JPATH_ROOT .'/administrator/components/com_virtuemart/helpers/config.php');
 
 VmConfig::loadConfig();
-vmLanguage::loadJLang('mod_virtuemart_currencies', true);
+vmLanguage::loadModJLang('mod_virtuemart_currencies');
 vmJsApi::jQuery();
 
 vmLanguage::loadJLang( 'com_virtuemart', true );

@@ -6,7 +6,7 @@ defined('_JEXEC') or die('Restricted access');
  * @version $Id: sofort_ideal.php 9560 2017-05-30 14:13:21Z Milbo $
  * @package VirtueMart
  * @subpackage payment
- * @copyright Copyright (C) 2004-Copyright (C) 2004 - 2017 Virtuemart Team. All rights reserved.   - All rights reserved.
+ * @copyright Copyright (C) 2004-Copyright (C) 2004 - 2018 Virtuemart Team. All rights reserved.   - All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL, see LICENSE.php
  * VirtueMart is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -21,7 +21,7 @@ if (!class_exists('vmPSPlugin')) {
 }
 
 class plgVmPaymentSofort_Ideal extends vmPSPlugin {
-	const RELEASE = 'VM 3.2.8';
+	const RELEASE = 'VM 3.2.14';
 	const PAYMENT_CURRENCY_CODE_3 = 'EUR';
 
 	function __construct(& $subject, $config) {

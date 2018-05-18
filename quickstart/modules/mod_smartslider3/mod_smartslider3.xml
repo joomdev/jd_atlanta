@@ -4,19 +4,21 @@
     <copyright>Copyright (C) Nextendweb.com</copyright>
     <authorEmail>support@nextendweb.com</authorEmail>
     <authorUrl>https://smartslider3.com</authorUrl>
-    <version>3.2.12</version>
-    <description>This module displays sliders from Smart Slider 3. You can create the sliders in the Smart Slider 3 component!
-    </description>
+    <version>3.3.0</version>
+    <description>This module displays sliders from Smart Slider 3. You can create the sliders in the Smart Slider 3 component!</description>
     <config>
         <fields name="params">
             <fieldset name="basic" addfieldpath="/modules/mod_smartslider3/models/fields">
                 <field name="slider" type="sql" default="1" label="Select a slider"
-                       query="SELECT id, title FROM #__nextend2_smartslider3_sliders ORDER BY time DESC " key_field="id"
+                       query="SELECT id, CONCAT('#', id, ' - ', title) AS title FROM #__nextend2_smartslider3_sliders ORDER BY time DESC "
+                       key_field="id"
                        value_field="title"/>
                 <field name="editslider" type="editslider" default="" label=""/>
+                <field name="slider-embed" type="sliderembed" default="" label=""/>
             </fieldset>
             <fieldset name="advanced">
-              <field name="moduleclass_sfx" type="text" label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL" description="COM_MODULES_FIELD_MODULECLASS_SFX_DESC" />
+                <field name="moduleclass_sfx" type="text" label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL"
+                       description="COM_MODULES_FIELD_MODULECLASS_SFX_DESC"/>
             </fieldset>
         </fields>
     </config>

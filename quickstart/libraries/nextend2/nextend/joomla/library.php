@@ -11,13 +11,16 @@ if (!defined('N2PRO')) {
 
 }
 
+if (!defined('N2LIBRARYASSETS')) define('N2LIBRARYASSETS', JPATH_SITE . '/media/n2/n');
+
+
 // Load required UTF-8 config from Joomla
-jimport( 'joomla.utilities.string' );
+jimport('joomla.utilities.string');
 class_exists('JString');
 
 if (!defined('JPATH_NEXTEND_IMAGES')) {
     define('JPATH_NEXTEND_IMAGES', '/' . trim(JComponentHelper::getParams('com_media')
-                                                      ->get('image_path', 'images'), "/"));
+                                                              ->get('image_path', 'images'), "/"));
 }
 
 require_once N2_PLATFORM_LIBRARY . '/../library/library.php';

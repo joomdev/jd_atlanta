@@ -5,11 +5,11 @@ N2Loader::import('libraries.image.color');
 
 class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
 
-    var $_name = 'default';
+    protected $name = 'default';
 
     private static $key = 'widget-thumbnail-';
 
-    static function getDefaults() {
+    public function getDefaults() {
         return array(
             'widget-thumbnail-minimum-thumbnail-count' => 1,
             'widget-thumbnail-position-mode'           => 'simple',
@@ -37,15 +37,120 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
         );
     }
 
-    function onThumbnailList(&$list) {
-        $list[$this->_name] = $this->getPath();
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'widget-thumbnail');
+
+        new N2ElementNumber($settings, 'widget-thumbnail-minimum-thumbnail-count', n2_('Minimum thumbnail count'), '', array(
+            'unit'  => n2_('Slides'),
+            'style' => 'width:30px;'
+        ));
+
+        new N2ElementWidgetPosition($settings, 'widget-thumbnail-position', n2_('Position'));
+
+        new N2ElementRadio($settings, 'widget-thumbnail-align-content', n2_('Align thumbnails'), '', array(
+            'options' => array(
+                'start'         => n2_('Start'),
+                'center'        => n2_('Center'),
+                'end'           => n2_('End'),
+                'space-between' => n2_('Space between'),
+                'space-around'  => n2_('Space around')
+            )
+        ));
+
+        $style = new N2ElementGroup($settings, 'widget-thumbnail-style', n2_('Style'));
+
+        new N2ElementStyle($style, 'widget-thumbnail-style-bar', n2_('Bar'), '', array(
+            'previewMode' => 'simple',
+            'set'         => 1900,
+            'style2'      => 'sliderwidget-thumbnail-style-slides',
+            'preview'     => '
+            <div class="{styleClassName}" style="overflow: hidden; width:{$(\'#sliderwidget-thumbnail-width\').val()*2.5}px;">
+                <div style="width:200%">
+                    <div class="{styleClassName2}" style="display: inline-block; vertical-align:top; width:{$(\'#sliderwidget-thumbnail-width\').val()}px; height: {$(\'#sliderwidget-thumbnail-height\').val()}px; background: url(\'$system$/images/placeholder/imageback.png\');"></div>
+                    <div class="{styleClassName2} n2-active" style="display: inline-block; vertical-align:top; width:{$(\'#sliderwidget-thumbnail-width\').val()}px; height: {$(\'#sliderwidget-thumbnail-height\').val()}px; background: url(\'$system$/images/placeholder/image.png\');"></div>
+                    <div class="{styleClassName2}" style="display: inline-block; vertical-align:top; width:{$(\'#sliderwidget-thumbnail-width\').val()}px; height: {$(\'#sliderwidget-thumbnail-height\').val()}px; background: url(\'$system$/images/placeholder/imagefront.png\');"></div>
+                </div>
+            </div>'
+        ));
+
+        new N2ElementStyle($style, 'widget-thumbnail-style-slides', n2_('Thumbnail'), '', array(
+            'rowClass'    => 'n2-expert',
+            'previewMode' => 'dot',
+            'set'         => 1900,
+            'style2'      => 'sliderwidget-thumbnail-style-bar',
+            'preview'     => '
+            <div class="{styleClassName2}" style="overflow: hidden;width: 480px;">
+                <div style="width:200%">
+                <div class="{styleClassName}" style="display: inline-block; vertical-align:top; width:{' . '$(\'#sliderwidget-thumbnail-width\').val()}px; height: ' . '{$(\'#sliderwidget-thumbnail-height\').val()}px; background: url(\'$system$/images/placeholder/imageback.png\');"></div>
+                <div class="{styleClassName} n2-active" style="display: inline-block; vertical-align:top; width:' . '{$(\'#sliderwidget-thumbnail-width\').val()}px; height: {' . '$(\'#sliderwidget-thumbnail-height\').val()}px; background: url(\'$system$/images/placeholder/image.png\');"></div>
+                <div class="{styleClassName}" style="display: inline-block; vertical-align:top; width:' . '{$(\'#sliderwidget-thumbnail-width\').val()}px; height: {' . '$(\'#sliderwidget-thumbnail-height\').val()}px; background: url(\'$system$/images/placeholder/imagefront.png\');"></div>
+                </div>
+            </div>'
+        ));
+
+        new N2ElementOnOff($settings, 'widget-thumbnail-arrow', n2_('Show arrow'));
+
+        $caption = new N2ElementGroup($settings, 'widget-thumbnail-caption', n2_('Caption'));
+
+        new N2ElementStyle($caption, 'widget-thumbnail-title-style', n2_('Style'), '', array(
+            'previewMode' => 'simple',
+            'set'         => 1900,
+            'post'        => 'break',
+            'font'        => 'sliderwidget-thumbnail-title-font',
+            'preview'     => '<span class="{styleClassName} {fontClassName}">Slide title</span>'
+        ));
+
+        $title = new N2ElementGroup($caption, 'widget-thumbnail-caption-title', '', array(
+            'post' => 'break'
+        ));
+        new N2ElementOnOff($title, 'widget-thumbnail-title', n2_('Title'), '', array(
+            'relatedFields' => array(
+                'widget-thumbnail-title-font'
+            )
+        ));
+        new N2ElementFont($title, 'widget-thumbnail-title-font', n2_('Font'), '', array(
+            'previewMode' => 'simple',
+            'style'       => 'sliderwidget-thumbnail-title-style',
+            'set'         => 1000,
+            'preview'     => '<span class="{styleClassName} {fontClassName}">Slide title</span>'
+        ));
+
+        $description = new N2ElementGroup($caption, 'widget-thumbnail-caption-description', '', array(
+            'post' => 'break'
+        ));
+        new N2ElementOnOff($description, 'widget-thumbnail-description', n2_('Description'), '', array(
+            'relatedFields' => array(
+                'widget-thumbnail-description-font'
+            )
+        ));
+        new N2ElementFont($description, 'widget-thumbnail-description-font', n2_('Font'), '', array(
+            'previewMode' => 'simple',
+            'style'       => 'sliderwidget-thumbnail-title-style',
+            'set'         => 1000,
+            'preview'     => '<span class="{styleClassName} {fontClassName}">Slide description with long long text...</span>'
+        ));
+
+
+        $captionSettings = new N2ElementGroup($caption, 'widget-thumbnail-caption-settings');
+        new N2ElementRadio($captionSettings, 'widget-thumbnail-caption-placement', n2_('Placement'), '', array(
+            'options' => array(
+                'before'  => n2_('Before'),
+                'overlay' => n2_('Overlay'),
+                'after'   => n2_('After')
+            )
+        ));
+
+        new N2ElementNumber($captionSettings, 'widget-thumbnail-caption-size', n2_('Height (horizontal) or Width (vertical)'), '', array(
+            'style' => 'width:40px;',
+            'unit'  => 'px'
+        ));
     }
 
-    function getPath() {
+    public function getPath() {
         return dirname(__FILE__) . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR;
     }
 
-    static function getPositions(&$params) {
+    public function getPositions(&$params) {
         $positions                       = array();
         $positions['thumbnail-position'] = array(
             self::$key . 'position-',
@@ -72,7 +177,7 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
      *
      * @return string
      */
-    static function render($slider, $id, $params) {
+    public function render($slider, $id, $params) {
         $showImage       = intval($params->get(self::$key . 'show-image'));
         $showTitle       = intval($params->get(self::$key . 'title'));
         $showDescription = intval($params->get(self::$key . 'description'));
@@ -81,22 +186,19 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
             // Nothing to show
             return '';
         }
-        N2JS::addFile(N2Filesystem::translate(dirname(__FILE__) . '/default/thumbnail.min.js'), $id);
+        $slider->features->addInitCallback(N2Filesystem::readFile(N2Filesystem::translate(dirname(__FILE__) . '/default/thumbnail.min.js')));
     
 
-
-        N2LESS::addFile(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'style.n2less'), $slider->cacheId, array(
+        $slider->addLess(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'style.n2less'), array(
             "sliderid" => $slider->elementId
-        ), NEXTEND_SMARTSLIDER_ASSETS . '/less' . NDS);
+        ));
 
         list($displayClass, $displayAttributes) = self::getDisplayAttributes($params, self::$key);
         list($style, $attributes) = self::getPosition($params, self::$key);
         $attributes['data-offset'] = $params->get(self::$key . 'position-offset', 0);
 
-        $barStyle = N2StyleRenderer::render($params->get(self::$key . 'style-bar'), 'simple', $slider->elementId, 'div#' . $slider->elementId . ' ');
-
-
-        $slideStyle = N2StyleRenderer::render($params->get(self::$key . 'style-slides'), 'dot', $slider->elementId, 'div#' . $slider->elementId . ' ');
+        $barStyle   = $slider->addStyle($params->get(self::$key . 'style-bar'), 'simple');
+        $slideStyle = $slider->addStyle($params->get(self::$key . 'style-slides'), 'dot');
 
         $width  = intval($slider->params->get(self::$key . 'width', 160));
         $height = intval($slider->params->get(self::$key . 'height', 100));
@@ -117,24 +219,21 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
         $showCaption = $showTitle || $showDescription;
 
         if ($showCaption) {
-            $captionStyle = N2StyleRenderer::render($params->get(self::$key . 'title-style'), 'simple', $slider->elementId, 'div#' . $slider->elementId . ' ');
+            $captionStyle = $slider->addStyle($params->get(self::$key . 'title-style'), 'simple');
+
             if ($showTitle) {
-                $titleFont = N2FontRenderer::render($params->get(self::$key . 'title-font'), 'simple', $slider->elementId, 'div#' . $slider->elementId . ' ');
+                $titleFont = $slider->addFont($params->get(self::$key . 'title-font'), 'simple');
             }
             if ($showDescription) {
-                $descriptionFont = N2FontRenderer::render($params->get(self::$key . 'description-font'), 'simple', $slider->elementId, 'div#' . $slider->elementId . ' ');
+                $descriptionFont = $slider->addFont($params->get(self::$key . 'description-font'), 'simple');
             }
         }
 
         $group = max(1, intval($params->get(self::$key . 'group')));
 
         $orientation = $params->get(self::$key . 'orientation');
-        if ($params->get(self::$key . 'orientation') == 'auto') {
-            $orientation = self::getOrientationByPosition($params->get(self::$key . 'position-mode'), $params->get(self::$key . 'position-area'), $orientation);
-            if ($orientation == 'auto') {
-                $orientation = 'vertical';
-            }
-        }
+        $orientation = self::getOrientationByPosition($params->get(self::$key . 'position-mode'), $params->get(self::$key . 'position-area'), $orientation, 'vertical');
+
         $captionClass      = 'n2-caption-' . $captionPlacement;
         $captionExtraStyle = '';
         switch ($captionPlacement) {
@@ -145,14 +244,14 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
                         if (!$showImage) {
                             $width = 0;
                         }
-                        $containerStyle = "width: " . ($width + $captionSize) . "px; height: {$height}px;";
+                        $containerStyle    = "width: " . ($width + $captionSize) . "px; height: {$height}px;";
                         $captionExtraStyle .= "width: {$captionSize}px";
                         break;
                     default:
                         if (!$showImage) {
                             $height = 0;
                         }
-                        $containerStyle = "width: {$width}px; height: " . ($height + $captionSize) . "px;";
+                        $containerStyle    = "width: {$width}px; height: " . ($height + $captionSize) . "px;";
                         $captionExtraStyle .= "height: {$captionSize}px";
                 }
                 break;
@@ -220,7 +319,7 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
                 if ($showDescription && !empty($description)) {
                     $html .= N2Html::tag('div', array(
                         'class' => $descriptionFont . ' n2-ow'
-                    ), $description);
+                    ), N2SmartSlider::addCMSFunctions(N2Translation::_($description)));
                 }
 
                 $inner = N2Html::tag('div', array(
@@ -256,7 +355,7 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
             'invertGroupDirection'  => intval($params->get('widget-thumbnail-invert-group-direction', 0))
         );
 
-        N2JS::addInline('new N2Classes.SmartSliderWidgetThumbnailDefault("' . $id . '", ' . json_encode($parameters) . ');');
+        $slider->features->addInitCallback('new N2Classes.SmartSliderWidgetThumbnailDefault(this, ' . json_encode($parameters) . ');');
 
         $size = $params->get(self::$key . 'size');
         if ($orientation == 'horizontal') {
@@ -307,7 +406,7 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
             ), $slides)));
     }
 
-    public static function prepareExport($export, $params) {
+    public function prepareExport($export, $params) {
 
         $export->addVisual($params->get(self::$key . 'style-bar'));
         $export->addVisual($params->get(self::$key . 'style-slides'));
@@ -317,7 +416,7 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
         $export->addVisual($params->get(self::$key . 'description-font'));
     }
 
-    public static function prepareImport($import, $params) {
+    public function prepareImport($import, $params) {
 
         $params->set(self::$key . 'style-bar', $import->fixSection($params->get(self::$key . 'style-bar', '')));
         $params->set(self::$key . 'style-slides', $import->fixSection($params->get(self::$key . 'style-slides', '')));
@@ -328,4 +427,4 @@ class N2SSPluginWidgetThumbnailDefault extends N2SSPluginWidgetAbstract {
     }
 }
 
-N2Plugin::addPlugin('sswidgetthumbnail', 'N2SSPluginWidgetThumbnailDefault');
+N2SmartSliderWidgets::addWidget('thumbnail', new N2SSPluginWidgetThumbnailDefault);

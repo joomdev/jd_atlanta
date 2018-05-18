@@ -1,7 +1,6 @@
 <?php
 
-class N2StyleStorage
-{
+class N2StyleStorage {
 
     private static $sets = array();
 

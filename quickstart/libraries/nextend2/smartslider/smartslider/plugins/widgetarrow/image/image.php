@@ -6,9 +6,9 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
 
     private static $key = 'widget-arrow-';
 
-    var $_name = 'image';
+    protected $name = 'image';
 
-    static function getDefaults() {
+    public function getDefaults() {
         return array(
             'widget-arrow-responsive-desktop'       => 1,
             'widget-arrow-responsive-tablet'        => 0.7,
@@ -31,20 +31,51 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
             'widget-arrow-next'                     => '$ss$/plugins/widgetarrow/image/image/next/normal.svg',
             'widget-arrow-next-color'               => 'ffffffcc',
             'widget-arrow-next-hover'               => 0,
-            'widget-arrow-next-hover-color'         => 'ffffffcc'
+            'widget-arrow-next-hover-color'         => 'ffffffcc',
+            'widget-arrow-previous-alt'             => 'previous arrow',
+            'widget-arrow-next-alt'                 => 'next arrow'
         );
     }
 
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'widget-arrow');
 
-    function onArrowList(&$list) {
-        $list[$this->_name] = $this->getPath();
+        $previous = new N2ElementGroup($settings, 'arrow-previous', n2_('Previous'));
+        new N2ElementImageListFromFolder($previous, 'widget-arrow-previous', n2_('Shape'), '', array(
+            'folder' => N2Filesystem::translate($this->getPath() . 'previous/'),
+            'post'   => 'break'
+        ));
+        new N2ElementColor($previous, 'widget-arrow-previous-color', n2_('Color'), '', array(
+            'alpha' => true
+        ));
+        new N2ElementOnOff($previous, 'widget-arrow-previous-hover', n2_('Hover'), 0, array(
+            'relatedFields' => array(
+                'widget-arrow-previous-hover-color'
+            )
+        ));
+        new N2ElementColor($previous, 'widget-arrow-previous-hover-color', n2_('Hover color'), '', array(
+            'alpha' => true
+        ));
+
+        new N2ElementStyle($settings, 'widget-arrow-style', n2_('Style'), '', array(
+            'set'         => 1900,
+            'previewMode' => 'button',
+            'preview'     => '<div><div class="{styleClassName}" style="display: inline-block;"><img style="display: block;" src="{nextend.imageHelper.fixed($(\'#sliderwidget-arrow-previous-image\').val() || N2Color.colorizeSVG($(\'[data-image="\'+$(\'#sliderwidget-arrow-previous\').val()+\'"]\').attr(\'src\'), $(\'#sliderwidget-arrow-previous-color\').val()));}" /></div></div>'
+        ));
+
+        new N2ElementWidgetPosition($settings, 'widget-arrow-previous-position', n2_('Previous position'));
+        new N2ElementWidgetPosition($settings, 'widget-arrow-next-position', n2_('Next position'));
+
+        $alt_group = new N2ElementGroup($settings, 'widget-arrow-alt', n2_('Alt tags'));
+        new N2ElementText($alt_group, 'widget-arrow-previous-alt', n2_('Previous arrow'), 'previous arrow');
+        new N2ElementText($alt_group, 'widget-arrow-next-alt', n2_('Next arrow'), 'next arrow');
     }
 
-    function getPath() {
+    public function getPath() {
         return dirname(__FILE__) . DIRECTORY_SEPARATOR . 'image' . DIRECTORY_SEPARATOR;
     }
 
-    static function getPositions(&$params) {
+    public function getPositions(&$params) {
         $positions = array();
 
         if (self::isRenderable('previous', $params)) {
@@ -76,7 +107,10 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
         return !!$arrow;
     }
 
-    static function render($slider, $id, $params) {
+    public function render($slider, $id, $params) {
+        if (count($slider->slides) <= 1) {
+            return '';
+        }
         $return = array();
 
         $previous           = $params->get(self::$key . 'previous-image');
@@ -114,10 +148,10 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
         }
         if ($previous || $next) {
 
-            N2LESS::addFile(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'image' . DIRECTORY_SEPARATOR . 'style.n2less'), $slider->cacheId, array(
+            $slider->addLess(N2Filesystem::translate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'image' . DIRECTORY_SEPARATOR . 'style.n2less'), array(
                 "sliderid" => $slider->elementId
-            ), NEXTEND_SMARTSLIDER_ASSETS . '/less' . NDS);
-            N2JS::addFile(N2Filesystem::translate(dirname(__FILE__) . '/image/arrow.min.js'), $id);
+            ));
+            $slider->features->addInitCallback(N2Filesystem::readFile(N2Filesystem::translate(dirname(__FILE__) . '/image/arrow.min.js')));
         
 
             list($displayClass, $displayAttributes) = self::getDisplayAttributes($params, self::$key);
@@ -125,9 +159,9 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
             $animation = $params->get(self::$key . 'animation');
 
             if ($animation == 'none' || $animation == 'fade') {
-                $styleClass = N2StyleRenderer::render($params->get(self::$key . 'style'), 'heading', $slider->elementId, 'div#' . $slider->elementId . ' ');
+                $styleClass = $slider->addStyle($params->get(self::$key . 'style'), 'heading');
             } else {
-                $styleClass = N2StyleRenderer::render($params->get(self::$key . 'style'), 'heading-active', $slider->elementId, 'div#' . $slider->elementId . ' ');
+                $styleClass = $slider->addStyle($params->get(self::$key . 'style'), 'heading-active');
             }
 
             if ($previous) {
@@ -138,7 +172,7 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
                 $return['next'] = self::getHTML($id, $params, $animation, 'next', $next, $displayClass, $displayAttributes, $styleClass, $nextColor, $nextHover, $nextHoverColor);
             }
 
-            N2JS::addInline('new N2Classes.SmartSliderWidgetArrowImage("' . $id . '", ' . n2_floatval($params->get(self::$key . 'responsive-desktop')) . ', ' . n2_floatval($params->get(self::$key . 'responsive-tablet')) . ', ' . n2_floatval($params->get(self::$key . 'responsive-mobile')) . ');');
+            $slider->features->addInitCallback('new N2Classes.SmartSliderWidgetArrowImage(this, ' . n2_floatval($params->get(self::$key . 'responsive-desktop')) . ', ' . n2_floatval($params->get(self::$key . 'responsive-tablet')) . ', ' . n2_floatval($params->get(self::$key . 'responsive-mobile')) . ');');
         }
 
         return $return;
@@ -177,18 +211,20 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
             $image = N2ImageHelper::fixed($image);
         }
 
+        $alt = $params->get(self::$key . $side . '-alt',  $side . ' arrow');
+
         if ($imageHover === null) {
-            $image = N2Html::image($image, 'Arrow', array(
+            $image = N2Html::image($image, $alt, array(
                 'class'        => 'n2-ow',
                 'data-no-lazy' => '1',
                 'data-hack'    => 'data-lazy-src'
             ));
         } else {
-            $image = N2Html::image($image, 'Arrow', array(
+            $image = N2Html::image($image, $alt, array(
                     'class'        => 'n2-arrow-normal-img n2-ow',
                     'data-no-lazy' => '1',
                     'data-hack'    => 'data-lazy-src'
-                )) . N2Html::image($imageHover, 'Arrow', array(
+                )) . N2Html::image($imageHover, $alt, array(
                     'class'        => 'n2-arrow-hover-img n2-ow',
                     'data-no-lazy' => '1',
                     'data-hack'    => 'data-lazy-src'
@@ -208,8 +244,8 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
         if ($animation == 'none' || $animation == 'fade') {
             return N2Html::tag('div', $displayAttributes + $attributes + array(
                     'id'         => $id . '-arrow-' . $side,
-                    'class'      => $displayClass . $styleClass . 'nextend-arrow n2-ow nextend-arrow-' . $side . '  nextend-arrow-animated-' . $animation . ' ' . ($isNormalFlow ? '' : 'n2-ib'),
-                    'style'      => $style . ($isNormalFlow ? 'margin-left:auto;margin-right:auto;' : ''),
+                    'class'      => $displayClass . $styleClass . 'nextend-arrow n2-ib n2-ow nextend-arrow-' . $side . '  nextend-arrow-animated-' . $animation,
+                    'style'      => $style,
                     'role'       => 'button',
                     'aria-label' => $label,
                     'tabindex'   => '0'
@@ -219,8 +255,8 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
 
         return N2Html::tag('div', $displayAttributes + $attributes + array(
                 'id'         => $id . '-arrow-' . $side,
-                'class'      => $displayClass . 'nextend-arrow nextend-arrow-animated n2-ow nextend-arrow-animated-' . $animation . ' nextend-arrow-' . $side . ' ' . ($isNormalFlow ? '' : 'n2-ib'),
-                'style'      => $style . ($isNormalFlow ? 'margin-left:auto;margin-right:auto;' : ''),
+                'class'      => $displayClass . 'nextend-arrow n2-ib nextend-arrow-animated n2-ow nextend-arrow-animated-' . $animation . ' nextend-arrow-' . $side,
+                'style'      => $style,
                 'role'       => 'button',
                 'aria-label' => $label,
                 'tabindex'   => '0'
@@ -231,14 +267,14 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
             ), $image));
     }
 
-    public static function prepareExport($export, $params) {
+    public function prepareExport($export, $params) {
         $export->addImage($params->get(self::$key . 'previous-image', ''));
         $export->addImage($params->get(self::$key . 'next-image', ''));
 
         $export->addVisual($params->get(self::$key . 'style'));
     }
 
-    public static function prepareImport($import, $params) {
+    public function prepareImport($import, $params) {
 
         $params->set(self::$key . 'previous-image', $import->fixImage($params->get(self::$key . 'previous-image', '')));
         $params->set(self::$key . 'next-image', $import->fixImage($params->get(self::$key . 'next-image', '')));
@@ -250,10 +286,10 @@ class N2SSPluginWidgetArrowImage extends N2SSPluginWidgetAbstract {
 
 class N2SSPluginWidgetArrowImageSmallRectangle extends N2SSPluginWidgetArrowImage {
 
-    var $_name = 'imageSmallRectangle';
+    protected $name = 'imageSmallRectangle';
 
-    static function getDefaults() {
-        return array_merge(N2SSPluginWidgetArrowImage::getDefaults(), array(
+    public function getDefaults() {
+        return array_merge(parent::getDefaults(), array(
             'widget-arrow-responsive-desktop' => 0.8,
             'widget-arrow-previous'           => '$ss$/plugins/widgetarrow/image/image/previous/full.svg',
             'widget-arrow-next'               => '$ss$/plugins/widgetarrow/image/image/next/full.svg',
@@ -262,15 +298,15 @@ class N2SSPluginWidgetArrowImageSmallRectangle extends N2SSPluginWidgetArrowImag
     }
 }
 
-N2Plugin::addPlugin('sswidgetarrow', 'N2SSPluginWidgetArrowImageSmallRectangle');
+N2SmartSliderWidgets::addWidget('arrow', new N2SSPluginWidgetArrowImageSmallRectangle);
 
 
 class N2SSPluginWidgetArrowImageEmpty extends N2SSPluginWidgetArrowImage {
 
-    var $_name = 'imageEmpty';
+    protected $name = 'imageEmpty';
 
-    static function getDefaults() {
-        return array_merge(N2SSPluginWidgetArrowImage::getDefaults(), array(
+    public function getDefaults() {
+        return array_merge(parent::getDefaults(), array(
             'widget-arrow-previous' => '$ss$/plugins/widgetarrow/image/image/previous/thin-horizontal.svg',
             'widget-arrow-next'     => '$ss$/plugins/widgetarrow/image/image/next/thin-horizontal.svg',
             'widget-arrow-style'    => ''
@@ -278,5 +314,5 @@ class N2SSPluginWidgetArrowImageEmpty extends N2SSPluginWidgetArrowImage {
     }
 }
 
-N2Plugin::addPlugin('sswidgetarrow', 'N2SSPluginWidgetArrowImageEmpty');
+N2SmartSliderWidgets::addWidget('arrow', new N2SSPluginWidgetArrowImageEmpty);
 

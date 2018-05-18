@@ -12,6 +12,10 @@ class N2CacheStorageDatabase extends N2CacheStorage {
         $this->db = new  N2StorageSection('cache');
     }
 
+    public function clearAll($scope = 'notweb') {
+
+    }
+
     public function clear($group, $scope = 'notweb') {
 
         $this->db->delete($scope . '/' . $group);

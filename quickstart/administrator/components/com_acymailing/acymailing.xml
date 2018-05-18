@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="3.0" method="upgrade">
 	<name>AcyMailing</name>
-	<creationDate>septembre 2017</creationDate>
-	<version>5.8.1</version>
+	<creationDate>April 2018</creationDate>
+	<version>5.9.6</version>
 	<level>starter</level>
 	<author>Acyba</author>
 	<authorEmail>dev@acyba.com</authorEmail>
 	<authorUrl>http://www.acyba.com</authorUrl>
-	<copyright>Copyright (C) 2009-2017 ACYBA SAS - All rights reserved.</copyright>
+	<copyright>Copyright (C) 2009-2018 ACYBA SAS - All rights reserved.</copyright>
 	<description>Manage your Mailing lists, Newsletters, e-mail marketing campaigns</description>
 	<license>GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html</license>
 	<languages folder="language">
@@ -21,7 +21,7 @@
 			<file driver="mysqli" charset="utf8">tables.sql</file>
 		</sql>
 	</install>
-	<scriptfile>install.acymailing.php</scriptfile>
+	<scriptfile>install.joomla.php</scriptfile>
 	<files folder="front">
 		<folder>controllers</folder>
 		<folder>inc</folder>

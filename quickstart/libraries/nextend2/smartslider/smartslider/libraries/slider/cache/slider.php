@@ -4,12 +4,18 @@ class N2CacheManifestSlider extends N2CacheManifest {
 
     private $parameters = array();
 
+    protected $_storageEngine = 'database';
+
     private $isExtended = false;
 
     public function __construct($cacheId, $parameters = array()) {
         parent::__construct($cacheId, false);
         $this->parameters = $parameters;
 
+    }
+
+    protected function decode($data) {
+        return json_decode($data, true);
     }
 
     public function makeCache($fileName, $hash, $callable) {
@@ -69,13 +75,10 @@ class N2CacheManifestSlider extends N2CacheManifest {
 
             foreach ($generators AS $generator) {
                 list($group, $type, $params) = $generator;
-                $info = $generatorModel->getGeneratorInfo($group, $type);
-
-                require_once($info->path . '/generator.php');
-                $class = 'N2Generator' . $group . $type;
 
                 $fileName .= call_user_func_array(array(
-                    $class,
+                    $generatorModel->getGeneratorGroup($group)
+                                   ->getSource($type),
                     'cacheKey'
                 ), $params);
             }

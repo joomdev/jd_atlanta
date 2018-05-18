@@ -6,9 +6,9 @@ class N2SmartSliderApplication extends N2Application {
     public $name = "smartslider";
 
     protected function autoload() {
+        N2Loader::importAll('libraries.plugins', 'smartslider');
         N2Loader::import("libraries.slider.helper", "smartslider");
         N2Loader::import("libraries.slider.manager", "smartslider");
-        N2Form::$importPaths[] = dirname(__FILE__) . '/form';
 
         N2Filesystem::registerTranslate(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'plugins', $this->info->getAssetsPath() . '/plugins');
         require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . 'loadplugin.php';

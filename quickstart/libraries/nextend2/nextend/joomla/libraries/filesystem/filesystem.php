@@ -6,36 +6,33 @@ jimport('joomla.filesystem.folder');
 /**
  * Class N2Filesystem
  */
-class N2Filesystem extends N2FilesystemAbstract
-{
+class N2Filesystem extends N2FilesystemAbstract {
 
     public function __construct() {
-        $this->_basepath    = realpath(JPATH_SITE == '' ? NDS : JPATH_SITE . NDS);
-        if($this->_basepath == NDS){
+        $this->_basepath = realpath(JPATH_SITE == '' ? NDS : JPATH_SITE . NDS);
+        if ($this->_basepath == NDS) {
             $this->_basepath = '';
         }
         $this->_cachepath   = realpath(JPATH_CACHE);
         $this->_librarypath = str_replace($this->_basepath, '', N2LIBRARY);
-        
+
         self::measurePermission($this->_basepath . '/media/');
     }
 
     public static function getWebCachePath() {
-        $i = N2Filesystem::getInstance();
-        self::check($i->_basepath . '/media', 'nextend');
-        return $i->_basepath . '/media/nextend';
+        return self::getBasePath() . '/media/nextend';
     }
 
     public static function getNotWebCachePath() {
-        self::check(JPATH_CACHE, 'nextend');
         return JPATH_CACHE . '/nextend';
     }
 
     public static function getImagesFolder() {
         $i = N2Filesystem::getInstance();
-        if(defined('JPATH_NEXTEND_IMAGES')){
+        if (defined('JPATH_NEXTEND_IMAGES')) {
             return $i->_basepath . JPATH_NEXTEND_IMAGES;
         }
+
         return $i->_basepath . '/images';
     }
 

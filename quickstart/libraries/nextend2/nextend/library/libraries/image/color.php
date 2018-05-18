@@ -23,6 +23,7 @@ class N2Color {
 
     static function colorToRGBA($value) {
         $rgba = self::hex2rgba($value);
+
         return 'RGBA(' . $rgba[0] . ',' . $rgba[1] . ',' . $rgba[2] . ',' . round($rgba[3] / 127, 2) . ')';
     }
 
@@ -39,6 +40,7 @@ class N2Color {
 
     static function colorToSVG($value) {
         $rgba = self::hex2rgba($value);
+
         return array(
             substr($value, 0, 6),
             round($rgba[3] / 127, 2)
@@ -73,6 +75,7 @@ class N2Color {
         $r = hexdec(substr($hex, 0, 2));
         $g = hexdec(substr($hex, 2, 2));
         $b = hexdec(substr($hex, 4, 2));
+
         return array(
             $r,
             $g,
@@ -99,6 +102,7 @@ class N2Color {
         $g = hexdec(substr($hex, 2, 2));
         $b = hexdec(substr($hex, 4, 2));
         $a = intval(hexdec(substr($hex, 6, 2)) / 2);
+
         return array(
             $r,
             $g,
@@ -120,6 +124,7 @@ class N2Color {
         if (strlen($hex) != 8) {
             return false;
         }
+
         return array(
             substr($hex, 0, 6),
             substr($hex, 6, 2)
@@ -176,6 +181,7 @@ class N2Color {
         $r = 0x10000 * max(0, min(255, $r));
         $g = 0x100 * max(0, min(255, $g));
         $b = max(0, min(255, $b));
+
         return strtoupper(str_pad(dechex($r + $g + $b), 6, 0, STR_PAD_LEFT));
     }
 
@@ -302,6 +308,7 @@ class N2Color {
                 $H -= 1;
             }
         }
+
         return array(
             $H,
             $S,
@@ -393,6 +400,7 @@ class N2Color {
             $G = $var_g * 255;
             $B = $var_b * 255;
         }
+
         return array(
             $R,
             $G,
@@ -460,6 +468,7 @@ class N2Color {
             $G     = 255 * self::_hue2rgb($var_1, $var_2, $H);
             $B     = 255 * self::_hue2rgb($var_1, $var_2, $H - (1 / 3));
         }
+
         return array(
             $R,
             $G,
@@ -497,6 +506,7 @@ class N2Color {
         if ((3 * $vH) < 2) {
             return ($v1 + ($v2 - $v1) * ((2 / 3) - $vH) * 6);
         }
+
         return $v1;
     }
 
@@ -541,6 +551,7 @@ class N2Color {
         if (isset($values[2])) {
             $hsv[2] = max(0, min(1, ($hsv[2] * ($values[2] / 100))));
         }
+
         return $hsv;
     }
 
@@ -571,6 +582,7 @@ class N2Color {
         if (isset($values[2])) {
             $hsl[2] = max(0, min(1, ($hsl[2] * ($values[2] / 100))));
         }
+
         return $hsl;
     }
 

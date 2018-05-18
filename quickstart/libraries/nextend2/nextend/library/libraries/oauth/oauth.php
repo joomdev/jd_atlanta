@@ -1024,25 +1024,29 @@ class N2OAuth {
     Function SetError($error) {
         $this->error = $error;
         if ($this->debug) $this->OutputDebug('Error: ' . $error);
+
         return (false);
     }
 
     Function SetPHPError($error, &$php_error_message) {
         if (IsSet($php_error_message) && strlen($php_error_message)) $error .= ": " . $php_error_message;
+
         return ($this->SetError($error));
     }
 
     Function OutputDebug($message) {
         if ($this->debug) {
             $message = $this->debug_prefix . $message;
-            $this->debug_output .= $message . "\n";;
+            $this->debug_output .= $message . "\n";
             error_log($message);
         }
+
         return (true);
     }
 
     Function GetRequestTokenURL(&$request_token_url) {
         $request_token_url = $this->request_token_url;
+
         return (true);
     }
 
@@ -1050,11 +1054,13 @@ class N2OAuth {
         $url = (($this->offline && strlen($this->offline_dialog_url)) ? $this->offline_dialog_url : (($redirect_uri === 'oob' && strlen($this->pin_dialog_url)) ? $this->pin_dialog_url : $this->dialog_url));
         if (strlen($url) === 0) return $this->SetError('the dialog URL ' . ($this->offline ? 'for offline access ' : '') . 'is not defined for this server');
         $url = str_replace('{REDIRECT_URI}', UrlEncode($redirect_uri), str_replace('{STATE}', UrlEncode($state), str_replace('{CLIENT_ID}', UrlEncode($this->client_id), str_replace('{API_KEY}', UrlEncode($this->api_key), str_replace('{SCOPE}', UrlEncode($this->scope), str_replace('{REALM}', UrlEncode($this->realm), $url))))));
+
         return (true);
     }
 
     Function GetAccessTokenURL(&$access_token_url) {
         $access_token_url = str_replace('{API_KEY}', $this->api_key, $this->access_token_url);
+
         return (true);
     }
 
@@ -1063,39 +1069,46 @@ class N2OAuth {
         if (session_id() === '' && !session_start()) return ($this->SetPHPError('it was not possible to start the PHP session', $php_errormsg));
         if (IsSet($_SESSION['OAUTH_STATE'])) $state = $_SESSION['OAUTH_STATE']; else
             $state = $_SESSION['OAUTH_STATE'] = time() . '-' . substr(md5(rand() . time()), 0, 6);
+
         return (true);
     }
 
     Function GetRequestState(&$state) {
         $check = (strlen($this->append_state_to_redirect_uri) ? $this->append_state_to_redirect_uri : 'state');
         $state = (IsSet($_GET[$check]) ? $_GET[$check] : null);
+
         return (true);
     }
 
     Function GetRequestCode(&$code) {
         $code = (IsSet($_GET['code']) ? $_GET['code'] : null);
+
         return (true);
     }
 
     Function GetRequestError(&$error) {
         $error = (IsSet($_GET['error']) ? $_GET['error'] : null);
+
         return (true);
     }
 
     Function GetRequestDenied(&$denied) {
         $denied = (IsSet($_GET['denied']) ? $_GET['denied'] : null);
+
         return (true);
     }
 
     Function GetRequestToken(&$token, &$verifier) {
         $token    = (IsSet($_GET['oauth_token']) ? $_GET['oauth_token'] : null);
         $verifier = (IsSet($_GET['oauth_verifier']) ? $_GET['oauth_verifier'] : null);
+
         return (true);
     }
 
     Function GetRedirectURI(&$redirect_uri) {
         if (strlen($this->redirect_uri)) $redirect_uri = $this->redirect_uri; else
             $redirect_uri = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+
         return true;
     }
 
@@ -1182,6 +1195,7 @@ class N2OAuth {
         if (session_id() === '' && !session_start()) return ($this->SetPHPError('it was not possible to start the PHP session', $php_errormsg));
         if (!$this->GetAccessTokenURL($access_token_url)) return false;
         $_SESSION['OAUTH_ACCESS_TOKEN'][$access_token_url] = $access_token;
+
         return true;
     }
     /*
@@ -1232,6 +1246,7 @@ class N2OAuth {
         if (!$this->GetAccessTokenURL($access_token_url)) return false;
         if (IsSet($_SESSION['OAUTH_ACCESS_TOKEN'][$access_token_url])) $access_token = $_SESSION['OAUTH_ACCESS_TOKEN'][$access_token_url]; else
             $access_token = array();
+
         return true;
     }
     /*
@@ -1276,6 +1291,7 @@ class N2OAuth {
         if (session_id() === '' && !session_start()) return ($this->SetPHPError('it was not possible to start the PHP session', $php_errormsg));
         Unset($_SESSION['OAUTH_ACCESS_TOKEN'][$access_token_url]);
         UnSet($_SESSION['OAUTH_STATE']);
+
         return true;
     }
 
@@ -1292,6 +1308,7 @@ class N2OAuth {
 
     Function EncodeArray($array) {
         foreach ($array as $key => $value) $array[$key] = $this->Encode($value);
+
         return $array;
     }
 
@@ -1302,10 +1319,12 @@ class N2OAuth {
                 break;
             default:
                 if ($this->debug) $this->OutputDebug($function . ' is not a supported an HMAC hash type');
+
                 return ('');
         }
         if (strlen($key) > 64) $key = pack($pack, $function($key));
         if (strlen($key) < 64) $key = str_pad($key, 64, "\0");
+
         return (pack($pack, $function((str_repeat("\x5c", 64) ^ $key) . pack($pack, $function((str_repeat("\x36", 64) ^ $key) . $data)))));
     }
 
@@ -1374,6 +1393,7 @@ class N2OAuth {
             } else
                 $post_values = $values;
         }
+
         return true;
     }
 
@@ -1490,6 +1510,7 @@ class N2OAuth {
         if (IsSet($options['RequestHeaders'])) $arguments['Headers'] = array_merge($arguments['Headers'], $options['RequestHeaders']);
         if (strlen($error = $http->SendRequest($arguments)) || strlen($error = $http->ReadReplyHeaders($headers))) {
             $http->Close();
+
             return ($this->SetError('it was not possible to retrieve the ' . $options['Resource'] . ': ' . $error));
         }
         $error = $http->ReadWholeReplyBody($data);
@@ -1552,9 +1573,11 @@ class N2OAuth {
             if ($this->debug) $this->OutputDebug('Could not retrieve the OAuth access token. Error: ' . $this->access_token_error);
             if (IsSet($options['FailOnAccessError']) && $options['FailOnAccessError']) {
                 $this->error = $this->access_token_error;
+
                 return false;
             }
         }
+
         return true;
     }
 
@@ -1570,15 +1593,18 @@ class N2OAuth {
                 break;
             default:
                 $this->error = $method . ' is not a supported method to request tokens';
+
                 return false;
         }
         if (!$this->SendAPIRequest($url, $method, array(), $oauth, $options, $response)) return false;
         if (strlen($this->access_token_error)) {
             $this->authorization_error = $this->access_token_error;
+
             return true;
         }
         if (!IsSet($response['oauth_token']) || !IsSet($response['oauth_token_secret'])) {
             $this->authorization_error = 'it was not returned the access token and secret';
+
             return true;
         }
         $access_token = array(
@@ -1601,6 +1627,7 @@ class N2OAuth {
             $access_token['refresh'] = $response['oauth_session_handle'];
             if ($this->debug) $this->OutputDebug('Refresh token: ' . $access_token['refresh']);
         }
+
         return $this->StoreAccessToken($access_token);
     }
 
@@ -1668,13 +1695,16 @@ class N2OAuth {
         if (!$this->SendAPIRequest($access_token_url, 'POST', $values, null, $options, $response)) return false;
         if (strlen($this->access_token_error)) {
             $this->authorization_error = $this->access_token_error;
+
             return true;
         }
         if (!IsSet($response['access_token'])) {
             if (IsSet($response['error'])) {
                 $this->authorization_error = 'it was not possible to retrieve the access token: it was returned the error: ' . $response['error'];
+
                 return true;
             }
+
             return ($this->SetError('OAuth server did not return the access token'));
         }
         $access_token = array(
@@ -1710,6 +1740,7 @@ class N2OAuth {
             if ($this->debug) $this->OutputDebug('Reusing previous refresh token: ' . $this->refresh_token);
             $access_token['refresh'] = $this->refresh_token;
         }
+
         return $this->StoreAccessToken($access_token);
     }
 
@@ -1740,6 +1771,7 @@ class N2OAuth {
             $this->access_token_response = (($this->store_access_token_response && IsSet($access_token['response'])) ? $access_token['response'] : null);
             $valid                       = true;
         }
+
         return true;
     }
 
@@ -1916,6 +1948,7 @@ class N2OAuth {
                     if (!$this->ProcessToken1($oauth, $access_token)) return false;
                     if (IsSet($options['FailOnAccessError']) && $options['FailOnAccessError'] && strlen($this->authorization_error)) {
                         $this->error = $this->authorization_error;
+
                         return false;
                     }
                     if (!IsSet($access_token['authorized']) || !$access_token['authorized']) return ($this->SetError('failed to obtain a renewed the expired access token'));
@@ -1934,6 +1967,7 @@ class N2OAuth {
                     if (!$this->ProcessToken2(null, true)) return false;
                     if (IsSet($options['FailOnAccessError']) && $options['FailOnAccessError'] && strlen($this->authorization_error)) {
                         $this->error = $this->authorization_error;
+
                         return false;
                     }
                 }
@@ -1944,6 +1978,7 @@ class N2OAuth {
             default:
                 return ($this->SetError($this->oauth_version . ' is not a supported version of the OAuth protocol'));
         }
+
         return ($this->SendAPIRequest($url, $method, $parameters, $oauth, $options, $response));
     }
     /*
@@ -2037,6 +2072,7 @@ class N2OAuth {
             default:
                 if (!($json = @file_get_contents($this->configuration_file))) {
                     if (!file_exists($this->configuration_file)) return $this->SetError('the OAuth server configuration file ' . $this->configuration_file . ' does not exist');
+
                     return $this->SetPHPError('could not read the OAuth server configuration file ' . $this->configuration_file, $php_errormsg);
                 }
                 $oauth_server = json_decode($json);
@@ -2085,6 +2121,7 @@ class N2OAuth {
                 }
                 break;
         }
+
         return (true);
     }
     /*
@@ -2127,6 +2164,7 @@ class N2OAuth {
         $redirect_url = null;
         if (strlen($this->access_token) || strlen($this->access_token_secret)) {
             if ($this->debug) $this->OutputDebug('The Process function should not be called again if the OAuth token was already set manually');
+
             return $this->SetError('the OAuth token was already set');
         }
         switch (intval($this->oauth_version)) {
@@ -2159,6 +2197,7 @@ class N2OAuth {
                                 if (IsSet($denied) && $denied === $access_token['value']) {
                                     if ($this->debug) $this->OutputDebug('The authorization request was denied');
                                     $this->authorization_error = 'the request was denied';
+
                                     return true;
                                 } else {
                                     if ($this->debug) $this->OutputDebug('Reset the OAuth token state because token and verifier are not both set');
@@ -2182,6 +2221,7 @@ class N2OAuth {
                         $this->access_token        = $access_token['value'];
                         $this->access_token_secret = $access_token['secret'];
                         if (IsSet($access_token['refresh'])) $this->refresh_token = $access_token['refresh'];
+
                         return true;
                     }
                 } else {
@@ -2214,10 +2254,12 @@ class N2OAuth {
                     if (!$this->SendAPIRequest($url, $method, array(), $oauth, $options, $response)) return false;
                     if (strlen($this->access_token_error)) {
                         $this->authorization_error = $this->access_token_error;
+
                         return true;
                     }
                     if (!IsSet($response['oauth_token']) || !IsSet($response['oauth_token_secret'])) {
                         $this->authorization_error = 'it was not returned the requested token';
+
                         return true;
                     }
                     $access_token = array(
@@ -2241,6 +2283,7 @@ class N2OAuth {
                 }
                 if ($this->debug) $this->OutputDebug('Redirecting to OAuth authorize page ' . $url);
                 $redirect_url = $url;
+
                 return true;
 
             case 2:
@@ -2260,17 +2303,20 @@ class N2OAuth {
                             if ($this->debug) $this->OutputDebug('Getting the access token using the pin');
                             if (!$this->ProcessToken2(null, false)) return false;
                             if (strlen($this->authorization_error)) return $this->SetError($this->authorization_error);
+
                             return true;
                         } elseif (strlen($this->oauth_username) === 0) break;
                     case 'password':
                         if ($this->debug) $this->OutputDebug('Getting the access token using the username and password');
                         if (!$this->ProcessToken2(null, false)) return false;
                         if (strlen($this->authorization_error)) return $this->SetError($this->authorization_error);
+
                         return true;
                     case 'client_credentials':
                         if ($this->debug) $this->OutputDebug('Getting the access token using the client credentials');
                         if (!$this->ProcessToken2(null, false)) return false;
                         if (strlen($this->authorization_error)) return $this->SetError($this->authorization_error);
+
                         return true;
                     default:
                         return $this->SetError($this->grant_type . ' is not yet a supported OAuth 2 grant type');
@@ -2300,6 +2346,7 @@ class N2OAuth {
                                     return ($this->SetError('it was returned an unknown OAuth error code'));
                             }
                         }
+
                         return ($this->SetError('it was not returned the OAuth dialog code'));
                     }
                     if (!$this->ProcessToken2($code, false)) return false;
@@ -2317,6 +2364,7 @@ class N2OAuth {
             default:
                 return ($this->SetError($this->oauth_version . ' is not a supported version of the OAuth protocol'));
         }
+
         return (true);
     }
     /*
@@ -2349,6 +2397,7 @@ class N2OAuth {
             $this->Redirect($redirect_url);
             $this->exit = true;
         }
+
         return true;
     }
 

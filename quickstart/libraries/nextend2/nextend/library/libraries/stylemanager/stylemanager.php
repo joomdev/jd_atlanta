@@ -1,7 +1,6 @@
 <?php
 
-class N2StyleManager
-{
+class N2StyleManager {
 
     public static function init() {
         static $inited = false;
@@ -13,11 +12,13 @@ class N2StyleManager
     }
 
     public static function load() {
-        N2Base::getApplication('system')->getApplicationType('backend')->run(array(
-            'useRequest' => false,
-            'controller' => 'style',
-            'action'     => 'index'
-        ));
+        N2Base::getApplication('system')
+              ->getApplicationType('backend')
+              ->run(array(
+                  'useRequest' => false,
+                  'controller' => 'style',
+                  'action'     => 'index'
+              ));
     }
 }
 

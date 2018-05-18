@@ -2,24 +2,23 @@
 
 N2Loader::import('libraries.form.tab');
 
-class N2TabNaked extends N2Tab
-{
+class N2TabNaked extends N2Tab {
 
-    function decorateGroupStart() {
-
-    }
-
-    function decorateGroupEnd() {
+    protected function decorateGroupStart() {
 
     }
 
-    function decorateTitle() {
+    protected function decorateGroupEnd() {
 
     }
 
-    function decorateElement(&$el, $out, $i) {
+    protected function decorateTitle() {
 
-        echo $out[1];
+    }
+
+    protected function decorateElement($el, $renderedElement) {
+
+        echo $renderedElement[1];
     }
 
 }

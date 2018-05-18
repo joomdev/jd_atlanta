@@ -1,6 +1,6 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.itemFactory', 'smartslider');
+N2Loader::import('libraries.renderable.layers.itemFactory', 'smartslider');
 
 class N2SSItemHeading extends N2SSItemAbstract {
 
@@ -15,13 +15,12 @@ class N2SSItemHeading extends N2SSItemAbstract {
     }
 
     private function getHtml() {
-        $slide  = $this->layer->getSlide();
-        $slider = $slide->getSlider();
+        $owner = $this->layer->getOwner();
 
         $attributes = array();
+        $font = $owner->addFont($this->data->get('font'), 'hover', 'div#' . $owner->getElementID() . ' .n2-ss-layer ');
 
-        $font  = N2FontRenderer::render($this->data->get('font'), 'hover', $slider->elementId, 'div#' . $slider->elementId . ' .n2-ss-layer ', $slider->fontSize);
-        $style = N2StyleRenderer::render($this->data->get('style'), 'heading', $slider->elementId, 'div#' . $slider->elementId . ' ');
+        $style = $owner->addStyle($this->data->get('style'), 'heading');
 
         $linkAttributes = array(
             'class' => 'n2-ow'
@@ -49,7 +48,7 @@ class N2SSItemHeading extends N2SSItemAbstract {
                 "id"    => $this->id,
                 "class" => $font . $style . " " . $this->data->get('class', '') . ' n2-ow',
                 "style" => "display:" . ($this->data->get('fullwidth', 1) ? 'block' : 'inline-block') . ";" . ($this->data->get('nowrap', 0) ? 'white-space:nowrap;' : '')
-            ), $this->getLink(str_replace("\n", '<br />', strip_tags($slide->fill($this->data->get('heading', '')))), $linkAttributes));
+            ), $this->getLink(str_replace("\n", '<br />', strip_tags($owner->fill($this->data->get('heading', '')))), $linkAttributes));
     }
 
     private function heading($type, $attributes, $content) {

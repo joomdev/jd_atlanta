@@ -13,6 +13,12 @@ class N2CacheStorageFilesystem extends N2CacheStorage {
         return true;
     }
 
+    public function clearAll($scope = 'notweb') {
+        if (N2Filesystem::existsFolder($this->paths[$scope])) {
+            N2Filesystem::deleteFolder($this->paths[$scope]);
+        }
+    }
+
     public function clear($group, $scope = 'notweb') {
 
         if (N2Filesystem::existsFolder($this->paths[$scope] . NDS . $group)) {

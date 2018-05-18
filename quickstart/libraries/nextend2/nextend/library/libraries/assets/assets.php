@@ -49,11 +49,15 @@ abstract class N2AssetsAbstract {
         }
     }
 
-    public function addCode($code, $group) {
+    public function addCode($code, $group, $unshift = false) {
         if (!isset($this->codes[$group])) {
             $this->codes[$group] = array();
         }
-        $this->codes[$group][] = $code;
+        if (!$unshift) {
+            $this->codes[$group][] = $code;
+        } else {
+            array_unshift($this->codes[$group], $code);
+        }
     }
 
     public function addUrl($url) {
@@ -68,19 +72,20 @@ abstract class N2AssetsAbstract {
         }
     }
 
-    public function addInline($code, $global = false, $unshift = false) {
+    public function addInline($code, $unshift = false) {
         if ($unshift) {
-            if ($global) {
-                array_unshift($this->globalInline, $code);
-            } else {
-                array_unshift($this->inline, $code);
-            }
+            array_unshift($this->inline, $code);
+
         } else {
-            if ($global) {
-                $this->globalInline[] = $code;
-            } else {
-                $this->inline[] = $code;
-            }
+            $this->inline[] = $code;
+        }
+    }
+
+    public function addGlobalInline($code, $unshift = false) {
+        if ($unshift) {
+            array_unshift($this->globalInline, $code);
+        } else {
+            $this->globalInline[] = $code;
         }
     }
 
@@ -143,6 +148,7 @@ abstract class N2AssetsAbstract {
         if (isset($files['n2'])) {
             return array('n2' => $files['n2']) + $this->staticGroup + $files;
         }
+
         return array_merge($files, $this->staticGroup);
     }
 

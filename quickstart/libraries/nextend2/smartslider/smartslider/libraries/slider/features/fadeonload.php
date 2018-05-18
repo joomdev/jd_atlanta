@@ -2,6 +2,9 @@
 
 class N2SmartSliderFeatureFadeOnLoad {
 
+    /**
+     * @var N2SmartSliderAbstract
+     */
     private $slider;
 
     public $fadeOnLoad = 1;
@@ -47,22 +50,19 @@ class N2SmartSliderFeatureFadeOnLoad {
 
         if (!$this->slider->isAdmin && $this->fadeOnLoad && ($this->slider->features->responsive->scaleDown || $this->slider->features->responsive->scaleUp)) {
 
-            if (N2SystemHelper::testMemoryLimit()) {
-                if ($sizes['width'] + $sizes['marginHorizontal'] > 0 && $sizes['height'] > 0 && function_exists('imagecreatetruecolor')) {
-                    return N2Html::tag("div", array(
-                        "id"     => $this->slider->elementId . "-placeholder",
-                        "encode" => false,
-                        "style"  => 'position: relative;z-index:2;color:RGBA(0,0,0,0);'
-                    ), $this->makeImage($sizes));
-                } else {
-                    N2CSS::addCode("#{$this->slider->elementId} .n2-ss-load-fade{position: relative !important;}", $this->slider->cacheId);
-                }
+            if ($sizes['width'] + $sizes['marginHorizontal'] > 0 && $sizes['height'] > 0) {
+                $maxHeight = intval($this->slider->params->get('responsiveSliderHeightMax', 3000));
 
+                return N2Html::tag("div", array(
+                    "id"     => $this->slider->elementId . "-placeholder",
+                    "encode" => false,
+                    "style"  => 'position: relative;z-index:2;color:RGBA(0,0,0,0);max-height:' . $maxHeight . 'px;'
+                ), $this->makeImage($sizes));
             } else {
-                N2Message::error(n2_("It seems like the <a href='http://php.net/manual/en/ini.core.php#ini.memory-limit'>memory_limit</a> on the server is too low for the fade on load feature. Please set it minimum 60M and reload the page!"));
+                $this->slider->addCSS("#{$this->slider->elementId} .n2-ss-load-fade{position: relative !important;}");
             }
         } else {
-            N2CSS::addCode("#{$this->slider->elementId}.n2-ss-load-fade{position: relative !important;}", $this->slider->cacheId);
+            $this->slider->addCSS("#{$this->slider->elementId}.n2-ss-load-fade{position: relative !important;}");
         }
 
         return '';

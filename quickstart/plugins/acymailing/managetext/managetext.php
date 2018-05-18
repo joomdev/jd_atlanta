@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.6
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 defined('_JEXEC') or die('Restricted access');
@@ -62,11 +63,11 @@ class plgAcymailingManagetext extends JPlugin{
 				}
 			}else{
 				static $done = false;
-				if(!$done && strpos($val, 'COM_USERS') !== false){
+				if(!$done){
 					$done = true;
-
 					acymailing_loadLanguageFile('com_users', JPATH_SITE);
 					acymailing_loadLanguageFile('com_users', JPATH_ADMINISTRATOR);
+					acymailing_loadLanguageFile('plg_user_joomla', JPATH_ADMINISTRATOR);
 				}
 				if(!empty($arrayVal)){
 					$tagsReplaced[$i] = nl2br(vsprintf(acymailing_translation($val), $arrayVal));
@@ -155,17 +156,13 @@ class plgAcymailingManagetext extends JPlugin{
 					unset($operatorsParts[0]);
 					$field = implode('.', $operatorsParts);
 				}
-
+				
 				if($operatorComp == 'joomla'){
 					if(!empty($user->userid)){
 						if($field == 'gid' && ACYMAILING_J16){
-							$db = JFactory::getDBO();
-							$db->setQuery('SELECT group_id FROM #__user_usergroup_map WHERE user_id = '.intval($user->userid));
-							$prop = implode(';', acymailing_loadResultArray($db));
+							$prop = implode(';', acymailing_loadResultArray('SELECT group_id FROM #__user_usergroup_map WHERE user_id = '.intval($user->userid)));
 						}else{
-							$db = JFactory::getDBO();
-							$db->setQuery('SELECT * FROM #__users WHERE id = '.intval($user->userid));
-							$juser = $db->loadObject();
+							$juser = acymailing_loadObject('SELECT * FROM #__users WHERE id = '.intval($user->userid));
 							if(isset($juser->{$field})){
 								$prop = strtolower($juser->{$field});
 							}else{
@@ -282,14 +279,12 @@ class plgAcymailingManagetext extends JPlugin{
 		$type['addqueue'] = acymailing_translation('ADD_QUEUE');
 		$type['removequeue'] = acymailing_translation('REMOVE_QUEUE');
 
-		$db = JFactory::getDBO();
-		$db->setQuery("SELECT `mailid`,`subject`, `type` FROM `#__acymailing_mail` WHERE `type` NOT IN ('notification','autonews','joomlanotification') OR `alias` = 'confirmation' ORDER BY `type`,`senddate` DESC LIMIT 5000");
-		$allEmails = $db->loadObjectList();
+		$allEmails = acymailing_loadObjectList("SELECT `mailid`,`subject`, `type` FROM `#__acymailing_mail` WHERE `type` NOT IN ('notification','autonews','joomlanotification') OR `alias` = 'confirmation' ORDER BY `type`,`senddate` DESC LIMIT 5000");
 
 		$emailsToDisplay = array();
 		$typeNews = '';
 		foreach($allEmails as $oneMail){
-			$oneMail->subject = Emoji::Decode($oneMail->subject);
+			$oneMail->subject = acyEmoji::Decode($oneMail->subject);
 			if($oneMail->type != $typeNews){
 				if(!empty($typeNews)) $emailsToDisplay[] = acymailing_selectOption('</OPTGROUP>');
 				$typeNews = $oneMail->type;
@@ -328,10 +323,8 @@ class plgAcymailingManagetext extends JPlugin{
 		if(empty($action['senddate'])) return 'send date not valid';
 
 		$query = 'INSERT IGNORE INTO `#__acymailing_queue` (`mailid`,`subid`,`senddate`,`priority`) '.$cquery->getQuery(array($action['mailid'], 'sub.`subid`', $action['senddate'], '2'));
-		$db = JFactory::getDBO();
-		$db->setQuery($query);
-		$db->query();
-		return acymailing_translation_sprintf('ADDED_QUEUE', $db->getAffectedRows());
+		$affected = acymailing_query($query);
+		return acymailing_translation_sprintf('ADDED_QUEUE', $affected);
 	}
 
 	function onAcyProcessAction_removequeue($cquery, $action, $num){
@@ -344,13 +337,11 @@ class plgAcymailingManagetext extends JPlugin{
 		if(!empty($cquery->leftjoin)) $query .= ' LEFT JOIN '.implode(' LEFT JOIN ', $cquery->leftjoin);
 		if(!empty($cquery->where)) $query .= ' WHERE ('.implode(') AND (', $cquery->where).')';
 
-		$db = JFactory::getDBO();
-		$db->setQuery($query);
-		$db->query();
+		$affected = acymailing_query($query);
 
 		unset($cquery->where['queueremove']);
 
-		return acymailing_translation_sprintf('SUCC_DELETE_ELEMENTS', $db->getAffectedRows());
+		return acymailing_translation_sprintf('SUCC_DELETE_ELEMENTS', $affected);
 	}
 
 	function onAcyProcessAction_displayUsers($cquery, $action, $num){
@@ -361,9 +352,7 @@ class plgAcymailingManagetext extends JPlugin{
 		if(empty($cquery->limit) || $cquery->limit > 50) $cquery->limit = 20;
 
 		$query = $cquery->getQuery(array('sub.`subid`', 'sub.email', 'sub.name'));
-		$db = JFactory::getDBO();
-		$db->setQuery($query);
-		$users = $db->loadObjectList();
+		$users = acymailing_loadObjectList($query);
 
 		$res['users'] = $users;
 		return $res;

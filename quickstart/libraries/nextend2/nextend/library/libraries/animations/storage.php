@@ -1,7 +1,6 @@
 <?php
 
-class N2AnimationsStorage
-{
+class N2AnimationsStorage {
 
     private static $sets = array();
 

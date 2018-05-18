@@ -2,9 +2,37 @@
 
 N2Loader::import('libraries.parse.parse');
 
-class N2SSPluginWidgetAbstract extends N2PluginBase {
+abstract class N2SSPluginWidgetAbstract {
 
-    static function getDefaults() {
+    public $ordering = 1;
+
+    protected $name = '';
+
+    public function onList(&$list) {
+        $list[$this->name] = $this;
+    }
+
+    public function getLabel() {
+        return '';
+    }
+
+    public function getName() {
+        return $this->name;
+    }
+
+    public function getSubFormImagePath() {
+        return $this->getPath() . $this->name . '.png';
+    }
+
+    /**
+     * @param N2Form $form
+     */
+    public function renderFields($form) {
+
+    }
+
+
+    public function getDefaults() {
         return array();
     }
 
@@ -30,7 +58,7 @@ class N2SSPluginWidgetAbstract extends N2PluginBase {
         );
     }
 
-    static function getPositions(&$params) {
+    public function getPositions(&$params) {
         return array();
     }
 
@@ -80,9 +108,16 @@ class N2SSPluginWidgetAbstract extends N2PluginBase {
         );
     }
 
-    public static function getOrientationByPosition($mode, $area, $default = 'horizontal') {
+    public static function getOrientationByPosition($mode, $area, $set = 'auto', $default = 'horizontal') {
         if ($mode == 'advanced') {
-            return $default;
+            if ($set == 'auto') {
+                return $default;
+            }
+
+            return $set;
+        }
+        if ($set != 'auto') {
+            return $set;
         }
         switch ($area) {
             case '5':
@@ -96,10 +131,10 @@ class N2SSPluginWidgetAbstract extends N2PluginBase {
         return 'horizontal';
     }
 
-    public static function prepareExport($export, $params) {
+    public function prepareExport($export, $params) {
     }
 
-    public static function prepareImport($import, $params) {
+    public function prepareImport($import, $params) {
 
     }
 
@@ -108,7 +143,7 @@ class N2SSPluginWidgetAbstract extends N2PluginBase {
      * @param               $id
      * @param               $params
      */
-    static function render($slider, $id, $params) {
+    public function render($slider, $id, $params) {
 
     }
 

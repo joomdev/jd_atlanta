@@ -1,7 +1,6 @@
 <?php
 
-abstract class N2SessionStorageAbstract
-{
+abstract class N2SessionStorageAbstract {
 
     protected static $expire = 86400; // 1 day
 
@@ -45,6 +44,7 @@ abstract class N2SessionStorageAbstract
 
     public function set($key, $value) {
         $this->storageChanged = true;
+
         return $this->storage[$key] = $value;
     }
 

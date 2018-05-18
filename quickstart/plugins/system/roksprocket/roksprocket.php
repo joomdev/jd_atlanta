@@ -79,8 +79,8 @@ class plgSystemRokSprocket extends JPlugin
 			}
 		}
 
-		define('ROKSPROCKET', '2.1.21');
-		define('ROKSPROCKET_VERSION', '2.1.21');
+		define('ROKSPROCKET', '2.1.23');
+		define('ROKSPROCKET_VERSION', '2.1.23');
 
 		try {
 			$container = RokCommon_Service::getContainer();

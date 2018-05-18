@@ -1,16 +1,15 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.itemFactory', 'smartslider');
+N2Loader::import('libraries.renderable.layers.itemFactory', 'smartslider');
 
 class N2SSItemVimeo extends N2SSItemAbstract {
 
     protected $type = 'vimeo';
 
     public function render() {
-        $slide  = $this->layer->getSlide();
-        $slider = $slide->getSlider();
+        $owner = $this->layer->getOwner();
 
-        $this->data->set("vimeocode", preg_replace('/\D/', '', $slide->fill($this->data->get("vimeourl"))));
+        $this->data->set("vimeocode", preg_replace('/\D/', '', $owner->fill($this->data->get("vimeourl"))));
 
         $style = '';
 
@@ -48,10 +47,7 @@ class N2SSItemVimeo extends N2SSItemAbstract {
             }
         }
 
-        N2JS::addInline('window["' . $slider->elementId . '"].ready(function() {
-                new N2Classes.FrontendItemVimeo(this, "' . $this->id . '", "' . $slider->elementId . '", ' . $this->data->toJSON() . ', ' . $hasImage . ', ' . $slide->fill($this->data->get('start', '0')) . ');
-            });
-        ');
+        $owner->addScript('new N2Classes.FrontendItemVimeo(this, "' . $this->id . '", "' . $owner->getElementID() . '", ' . $this->data->toJSON() . ', ' . $hasImage . ', ' . $owner->fill($this->data->get('start', '0')) . ');');
 
         return N2Html::tag('div', array(
             'id'    => $this->id,
@@ -61,13 +57,11 @@ class N2SSItemVimeo extends N2SSItemAbstract {
     }
 
     public function _renderAdmin() {
-        $slide  = $this->layer->getSlide();
-        $slider = $slide->getSlider();
 
         return N2Html::tag('div', array(
             "class" => 'n2-ow',
             "style" => 'width: 100%; height: 100%; background: URL(' . N2ImageHelper::fixed($this->data->getIfEmpty('image', '$system$/images/placeholder/video.png')) . ') no-repeat 50% 50%; background-size: cover;'
-        ), '<div class="n2-video-play n2-ow">' . N2ImageHelperAbstract::readSVG('$ss$/images/play.svg') . '</div>');
+        ), '<div class="n2-video-play n2-ow">' . file_get_contents(N2ImageHelperAbstract::fixed('$ss$/images/play.svg', true)) . '</div>');
     }
 
     public function needSize() {

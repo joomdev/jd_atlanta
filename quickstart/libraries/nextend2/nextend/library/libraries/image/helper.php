@@ -18,7 +18,7 @@ class N2ImageHelperAbstract {
         $parameters['placeholderImage']         = '$system$/images/placeholder/image.png';
         $parameters['placeholderRepeatedImage'] = '$system$/images/placeholder/image.png';
 
-        N2JS::addFirstCode('new NextendImageHelper(' . json_encode($parameters) . ', ' . N2ImageHelper::getLightboxFunction() . ',' . N2ImageHelper::getLightboxMultipleFunction() . ', ' . N2ImageHelper::getLightboxFoldersFunction() . ');');
+        N2JS::addFirstCode('new N2Classes.ImageHelper(' . json_encode($parameters) . ', ' . N2ImageHelper::getLightboxFunction() . ',' . N2ImageHelper::getLightboxMultipleFunction() . ', ' . N2ImageHelper::getLightboxFoldersFunction() . ');');
     }
 
     public static function dynamic($image) {
@@ -45,12 +45,12 @@ class N2ImageHelperAbstract {
     }
 
     public static function addKeyword($keyword, $path, $url) {
-        array_unshift(self::$siteKeywords, $keyword);
-        array_unshift(self::$imagePaths, $path);
+        array_unshift(self::$siteKeywords, $keyword . '/');
+        array_unshift(self::$imagePaths, rtrim($path, '/') . '/');
         if (N2Settings::get('protocol-relative', '1')) {
             $url = self::protocolRelative($url);
         }
-        array_unshift(self::$imageUrls, $url);
+        array_unshift(self::$imageUrls, rtrim($url, '/') . '/');
     }
 
     public static function protocolRelative($url) {
@@ -72,7 +72,7 @@ class N2ImageHelperAbstract {
 
     public static function getLightboxFoldersFunction() {
         return 'function (callback) {
-            this.joomlaModal = new NextendModal({
+            this.joomlaModal = new N2Classes.NextendModal({
                 zero: {
                     fit: true,
                     size: [

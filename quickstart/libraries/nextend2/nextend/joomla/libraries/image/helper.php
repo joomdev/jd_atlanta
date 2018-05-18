@@ -22,7 +22,7 @@ class N2ImageHelper extends N2ImageHelperAbstract
                     window.jInsertFieldValue = jInsertFieldValue;
                 }, this);
 
-            this.joomlaModal = new NextendModal({
+            this.joomlaModal = new N2Classes.NextendModal({
                 zero: {
                     fit: true,
                     size: [
@@ -74,7 +74,7 @@ class N2ImageHelper extends N2ImageHelperAbstract
                     window.jInsertFieldValue = jInsertFieldValue;
                 }, this);
 
-            this.joomlaModal = new NextendModal({
+            this.joomlaModal = new N2Classes.NextendModal({
                 zero: {
                     fit: true,
                     size: [

@@ -1,3 +1,6 @@
+#n2-ss-5 {
+  -webkit-font-smoothing: antialiased;
+}
 #n2-ss-5 .n2-ow,
 #n2-ss-5 .n2-ow-all * {
   font-size: inherit;
@@ -265,6 +268,7 @@ div#n2-ss-5 .n2-ss-layer-group {
   position: absolute;
   left: 0;
   top: 0;
+  z-index: 1;
 }
 div#n2-ss-5 .n2-ss-layer-group > * {
   visibility: visible;
@@ -568,6 +572,9 @@ div#n2-ss-5 .n2-ss-layer-row .n2-ss-layer {
 div#n2-ss-5 .n2-ss-layer-content .n2-ss-layer {
   width: auto;
 }
+div#n2-ss-5 .n2-ss-layer-content .n2-ss-layer[data-pm="normal"] {
+  max-width: 100%;
+}
 div#n2-ss-5 .n2-ss-section-outer {
   display: flex;
   flex-direction: column;
@@ -858,7 +865,10 @@ div#n2-ss-5 .n2-ss-button-container.n2-ss-fullwidth a {
 div#n2-ss-5 .n2-ss-button-container.n2-ss-nowrap {
   white-space: nowrap;
 }
-div#n2-ss-5 .n2-ss-button-container a > span {
+div#n2-ss-5 .n2-ss-button-container a div {
+  display: inline;
+}
+div#n2-ss-5 .n2-ss-button-container a > div {
   display: inline-flex;
   align-items: center;
   vertical-align: top;

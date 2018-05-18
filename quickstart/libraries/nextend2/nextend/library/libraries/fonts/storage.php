@@ -1,8 +1,7 @@
 <?php
 
 
-class N2FontStorage
-{
+class N2FontStorage {
 
     private static $sets = array();
 

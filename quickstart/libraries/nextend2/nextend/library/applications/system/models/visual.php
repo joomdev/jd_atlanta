@@ -1,7 +1,6 @@
 <?php
 
-class N2SystemVisualModel extends N2Model
-{
+class N2SystemVisualModel extends N2Model {
 
     public $type = '';
 
@@ -15,13 +14,6 @@ class N2SystemVisualModel extends N2Model
 
     public function renderSetsForm() {
 
-        $configurationXmlFile = $this->getPath() . '/forms/' . $this->type . '/sets.xml';
-
-        N2Loader::import('libraries.form.form');
-        $form = new N2Form();
-        $form->loadXMLFile($configurationXmlFile);
-
-        echo $form->render($this->type . 'set');
     }
 
     protected function getPath() {
@@ -40,6 +32,7 @@ class N2SystemVisualModel extends N2Model
                 'visuals' => $this->getVisuals($visual['referencekey'])
             );
         }
+
         return false;
     }
 
@@ -51,6 +44,7 @@ class N2SystemVisualModel extends N2Model
         if (!empty($set) && $set['section'] == $this->type . 'set') {
             return $set;
         }
+
         return false;
     }
 
@@ -59,9 +53,11 @@ class N2SystemVisualModel extends N2Model
         if (!empty($set) && $set['section'] == $this->type . 'set' && $set['editable']) {
             if ($this->storage->setById($setId, $name)) {
                 $set['value'] = $name;
+
                 return $set;
             }
         }
+
         return false;
     }
 
@@ -72,6 +68,7 @@ class N2SystemVisualModel extends N2Model
                 return $set;
             }
         }
+
         return false;
     }
 
@@ -83,6 +80,7 @@ class N2SystemVisualModel extends N2Model
         if (!empty($visual) && $visual['section'] == $this->type) {
             return $visual;
         }
+
         return false;
     }
 
@@ -90,8 +88,10 @@ class N2SystemVisualModel extends N2Model
         $visual = $this->storage->getById($id, $this->type);
         if (!empty($visual) && $visual['section'] == $this->type) {
             $this->storage->deleteById($id);
+
             return $visual;
         }
+
         return false;
     }
 
@@ -99,6 +99,7 @@ class N2SystemVisualModel extends N2Model
         if ($this->storage->setById($id, $value)) {
             return $this->storage->getById($id, $this->type);
         }
+
         return false;
     }
 

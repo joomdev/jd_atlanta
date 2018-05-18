@@ -2,7 +2,7 @@
 /**
  * @version $Id: Filter_Type_User.php 30366 2016-08-03 18:27:35Z djamil $
  * @author   RocketTheme http://www.rockettheme.com
- * @copyright Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  */
 

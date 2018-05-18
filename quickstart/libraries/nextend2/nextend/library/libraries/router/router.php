@@ -1,7 +1,6 @@
 <?php
 
-class N2RouterAbstract
-{
+class N2RouterAbstract {
 
     protected $baseUrl;
 
@@ -80,6 +79,7 @@ class N2RouterAbstract
         if (count($params)) {
             $url .= "&" . http_build_query($params, null, '&');
         }
+
         return $url;
     }
 

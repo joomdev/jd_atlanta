@@ -13,7 +13,6 @@
         <filename>index.html</filename>
     </files>
     <administration>
-        <menu img="components/com_nextend2/icon16.png">COM_NEXTEND2</menu>
         <files>
             <filename>nextend2.php</filename>
             <filename>icon16.png</filename>

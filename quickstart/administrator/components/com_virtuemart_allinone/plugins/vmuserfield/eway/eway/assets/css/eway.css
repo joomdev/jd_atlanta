@@ -1,0 +1,9 @@
+.eway-success {
+    color: #3c763d;
+}
+.eway-error {
+    color: #a94442;
+}
+.eway-delete-card,.eway-edit-card, .eway-update-card{
+    cursor:pointer;
+}

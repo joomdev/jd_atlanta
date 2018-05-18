@@ -1,5 +1,7 @@
 <?php
 
+N2Loader::import('libraries.mvc.applicationInfo');
+
 class N2SystemApplicationInfo extends N2ApplicationInfo {
 
     public function __construct() {
@@ -22,6 +24,7 @@ class N2SystemApplicationInfo extends N2ApplicationInfo {
 
     public function getInstance() {
         require_once $this->path . NDS . "N2SystemApplication.php";
+
         return new N2SystemApplication($this);
     }
 

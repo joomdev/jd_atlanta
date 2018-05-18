@@ -1,6 +1,6 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.item.itemFactoryAbstract', 'smartslider');
+N2Loader::import('libraries.renderable.layers.item.itemFactoryAbstract', 'smartslider');
 
 class N2SSPluginItemFactoryButton extends N2SSPluginItemFactoryAbstract {
 
@@ -8,65 +8,70 @@ class N2SSPluginItemFactoryButton extends N2SSPluginItemFactoryAbstract {
 
     protected $priority = 3;
 
-    private static $font = 1103;
-
-    protected $group = 'Basic';
+    private $font = 1103;
+    private $style = 1101;
 
     protected $class = 'N2SSItemButton';
 
     public function __construct() {
-        $this->_title = n2_x('Button', 'Slide item');
+        $this->title = n2_x('Button', 'Slide item');
+        $this->group = n2_('Basic');
     }
 
-    private static function initDefaultFont() {
+    private function initDefaultFont() {
         static $inited = false;
         if (!$inited) {
             $res = N2StorageSectionAdmin::get('smartslider', 'default', 'item-button-font');
             if (is_array($res)) {
-                self::$font = $res['value'];
+                $this->font = $res['value'];
             }
-            if (is_numeric(self::$font)) {
-                N2FontRenderer::preLoad(self::$font);
+            if (is_numeric($this->font)) {
+                N2FontRenderer::preLoad($this->font);
             }
             $inited = true;
         }
     }
 
-    private static $style = 1101;
 
-    private static function initDefaultStyle() {
+    private function initDefaultStyle() {
         static $inited = false;
         if (!$inited) {
             $res = N2StorageSectionAdmin::get('smartslider', 'default', 'item-button-style');
             if (is_array($res)) {
-                self::$style = $res['value'];
+                $this->style = $res['value'];
             }
-            if (is_numeric(self::$style)) {
-                N2StyleRenderer::preLoad(self::$style);
+            if (is_numeric($this->style)) {
+                N2StyleRenderer::preLoad($this->style);
             }
             $inited = true;
         }
     }
 
-    public static function onSmartsliderDefaultSettings(&$settings) {
-        self::initDefaultFont();
-        $settings['font'][] = '<param name="item-button-font" type="font" previewmode="link" set="1100" label="' . n2_('Item') . ' - ' . n2_('Button') . '" default="' . self::$font . '" />';
+    public function globalDefaultItemFontAndStyle($fontTab, $styleTab) {
+        $this->initDefaultFont();
+        new N2ElementFont($fontTab, 'item-button-font', n2_('Item') . ' - ' . n2_('Button'), $this->font, array(
+            'set'         => 1100,
+            'previewMode' => 'link'
+        ));
 
-        self::initDefaultStyle();
-        $settings['style'][] = '<param name="item-button-style" type="style" previewmode="button" set="1100" label="' . n2_('Item') . ' - ' . n2_('Button') . '" default="' . self::$style . '" />';
+        $this->initDefaultStyle();
+        new N2ElementStyle($styleTab, 'item-button-style', n2_('Item') . ' - ' . n2_('Button'), $this->style, array(
+            'set'         => 1100,
+            'previewMode' => 'button'
+        ));
     }
 
     function getValues() {
-        self::initDefaultFont();
-        self::initDefaultStyle();
+        $this->initDefaultFont();
+        $this->initDefaultStyle();
 
         return array(
             'content'       => n2_('MORE'),
             'nowrap'        => 1,
             'fullwidth'     => 0,
             'link'          => '#|*|_self',
-            'font'          => self::$font,
-            'style'         => self::$style,
+            'font'          => $this->font,
+            'style'         => $this->style,
             'class'         => '',
             'icon'          => '',
             'iconsize'      => '100',
@@ -100,15 +105,60 @@ class N2SSPluginItemFactoryButton extends N2SSPluginItemFactoryAbstract {
         return $data;
     }
 
-    public function loadResources($slider) {
-        parent::loadResources($slider);
+    public function loadResources($renderable) {
+        parent::loadResources($renderable);
 
-        N2LESS::addFile($this->getPath() . "/button.n2less", $slider->cacheId, array(
-            "sliderid" => $slider->elementId
-        ), NEXTEND_SMARTSLIDER_ASSETS . '/less' . NDS);
+        $renderable->addLess($this->getPath() . "/button.n2less", array(
+            "sliderid" => $renderable->elementId
+        ));
+    }
+
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'item-button');
+
+        new N2ElementText($settings, 'content', n2_('Label'), n2_('Button'), array(
+            'style' => 'width:280px;'
+        ));
+        new N2ElementFont($settings, 'font', n2_('Font') . ' - ' . n2_('Button'), '', array(
+            'rowClass'    => 'n2-hidden',
+            'previewMode' => 'link',
+            'set'         => 1100,
+            'style'       => 'item_buttonstyle',
+            'preview'     => '<div class="{fontClassName}" style="width:{nextend.activeLayer.prop(\'style\').width};"><a style="display:{$(\'#item_buttonfullwidth\').val() == 1 ? \'block\' : \'inline-block\'};" href="#" class="{styleClassName}" onclick="return false;">{$(\'#item_buttoncontent\').val();}</a></div>'
+        ));
+        new N2ElementStyle($settings, 'style', n2_('Style') . ' - ' . n2_('Button'), '', array(
+            'rowClass'    => 'n2-hidden',
+            'previewMode' => 'button',
+            'set'         => 1100,
+            'font'        => 'item_buttonfont',
+            'preview'     => '<div class="{fontClassName}" style="width:{nextend.activeLayer.prop(\'style\').width};"><a style="display:{$(\'#item_buttonfullwidth\').val() == 1 ? \'block\' : \'inline-block\'};" href="#" class="{styleClassName}" onclick="return false;">{$(\'#item_buttoncontent\').val();}</a></div>'
+        ));
+
+        $link = new N2ElementMixed($settings, 'link', '', '|*|_self|*|');
+        new N2ElementUrl($link, 'link-1', n2_('Link'), '', array(
+            'style' => 'width:236px;'
+        ));
+        new N2ElementList($link, 'link-2', n2_('Target window'), '', array(
+            'options' => array(
+                '_self'  => n2_('Self'),
+                '_blank' => n2_('New')
+            )
+        ));
+        new N2ElementList($link, 'link-3', n2_('Rel'), '', array(
+            'options' => array(
+                ''           => '',
+                'nofollow'   => 'nofollow',
+                'noreferrer' => 'noreferrer',
+                'author'     => 'author',
+                'external'   => 'external',
+                'help'       => 'help'
+            )
+        ));
+
+        $ui = new N2ElementGroup($settings, 'item-button-ui');
+        new N2ElementOnOff($ui, 'fullwidth', n2_('Full width'), 1);
+        new N2ElementOnOff($ui, 'nowrap', n2_('No wrap'), 1);
     }
 }
 
-N2Plugin::addPlugin('ssitem', 'N2SSPluginItemFactoryButton');
-
-N2Pluggable::addAction('smartsliderDefault', 'N2SSPluginItemFactoryButton::onSmartsliderDefaultSettings');
+N2SmartSliderItemsFactory::addItem(new N2SSPluginItemFactoryButton);

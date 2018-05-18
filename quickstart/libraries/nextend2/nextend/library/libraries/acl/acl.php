@@ -1,7 +1,6 @@
 <?php
 
-abstract class N2AclAbstract
-{
+abstract class N2AclAbstract {
 
     public static $aclKey;
 
@@ -16,7 +15,7 @@ abstract class N2AclAbstract
 
     /**
      * @param                        $action
-     * @param N2ApplicationInfo $info
+     * @param N2ApplicationInfo      $info
      *
      * @return bool
      */
@@ -25,7 +24,8 @@ abstract class N2AclAbstract
     }
 
     public static function canDo($action, $info) {
-        return self::getInstance()->authorise($action, $info);
+        return self::getInstance()
+                   ->authorise($action, $info);
     }
 }
 

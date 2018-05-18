@@ -1,7 +1,6 @@
 <?php
 
-class N2AjaxResponse
-{
+class N2AjaxResponse {
 
     /**
      * @var N2ApplicationType

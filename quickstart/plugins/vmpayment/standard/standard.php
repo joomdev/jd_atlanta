@@ -242,7 +242,7 @@ class plgVmPaymentStandard extends vmPSPlugin {
 
 		$this->convert_condition_amount($method);
 		$amount = $this->getCartAmount($cart_prices);
-		$address = (($cart->ST == 0) ? $cart->BT : $cart->ST);
+		$address = $cart -> getST();
 
 		if($this->_toConvert){
 			$this->convertToVendorCurrency($method);

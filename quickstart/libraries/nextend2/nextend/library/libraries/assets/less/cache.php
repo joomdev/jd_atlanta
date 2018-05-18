@@ -4,6 +4,20 @@ class N2AssetsCacheLess extends N2AssetsCacheCSS {
 
     public $outputFileType = "less.css";
 
+    public function getAssetFile($group, &$files = array(), &$codes = array()) {
+        $this->group = $group;
+        $this->files = $files;
+        $this->codes = $codes;
+
+        $cache = new N2CacheManifest($group, false, true);
+        $hash  = $this->getHash();
+
+        return $cache->makeCache($group . "." . $this->outputFileType, $hash, array(
+            $this,
+            'getCachedContent'
+        ));
+    }
+
     /**
      * @param N2CacheManifest $cache
      *

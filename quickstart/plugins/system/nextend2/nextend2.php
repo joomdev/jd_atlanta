@@ -1,8 +1,10 @@
 <?php
 jimport('joomla.plugin.plugin');
 
-class plgSystemNextend2 extends JPlugin
-{
+class plgSystemNextend2 extends JPlugin {
+
+    public static $isCDNForJoomla = false;
+    public static $regexpURL = '';
 
     /*
     Artisteer jQuery fix
@@ -10,7 +12,9 @@ class plgSystemNextend2 extends JPlugin
     function onAfterDispatch() {
         if (class_exists('Artx', true)) {
             Artx::load("Artx_Page");
-            if (isset(ArtxPage::$inlineScripts)) ArtxPage::$inlineScripts[] = '<script type="text/javascript">if(typeof jQuery != "undefined") window.artxJQuery = jQuery;</script>';
+            if (isset(ArtxPage::$inlineScripts)) {
+                ArtxPage::$inlineScripts[] = '<script type="text/javascript">if(typeof jQuery != "undefined") window.artxJQuery = jQuery;</script>';
+            }
         }
     }
 
@@ -22,11 +26,12 @@ class plgSystemNextend2 extends JPlugin
 
         if (class_exists('JEventDispatcher', false)) {
             $dispatcher = JEventDispatcher::getInstance();
+            $dispatcher->trigger('onNextendBeforeCompileHead');
         } else {
-            $dispatcher = JDispatcher::getInstance();
+            JFactory::getApplication()
+                    ->triggerEvent('onNextendBeforeCompileHead');
         }
 
-        $dispatcher->trigger('onNextendBeforeCompileHead');
 
         ob_start();
         if (class_exists('N2AssetsManager')) {
@@ -35,26 +40,15 @@ class plgSystemNextend2 extends JPlugin
         }
         $head = ob_get_clean();
         if ($head != '') {
+
             $application = JFactory::getApplication();
-            if (class_exists('JApplicationWeb') && method_exists($application, 'getBody')) {
-                $body = $application->getBody();
-                $mode = 'JApplicationWeb';
-            } else {
-                $body = JResponse::getBody();
-                $mode = 'JResponse';
-            }
-            
+            $body        = $application->getBody();
+
             $parts = preg_split('/<\/head>/', $body, 2);
 
             $body = implode($head . '</head>', $parts);
-            
-            switch ($mode) {
-                case 'JResponse':
-                    JResponse::setBody($body);
-                    break;
-                default:
-                    $application->setBody($body);
-            }
+
+            $application->setBody($body);
         }
     }
 }

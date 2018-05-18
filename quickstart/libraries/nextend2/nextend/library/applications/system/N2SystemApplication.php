@@ -1,15 +1,11 @@
 <?php
 
-class N2SystemApplication extends N2Application
-{
+class N2SystemApplication extends N2Application {
 
     public $name = "system";
 
     protected function autoload() {
-        N2Loader::import(array(
-            'libraries.embedwidget.embedwidget',
-            'libraries.form.form'
-        ));
+        N2Loader::import('libraries.form.form');
     }
 
 }

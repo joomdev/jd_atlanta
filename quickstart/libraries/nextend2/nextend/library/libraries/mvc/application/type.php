@@ -21,11 +21,6 @@ abstract class N2ApplicationType {
      */
     public $controllerName;
 
-    /**
-     * @var bool
-     */
-    protected $debugMode = false;
-
     public $router;
 
     private $controller;
@@ -72,22 +67,21 @@ abstract class N2ApplicationType {
             $this->getController();
         }
 
-        if (!isset($parameters['prerender']) || !$parameters['prerender']) {
-            $class = 'N2' . $this->app->name . $this->type . $this->controllerName . 'Controller';
-            if ($this->isAjaxCall()) {
-                $class = $class . 'Ajax';
-                N2Loader::import('controllers.ajax.' . $this->controllerName, $this->identifier);
-            } else {
-                N2Loader::import('controllers.' . $this->controllerName, $this->identifier);
-            }
-        } else {
+
+        $path = N2Loader::$paths[$this->identifier] . '/controllers/' . $this->controllerName . '/';
+
+        if (isset($parameters['prerender']) && $parameters['prerender']) {
+            $path .= 'prerender/';
             $class = 'N2' . $this->app->name . $this->type . $this->controllerName . 'PrerenderController';
-            if ($this->isAjaxCall()) {
-                $class = $class . 'Ajax';
-                N2Loader::import('controllers.prerender.ajax.' . $this->controllerName, $this->identifier);
-            } else {
-                N2Loader::import('controllers.prerender.' . $this->controllerName, $this->identifier);
-            }
+        } else {
+            $class = 'N2' . $this->app->name . $this->type . $this->controllerName . 'Controller';
+        }
+
+        if ($this->isAjaxCall()) {
+            $class = $class . 'Ajax';
+            require_once $path . 'ajax/' . $this->controllerName . '.php';
+        } else {
+            require_once $path . $this->controllerName . '.php';
         }
 
         if (!class_exists($class, false)) {
@@ -106,8 +100,20 @@ abstract class N2ApplicationType {
             throw new Exception('Action not found: ' . $method . ' in ' . $class);
         }
 
+        /**
+         * @var $controller N2Controller
+         */
+        $this->controller = new $class($path, $this, array(
+            "controller" => $class,
+            "action"     => $method
+        ));
 
-        $callable = $this->createControllerObject($class, $method);
+        $this->onControllerReady();
+
+        $callable = array(
+            $this->controller,
+            $method
+        );
 
         if (is_callable($callable)) {
             call_user_func_array($callable, $arguments);
@@ -121,10 +127,6 @@ abstract class N2ApplicationType {
             }
         }
 
-    }
-
-    public function setDebug($debug = false) {
-        $this->debug = $debug;
     }
 
     final public function setRequest($controller, $action) {
@@ -144,7 +146,7 @@ abstract class N2ApplicationType {
             throw new Exception("Controller is not specified!");
         }
 
-        $this->controllerName = ucfirst($controller);
+        $this->controllerName = $controller;
 
         return $this->controllerName;
     }
@@ -184,30 +186,13 @@ abstract class N2ApplicationType {
         return N2Request::getInt('nextendajax');
     }
 
-    protected function createControllerObject($class, $method) {
-        /**
-         * @var $controller N2Controller
-         */
-        $this->controller = new $class($this, array(
-            "controller" => $class,
-            "action"     => $method
-        ));
-
-        $this->onControllerReady();
-
-        return array(
-            $this->controller,
-            $method
-        );
-    }
-
     public function render($parameters, $arguments = array()) {
         try {
             ob_start();
             $this->run($parameters, $arguments);
             echo ob_get_clean();
         } catch (Exception $e) {
-            ob_end_clean();
+            n2_ob_end_clean_all();
             echo "<div style='position:fixed;background:white;left:25%;top:25%;width:46%;height:46%;z-index:100000;padding:3%;'>" . $e->getMessage() . "</div>";
 
         }

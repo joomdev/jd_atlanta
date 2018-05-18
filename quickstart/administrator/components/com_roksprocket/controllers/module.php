@@ -2,7 +2,7 @@
 /**
  * @version     $Id: module.php 14559 2013-10-16 22:17:52Z btowles $
  * @author      RocketTheme http://www.rockettheme.com
- * @copyright   Copyright (C) 2007 - 2017 RocketTheme, LLC
+ * @copyright   Copyright (C) 2007 - 2018 RocketTheme, LLC
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
  *
  * based on

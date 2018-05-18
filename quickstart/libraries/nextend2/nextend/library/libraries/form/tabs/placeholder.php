@@ -1,22 +1,31 @@
 <?php
 N2Loader::import('libraries.form.tab');
 
-class N2TabPlaceholder extends N2Tab
-{
+class N2TabPlaceholder extends N2Tab {
 
-    function decorateTitle() {
-        $id = N2XmlHelper::getAttribute($this->_xml, 'id');
-        echo "<div id='" . $id . "' class='nextend-tab " . N2XmlHelper::getAttribute($this->_xml, 'class') . "'>";
-        if (isset($GLOBALS[$id])) {
-            echo $GLOBALS[$id];
+    protected $id = '';
+
+    protected function decorateTitle() {
+        echo "<div id='" . $this->id . "' class='nextend-tab " . $this->class . "'>";
+        if (isset($GLOBALS[$this->id])) {
+            echo $GLOBALS[$this->id];
         }
     }
 
-    function decorateGroupStart() {
+    protected function decorateGroupStart() {
 
     }
 
-    function decorateGroupEnd() {
+    protected function decorateGroupEnd() {
         echo "</div>";
     }
+
+    /**
+     * @param string $id
+     */
+    public function setId($id) {
+        $this->id = $id;
+    }
+
+
 }

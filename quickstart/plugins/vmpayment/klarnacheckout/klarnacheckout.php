@@ -7,7 +7,7 @@ defined('_JEXEC') or die('Restricted access');
  * @version $Id: klarnacheckout.php 8886 2015-06-24 16:31:58Z alatak $
  * @package VirtueMart
  * @subpackage payment
- * @copyright Copyright (C) 2004-Copyright (C) 2004 - 2017 Virtuemart Team. All rights reserved.   - All rights reserved.
+ * @copyright Copyright (C) 2004-Copyright (C) 2004 - 2018 Virtuemart Team. All rights reserved.   - All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL, see LICENSE.php
  * VirtueMart is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -37,7 +37,7 @@ if (!class_exists('Klarna')) {
 
 
 class plgVmPaymentKlarnaCheckout extends vmPSPlugin {
-	const RELEASE = 'VM 3.2.8';
+	const RELEASE = 'VM 3.2.14';
 	protected $currency_code_3;
 	protected $currency_id;
 	protected $country_code_2;

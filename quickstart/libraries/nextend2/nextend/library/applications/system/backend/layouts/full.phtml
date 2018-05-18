@@ -8,7 +8,8 @@
         /**
          * @var $widget Nav
          */
-        $logoUrl = N2Base::getApplication('system')->getLogo();
+        $logoUrl = N2Base::getApplication('system')
+                         ->getLogo();
         $cmd     = N2Request::getVar("nextendcontroller", "dashboard");
 
         $views = array(
@@ -26,7 +27,7 @@
             ), n2_('Help'))
         );
 
-        echo $this->widget->init('nav', array(
+        N2Html::nav(array(
             'logoUrl'      => $this->appType->router->createUrl("dashboard/index"),
             'logoImageUrl' => $logoUrl,
             'views'        => $views,

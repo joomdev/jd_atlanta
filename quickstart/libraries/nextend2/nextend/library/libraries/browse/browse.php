@@ -1,7 +1,6 @@
 <?php
 
-class N2Browse
-{
+class N2Browse {
 
     public static function init() {
         static $inited = false;
@@ -13,11 +12,13 @@ class N2Browse
     }
 
     public static function load() {
-        N2Base::getApplication('system')->getApplicationType('backend')->run(array(
-            'useRequest' => false,
-            'controller' => 'browse',
-            'action'     => 'index'
-        ));
+        N2Base::getApplication('system')
+              ->getApplicationType('backend')
+              ->run(array(
+                  'useRequest' => false,
+                  'controller' => 'browse',
+                  'action'     => 'index'
+              ));
     }
 }
 

@@ -4,7 +4,10 @@ N2Loader::import("libraries.mvc.view");
 
 class N2Layout extends N2View {
 
-    public $controller = null;
+    /** @var N2ControllerAbstract */
+    protected $controller;
+
+    protected $path = '';
 
     private $layoutFragments = array();
 
@@ -12,10 +15,24 @@ class N2Layout extends N2View {
 
     protected $breadcrumbs = array();
 
+
+    /**
+     * N2Layout constructor.
+     *
+     * @param N2ControllerAbstract $controller
+     * @param N2ApplicationType    $appType
+     */
+    public function __construct($controller, $appType) {
+
+        $this->controller = $controller;
+        parent::__construct($appType);
+
+        $this->path = $this->controller->getPath() . 'views/';
+    }
+
     public function addView($fileName, $position, $viewParameters = array(), $path = null) {
         if (is_null($path)) {
-            $controller = strtolower($this->appType->controllerName);
-            $path       = $this->appType->path . NDS . "views" . NDS . $controller . NDS;
+            $path = $this->path;
         }
 
         if (!file_exists($path . $fileName . ".phtml")) {
@@ -75,11 +92,8 @@ class N2Layout extends N2View {
 
     public function render($params = array(), $layoutName = false) {
         $controller = strtolower($this->appType->controllerName);
-        $path       = $this->appType->path . NDS . "views" . NDS . $controller . NDS;
-
-        $call = false;
-        if (N2Filesystem::existsFile($path . NDS . "_view.php")) {
-            require_once $path . NDS . "_view.php";
+        if (N2Filesystem::existsFile($this->path . NDS . "_view.php")) {
+            require_once $this->path . NDS . "_view.php";
 
             $call             = array(
                 "class"  => "N2{$this->appType->app->name}{$this->appType->type}{$controller}View",
@@ -109,7 +123,29 @@ class N2Layout extends N2View {
         if (isset($this->layoutFragments[$key])) {
             return $this->layoutFragments[$key];
         }
+
         return $default;
+    }
+
+    private function renderInline($fileName, $params = array(), $path = null, $absolutePathInFilename = false) {
+        if ($absolutePathInFilename) {
+            $path = "";
+        } elseif (is_null($path)) {
+            $path = $this->appType->path . NDS . "inline" . NDS;
+        }
+
+        if (strpos($fileName, ".phtml") === false) {
+            $fileName = $fileName . ".phtml";
+        }
+
+        if (!N2Filesystem::existsFile($path . $fileName)) {
+            throw new N2ViewException("View file ({$fileName}) not found in {$path}");
+        }
+
+        extract($params);
+
+        /** @noinspection PhpIncludeInspection */
+        include $path . $fileName;
     }
 
     public function addBreadcrumb($html) {

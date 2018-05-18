@@ -1,6 +1,6 @@
 <?php
 
-class N2SmartSliderSlide {
+class N2SmartSliderSlide extends N2SmartSliderComponentOwnerAbstract {
 
     /**
      * @var N2SmartSliderAbstract
@@ -18,8 +18,6 @@ class N2SmartSliderSlide {
 
     protected $visible = 1;
 
-    public $underEdit = false;
-
     public $hasLink = false;
 
     /**
@@ -35,7 +33,7 @@ class N2SmartSliderSlide {
 
     public $index = -1;
 
-    public $attributes = array(), $containerAttributes = array(
+    public $attributes = array(), $linkAttributes = array(), $containerAttributes = array(
         'class'             => 'n2-ss-layers-container n2-ow',
         'data-csstextalign' => 'center',
         'style'             => ''
@@ -59,6 +57,7 @@ class N2SmartSliderSlide {
         }
 
         $this->sliderObject = $slider;
+        $this->renderable   = $slider;
         $this->onCreate();
 
     }
@@ -67,22 +66,24 @@ class N2SmartSliderSlide {
         /**
          * If we do not have version info for the slide, we should do the check for the old zIndexed storage and sort the layers to the new structure.
          */
-        for ($i = 0; $i < count($layers); $i++) {
-            if (!isset($layers[$i]['zIndex'])) {
-                if (isset($layers[$i]['style']) && preg_match('/z\-index:[ ]*([0-9]+);/', $layers[$i]['style'], $matches)) {
-                    $layers[$i]['zIndex'] = intval($matches[1]);
-                } else {
-                    $layers[$i]['zIndex'] = 0;
+        if (is_array($layers)) {
+            for ($i = 0; $i < count($layers); $i++) {
+                if (!isset($layers[$i]['zIndex'])) {
+                    if (isset($layers[$i]['style']) && preg_match('/z\-index:[ ]*([0-9]+);/', $layers[$i]['style'], $matches)) {
+                        $layers[$i]['zIndex'] = intval($matches[1]);
+                    } else {
+                        $layers[$i]['zIndex'] = 0;
+                    }
+                }
+
+                if (isset($layers[$i]['type']) && $layers[$i]['type'] == 'group') {
+                    self::fixOldZIndexes($layers[$i]['layers']);
                 }
             }
 
-            if (isset($layers[$i]['type']) && $layers[$i]['type'] == 'group') {
-                self::fixOldZIndexes($layers[$i]['layers']);
+            if (isset($layers[0]['zIndex'])) {
+                usort($layers, "N2SSSlidePlacementAbsolute::sortOldZIndex");
             }
-        }
-
-        if (isset($layers[0]['zIndex'])) {
-            usort($layers, "N2SSSlidePlacementAbsolute::sortOldZIndex");
         }
     }
 
@@ -103,6 +104,10 @@ class N2SmartSliderSlide {
 
     public function hasGenerator() {
         return !!$this->generator;
+    }
+
+    public function isComponentVisible($generatorVisibleVariable) {
+        return !empty($generatorVisibleVariable) && $this->hasGenerator();
     }
 
     /**
@@ -187,26 +192,29 @@ class N2SmartSliderSlide {
 
             $url = N2ImageHelper::fixed($url);
 
-            $this->containerAttributes['onclick'] = '';
+            $this->linkAttributes['onclick'] = '';
             if (strpos($url, 'javascript:') === 0) {
-                $this->containerAttributes['onclick'] = $url;
+                $this->linkAttributes['onclick'] = $url;
             } else {
 
                 N2Loader::import('libraries.link.link');
-                $url = N2LinkParser::parse($url, $this->containerAttributes);
+                $url = N2LinkParser::parse($url, $this->linkAttributes);
 
-                $this->containerAttributes['data-href'] = (N2Platform::$isJoomla ? JRoute::_($url, false) : $url);
-                if (empty($this->containerAttributes['onclick'])) {
+                $this->linkAttributes['data-href'] = (N2Platform::$isJoomla ? JRoute::_($url, false) : $url);
+                if (empty($this->linkAttributes['onclick'])) {
                     if ($target == '_blank') {
-                        $this->containerAttributes['data-n2click'] = "window.open(this.getAttribute('data-href'),'_blank');";
+                        $this->linkAttributes['data-n2click'] = "window.open(this.getAttribute('data-href'),'_blank');";
                     } else {
-                        $this->containerAttributes['data-n2click'] = "window.location=this.getAttribute('data-href')";
+                        $this->linkAttributes['data-n2click'] = "window.location=this.getAttribute('data-href')";
                     }
-                    $this->containerAttributes['data-n2middleclick'] = "window.open(this.getAttribute('data-href'),'_blank');";
+                    $this->linkAttributes['data-n2middleclick'] = "window.open(this.getAttribute('data-href'),'_blank');";
                 }
             }
-            $this->containerAttributes['style'] .= 'cursor:pointer;';
-            $this->hasLink = true;
+            if (!isset($this->linkAttributes['style'])) {
+                $this->linkAttributes['style'] = '';
+            }
+            $this->linkAttributes['style'] .= 'cursor:pointer;';
+            $this->hasLink                 = true;
         }
     }
 
@@ -224,11 +232,8 @@ class N2SmartSliderSlide {
             N2SSSlideComponent::$isAdmin = $this->sliderObject->isAdmin;
 
             $mainContainer = new N2SSSlideComponentMain($this, $this->slide);
-            if ($this->sliderObject->isAdmin) {
-                $mainContainer->admin();
-            }
 
-            $this->html = N2Html::tag('div', $this->containerAttributes, $mainContainer->render());
+            $this->html = N2Html::tag('div', $this->containerAttributes, $mainContainer->render($this->sliderObject->isAdmin));
         }
     }
 
@@ -238,14 +243,11 @@ class N2SmartSliderSlide {
 
     public function getAsStatic() {
         $mainContainer = new N2SSSlideComponentMain($this, $this->slide);
-        if ($this->sliderObject->isAdmin) {
-            $mainContainer->admin();
-        }
 
         return N2Html::tag('div', array(
             'class'             => 'n2-ss-static-slide n2-ow' . $this->classes,
             'data-csstextalign' => 'center'
-        ), $mainContainer->render());
+        ), $mainContainer->render($this->sliderObject->isAdmin));
     }
 
     public function isStatic() {
@@ -402,8 +404,17 @@ class N2SmartSliderSlide {
         return preg_replace('/<a href=\"(.*?)\">(.*?)<\/a>/', '', $s);
     }
 
-    public function getTitle() {
-        return $this->fill($this->title);
+    private function _removelinebreaks($s) {
+        return preg_replace('/\r?\n|\r/', '', $s);
+    }
+
+    public function getTitle($isAdmin = false) {
+        $title = $this->fill($this->title);
+        if ($isAdmin && empty($title)) {
+            return n2_('Empty title');
+        }
+
+        return $title;
     }
 
     public function getDescription() {
@@ -480,37 +491,12 @@ class N2SmartSliderSlide {
     public function getFilledSlide() {
         $children = $this->slide;
         if (!$this->underEdit) {
-            $children = N2SSSlideComponentLayer::translateIds($children);
+            $children = N2SSSlideComponent::translateUniqueIdentifier($children);
         }
 
         $this->fillLayers($children);
 
         return json_encode($children);
-    }
-
-    public function fillLayers(&$layers) {
-        for ($i = 0; $i < count($layers); $i++) {
-            if (isset($layers[$i]['type'])) {
-                switch ($layers[$i]['type']) {
-                    case 'content':
-                        N2SSSlideComponentContent::getFilled($this, $layers[$i]);
-                        break;
-                    case 'row':
-                        N2SSSlideComponentRow::getFilled($this, $layers[$i]);
-                        break;
-                    case 'col':
-                        N2SSSlideComponentCol::getFilled($this, $layers[$i]);
-                        break;
-                    case 'group':
-                        N2SSSlideComponentGroup::getFilled($this, $layers[$i]);
-                        break;
-                    default:
-                        N2SSSlideComponentLayer::getFilled($this, $layers[$i]);
-                }
-            } else {
-                N2SSSlideComponentLayer::getFilled($this, $layers[$i]);
-            }
-        }
     }
 
     public function setNextCacheRefresh($time) {
@@ -566,56 +552,74 @@ class N2SmartSliderSlide {
 
         return '1/1';
     }
-}
 
-class N2SmartSliderSlideHelper {
 
-    public $data = array(
-        'id'                     => '',
-        'title'                  => '',
-        'publishdates'           => '|*|',
-        'published'              => 1,
-        'first'                  => 0,
-        'slide'                  => array(),
-        'description'            => '',
-        'thumbnail'              => '',
-        'ordering'               => 0,
-        'generator_id'           => 0,
-        "static-slide"           => 0,
-        "backgroundColor"        => "ffffff00",
-        "backgroundImage"        => "",
-        "backgroundImageOpacity" => 100,
-        "backgroundAlt"          => "",
-        "backgroundTitle"        => "",
-        "backgroundMode"         => "default",
-        "backgroundVideoMp4"     => "",
-        "backgroundVideoMuted"   => 1,
-        "backgroundVideoLoop"    => 1,
-        "backgroundVideoMode"    => "fill",
-        "link"                   => "|*|_self",
-        "slide-duration"         => 0
-    );
+    public function getElementID() {
+        return $this->getSlider()->elementId;
+    }
 
-    public function __construct($properties = array()) {
-        foreach ($properties as $k => $v) {
-            $this->data[$k] = $v;
+    public function addScript($script) {
+        $this->sliderObject->features->addInitCallback($script);
+    }
+
+    public function addLess($file, $context) {
+        $this->sliderObject->addLess($file, $context);
+    }
+
+    public function addCSS($css) {
+        $this->sliderObject->addCSS($css);
+    }
+
+    public function addFont($font, $mode, $pre = null) {
+        return $this->sliderObject->addFont($font, $mode, $pre);
+    }
+
+    public function addStyle($style, $mode, $pre = null) {
+        return $this->sliderObject->addStyle($style, $mode, $pre);
+    }
+
+    public function isAdmin() {
+        return $this->sliderObject->isAdmin;
+    }
+
+    public function isLazyLoadingEnabled() {
+        return $this->sliderObject->features->lazyLoad->isEnabled;
+    }
+
+    public function optimizeImage($image) {
+        $image = $this->fill($image);
+
+        $lazyLoad = $this->sliderObject->features->lazyLoad;
+
+        $imagePath = N2ImageHelper::fixed($image, true);
+        if (isset($imagePath[0]) && $imagePath[0] == '/' && $imagePath[1] != '/' && $lazyLoad->layerImageSizeBase64 && $lazyLoad->layerImageSizeBase64Size && filesize($imagePath) < $lazyLoad->layerImageSizeBase64Size) {
+            return array(
+                'src' => N2Image::base64($imagePath, $image)
+            );
         }
-    }
+        if (!$lazyLoad->layerImageOptimize || !$this->parameters->get('image-optimize', 1)) {
+            return array(
+                'src' => N2ImageHelper::fixed($image)
+            );
+        }
 
-    public function set($key, $value) {
-        $this->data[$key] = $value;
+        $quality = intval($this->sliderObject->params->get('optimize-quality', 70));
 
-        return $this;
-    }
+        $tablet = N2Image::scaleImage('image', $image, $lazyLoad->layerImageTablet, false, $quality);
+        $mobile = N2Image::scaleImage('image', $image, $lazyLoad->layerImageMobile, false, $quality);
 
-    /**
-     * @param $layer N2SmartSliderLayerHelper
-     */
-    public function addLayer($layer) {
-        array_unshift($this->data['slide'], $layer->data);
-    }
+        if ($image == $tablet && $image == $mobile) {
+            return array(
+                'src' => N2ImageHelper::fixed($image)
+            );
+        }
 
-    public function toArray() {
-        return $this->data;
+        return array(
+            'src'          => N2Image::base64Transparent(),
+            'data-desktop' => N2ImageHelper::fixed($image),
+            'data-tablet'  => N2ImageHelper::fixed($tablet),
+            'data-mobile'  => N2ImageHelper::fixed($mobile),
+            'data-device'  => '1'
+        );
     }
 }

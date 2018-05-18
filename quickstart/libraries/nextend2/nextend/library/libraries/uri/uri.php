@@ -2,6 +2,11 @@
 
 class N2UriAbstract {
 
+    /**
+     * @var string It can be relative or absolute uri. It must not end with /
+     * @example https://asd.com/wordpress
+     * @example /wordpress
+     */
     var $_baseuri;
 
     var $_currentbase = '';
@@ -24,6 +29,12 @@ class N2UriAbstract {
     }
 
     static function getBaseUri() {
+        $i = N2Uri::getInstance();
+
+        return $i->_baseuri;
+    }
+
+    static function getFullUri() {
         $i = N2Uri::getInstance();
 
         return $i->_baseuri;
@@ -59,9 +70,13 @@ class N2UriAbstract {
     }
 
     static function relativetoabsolute($uri) {
-        if (substr($uri, 0, 1) == '/' || strpos($uri, '://') !== false) return $uri;
+        if (strpos($uri, '://') !== false) return $uri;
+        $i = self::getInstance();
+        if (!empty($i->_baseuri) && strpos($uri, $i->_baseuri) === 0) {
+            $uri = substr($uri, strlen($i->_baseuri));
+        }
 
-        return self::getInstance()->_currentbase . $uri;
+        return $i->_currentbase . $uri;
     }
 }
 

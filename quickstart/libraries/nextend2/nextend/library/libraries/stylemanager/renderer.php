@@ -27,8 +27,19 @@ class N2StyleRenderer {
     }
 
     public static function render($style, $mode, $group, $pre = '') {
+
+        $cssData = self::_render($style, $mode, $pre);
+        if ($cssData) {
+            N2CSS::addCode($cssData[1], $group);
+
+            return $cssData[0];
+        }
+
+        return '';
+    }
+
+    public static function _render($style, $mode, $pre = '') {
         self::$pre = $pre;
-        $selector  = '';
         if (intval($style) > 0) {
             // Linked
             $style = N2StorageSectionAdmin::getById($style, 'style');
@@ -56,9 +67,10 @@ class N2StyleRenderer {
                     self::$styles[$style['id']][] = $mode;
                 }
 
-                N2CSS::addCode(self::renderStyle($mode, $pre, $selector, $value['data']), $group);
-
-                return $selector . ' ';
+                return array(
+                    $selector . ' ',
+                    self::renderStyle($mode, $pre, $selector, $value['data'])
+                );
             }
         } else if ($style != '') {
             $decoded = $style;
@@ -72,20 +84,17 @@ class N2StyleRenderer {
             if ($value) {
                 $selector = 'n2-style-' . md5($style) . '-' . $mode;
 
-                N2CSS::addCode(self::renderStyle($mode, $pre, $selector, $value['data']), $group);
-
-                return $selector . ' ';
+                return array(
+                    $selector . ' ',
+                    self::renderStyle($mode, $pre, $selector, $value['data'])
+                );
             }
         }
 
-        return '';
+        return false;
     }
 
     private static function renderStyle($mode, $pre, $selector, $tabs) {
-        $template = '';
-        foreach (self::$mode[$mode]['selectors'] AS $s => $style) {
-            $template .= $s . "{" . $style . "}\n";
-        }
         $search  = array(
             '@pre',
             '@selector'
@@ -106,6 +115,13 @@ class N2StyleRenderer {
         foreach ($tabs AS $k => $tab) {
             $search[]  = '@tab' . $k;
             $replace[] = self::$style->style($tab);
+        }
+
+        $template = '';
+        foreach (self::$mode[$mode]['selectors'] AS $s => $style) {
+            if (!in_array($style, $search) || !empty($replace[array_search($style, $search)])) {
+                $template .= $s . "{" . $style . "}";
+            }
         }
 
         return str_replace($search, $replace, $template);

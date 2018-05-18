@@ -29,6 +29,18 @@ class N2FontRenderer {
     }
 
     public static function render($font, $mode, $group, $pre = '', $fontSize = false) {
+
+        $cssData = self::_render($font, $mode, $pre, $fontSize);
+        if ($cssData) {
+            N2CSS::addCode($cssData[1], $group);
+
+            return $cssData[0];
+        }
+
+        return '';
+    }
+
+    public static function _render($font, $mode, $pre = '', $fontSize = false) {
         self::$pre = $pre;
         if (intval($font) > 0) {
             // Linked
@@ -55,9 +67,10 @@ class N2FontRenderer {
                     self::$fonts[$font['id']][] = $mode;
                 }
 
-                N2CSS::addCode(self::renderFont($mode, $pre, $selector, $value['data'], $fontSize), $group);
-
-                return $selector . ' ';
+                return array(
+                    $selector . ' ',
+                    self::renderFont($mode, $pre, $selector, $value['data'], $fontSize)
+                );
             }
         } else if ($font != '') {
             $decoded = $font;
@@ -69,20 +82,18 @@ class N2FontRenderer {
             $value = json_decode($decoded, true);
             if ($value) {
                 $selector = 'n2-font-' . md5($font) . '-' . $mode;
-                N2CSS::addCode(self::renderFont($mode, $pre, $selector, $value['data'], $fontSize), $group);
 
-                return $selector . ' ';
+                return array(
+                    $selector . ' ',
+                    self::renderFont($mode, $pre, $selector, $value['data'], $fontSize)
+                );
             }
         }
 
-        return '';
+        return false;
     }
 
     private static function renderFont($mode, $pre, $selector, $tabs, $fontSize) {
-        $template = '';
-        foreach (self::$mode[$mode]['selectors'] AS $s => $style) {
-            $template .= $s . "{" . $style . "}\n";
-        }
         $search  = array(
             '@pre',
             '@selector'
@@ -119,6 +130,13 @@ class N2FontRenderer {
             $search[]              = '@tab' . $k;
             N2FontStyle::$fontSize = $fontSize;
             $replace[]             = self::$style->style($tab);
+        }
+
+        $template = '';
+        foreach (self::$mode[$mode]['selectors'] AS $s => $style) {
+            if (!in_array($style, $search) || !empty($replace[array_search($style, $search)])) {
+                $template .= $s . "{" . $style . "}";
+            }
         }
 
         return str_replace($search, $replace, $template);
@@ -185,7 +203,7 @@ N2FontRenderer::$mode = array(
         'renderOptions' => array(
             'combined' => false
         ),
-        'preview'       => '<div class="{fontClassName}">' . n2_('Button') . '</div>',
+        'preview'       => '<div class="{fontClassName}"><a href="#" onclick="return false;">' . n2_('Button') . '</a></div>',
         'selectors'     => $frontendAccessibility ? array(
             '@pre@selector a'                                                      => '@tab0',
             '@pre@selector a:HOVER, @pre@selector a:ACTIVE, @pre@selector a:FOCUS' => '@tab1'

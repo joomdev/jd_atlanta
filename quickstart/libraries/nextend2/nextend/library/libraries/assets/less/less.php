@@ -14,6 +14,9 @@ class N2LESS {
         foreach (N2AssetsManager::$less->getFiles() AS $group => $file) {
             if (substr($file, 0, 2) == '//') {
                 N2CSS::addUrl($file);
+            } else if (!realpath($file)) {
+                // For database cache the $file contains the content of the generated CSS file
+                N2CSS::addCode($file, $group, true);
             } else {
                 N2CSS::addFile($file, $group);
             }

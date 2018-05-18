@@ -7,12 +7,12 @@ class N2ImageAviary {
         'secret' => ''
     );
 
-    private static $apiKey = "7d375066fe6b4c89b2e63e595e2120c6";
-    private static $apiSecret = "e7ce0ba9-985b-4438-94a5-2c23f82384b3";
-
     public static function init() {
-        self::loadSettings();
-        N2JS::addFirstCode('
+        static $once = false;
+        if ($once === false) {
+            self::loadSettings();
+
+            N2JS::addFirstCode('
             window.nextend.getFeatherEditor = function(){
                 if(typeof window.nextend.featherEditor !== "undefined"){
                     return $.when(window.nextend.featherEditor);
@@ -52,21 +52,21 @@ class N2ImageAviary {
                         },
                         onError: function(error){
                             if(error.code == 8){
-                                nextend.notificationCenter.error("Aviary not set up. <a target=\"_blank\" href=\"' . N2Base::getApplication('system')->router->createUrl('settings/aviary') . '\">Click here to setup!</a>");
+                                N2Classes.Notification.error("Aviary not set up. <a target=\"_blank\" href=\"' . N2Base::getApplication('system')->router->createUrl('settings/aviary') . '\">Click here to setup!</a>");
                             }else{
-                                nextend.notificationCenter.error(error.message);
+                                N2Classes.Notification.error(error.message);
                             }
                             if(typeof error.args !== "undefined" && typeof error.args[1] !== "undefined"){
-                                nextend.notificationCenter.error(error.args[1].Error);
+                                N2Classes.Notification.error(error.args[1].Error);
                             }
                             window.nextend.featherEditor.close();
                             deferred.reject();
                         },
                         onSaveButtonClicked: function(){
                             if(window.nextend.featherEditorHiRes === true){
-                                NextendAjaxHelper.ajax({
+                                N2Classes.AjaxHelper.ajax({
                                     type: "POST",
-                                    url: NextendAjaxHelper.makeAjaxUrl(window.nextend.featherEditor.ajaxUrl, {
+                                    url: N2Classes.AjaxHelper.makeAjaxUrl(window.nextend.featherEditor.ajaxUrl, {
                                         nextendaction: "getHighResolutionAuth"
                                     }),
                                     dataType: "json"
@@ -91,6 +91,13 @@ class N2ImageAviary {
                 return deferred;
             };
         ');
+            $once = true;
+        }
+
+
+        if (empty(self::$config['public'])) return false;
+
+        return true;
     }
 
     public static function getHighResolutionAuth() {
@@ -98,6 +105,7 @@ class N2ImageAviary {
         $timestamp = time();
         $salt      = uniqid(mt_rand(), true);
         $signature = sha1(self::$config['public'] . self::$config['secret'] . $timestamp . $salt);
+
         return array(
             'timestamp' => $timestamp,
             'salt'      => $salt,
@@ -113,6 +121,7 @@ class N2ImageAviary {
                 self::$config[$data['referencekey']] = $data['value'];
             }
         }
+
         return self::$config;
     }
 
@@ -124,8 +133,10 @@ class N2ImageAviary {
                     N2StorageSectionAdmin::set('system', 'aviary', $key, $value, 1, 1);
                 }
             }
+
             return true;
         }
+
         return false;
     }
 }

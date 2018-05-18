@@ -7,10 +7,10 @@ defined('_JEXEC') or die();
  * Realex User Field plugin
  *
  * @author Valerie Isaksen
- * @version $Id: realex_hpp_api.php 9560 2017-05-30 14:13:21Z Milbo $
+ * @version $Id: realex_hpp_api.php 9773 2018-03-05 18:59:44Z alatak $
  * @package VirtueMart
  * @subpackage userfield
- * Copyright (C) 2004 - 2017 Virtuemart Team. All rights reserved.
+ * Copyright (C) 2004 - 2018 Virtuemart Team. All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL, see LICENSE.php
  * VirtueMart is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -150,8 +150,8 @@ class plgVmUserfieldRealex_hpp_api extends vmUserfieldPlugin {
 			return;
 		}
 
-		$card_delete_ids = JRequest::getVar('realex_card_delete_ids', array(), 'post', 'array');
-		$card_update_ids = JRequest::getVar('realex_card_update_ids', array(), 'post', 'array');
+		$card_delete_ids = vRequest::getVar('realex_card_delete_ids', array(), 'post', 'array');
+		$card_update_ids = vRequest::getVar('realex_card_update_ids', array(), 'post', 'array');
 		if (!empty($card_delete_ids)) {
 			return $this->deleteStoredCards($card_delete_ids);
 		}

@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.9.1
+ * @version	5.9.6
  * @author	acyba.com
  * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -486,7 +486,7 @@ class acyimportHelper{
 				if($field == 1) continue;
 
 				if($field == 'listids'){
-					$liststosub = explode('-', trim($value, '\'" '));
+					$liststosub = explode('-', trim($value, '\'" 	'));
 					foreach($liststosub as $onelistid){
 						$this->importUserInLists[intval(trim($onelistid))][] = acymailing_escapeDB($newUser->email);
 					}
@@ -494,7 +494,7 @@ class acyimportHelper{
 				}
 
 				if($field == 'listname'){
-					$liststosub = explode('-', trim($value, '\'" '));
+					$liststosub = explode('-', trim($value, '\'" 	'));
 					foreach($liststosub as $onelistName){
 						if(empty($onelistName)) continue;
 						$onelistName = trim($onelistName);
@@ -516,7 +516,7 @@ class acyimportHelper{
 				if($value == 'null'){
 					$newUser->$field = '';
 				}else{
-					$newUser->$field = trim(strip_tags($value), '\'" ');
+					$newUser->$field = trim(strip_tags($value), '\'" 	');
 				}
 			}
 

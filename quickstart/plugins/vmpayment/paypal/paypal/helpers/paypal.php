@@ -8,7 +8,7 @@
  * @version $Id: paypal.php 7217 2013-09-18 13:42:54Z alatak $
  * @package VirtueMart
  * @subpackage payment
- * Copyright (C) 2004 - 2017 Virtuemart Team. All rights reserved.
+ * Copyright (C) 2004 - 2018 Virtuemart Team. All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL, see LICENSE.php
  * VirtueMart is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -535,6 +535,12 @@ class PaypalHelperPaypal {
 					return true;
 				}
 		*/
+		/*
+		 * adding an extra parameter because getting IP trough gethostbynamel is not a unfortunatly reliable method
+		 */
+		if (isset($this->_method->check_ips) and $this->_method->check_ips==0) {
+			return true;
+		}
 		$order_number = $paypal_data['invoice'];
 
 		// Get the list of IP addresses for www.paypal.com and notify.paypal.com

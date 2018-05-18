@@ -102,9 +102,13 @@ window.n2jQuery.ready(function () {
     });
 
     window.nextend.loadDeferred = window.n2.Deferred();
-    window.n2(window).on('load', function () {
+    if(typeof document.readyState !== 'undefined' && document.readyState == 'complete'){
         window.nextend.loadDeferred.resolve();
-    });
+    }else {
+        window.n2(window).on('load', function() {
+            window.nextend.loadDeferred.resolve();
+        });
+    }
 });
 
 function NextendThrottle(func, wait) {

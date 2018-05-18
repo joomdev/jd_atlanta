@@ -3,8 +3,7 @@
 require_once 'pomo/translations.php';
 require_once 'pomo/mo.php';
 
-class N2LocalizationAbstract
-{
+class N2LocalizationAbstract {
 
     static $l10n = array();
 
@@ -44,6 +43,7 @@ class N2LocalizationAbstract
         if (count(self::$js)) {
             return 'window.nextend.localization = ' . json_encode(self::$js) . ';';
         }
+
         return '';
     }
 }
@@ -56,11 +56,13 @@ function n2_get_translations_for_domain($domain) {
     if (!isset(N2Localization::$l10n[$domain])) {
         N2Localization::$l10n[$domain] = new NOOP_Translations;
     }
+
     return N2Localization::$l10n[$domain];
 }
 
 function n2_($text, $domain = 'nextend') {
     $translations = n2_get_translations_for_domain($domain);
+
     return $translations->translate($text);
 }
 
@@ -70,6 +72,7 @@ function n2_e($text, $domain = 'nextend') {
 
 function n2_n($single, $plural, $number, $domain = 'nextend') {
     $translations = n2_get_translations_for_domain($domain);
+
     return $translations->translate_plural($single, $plural, $number);
 }
 
@@ -79,6 +82,7 @@ function n2_en($single, $plural, $number, $domain = 'nextend') {
 
 function n2_x($text, $context, $domain = 'nextend') {
     $translations = n2_get_translations_for_domain($domain);
+
     return $translations->translate($text, $context);
 }
 

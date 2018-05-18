@@ -26,8 +26,7 @@
  * The `lessc_formatter` takes a CSS tree, and dumps it to a formatted string,
  * handling things like indentation.
  */
-class n2lessc
-{
+class n2lessc {
 
     static public $VERSION = "v0.3.8";
     static protected $TRUE = array(
@@ -102,12 +101,12 @@ class n2lessc
 
         $url = $this->compileValue($this->lib_e($str));
 
-        if(isset($this->registeredVars[$url])){
+        if (isset($this->registeredVars[$url])) {
             $url = $this->registeredVars[$url];
         }
 
         // don't import if it ends in css
-        if (strlen($url) >=4 && substr_compare($url, '.css', -4, 4) === 0) return false;
+        if (strlen($url) >= 4 && substr_compare($url, '.css', -4, 4) === 0) return false;
 
         $realPath = $this->findImport($url);
         if ($realPath === null) return false;
@@ -360,6 +359,7 @@ class n2lessc
         if (!empty($parts)) {
             $out .= " " . implode($this->formatter->selectorSeparator, $compiledQueries);
         }
+
         return $out;
     }
 
@@ -392,10 +392,11 @@ class n2lessc
         $parts = explode("$&$", $tag);
         $count = 0;
         foreach ($parts as &$part) {
-            $part = str_replace($this->parentSelector, $replace, $part, $c);
+            $part  = str_replace($this->parentSelector, $replace, $part, $c);
             $count += $c;
         }
         $tag = implode($this->parentSelector, $parts);
+
         return $count;
     }
 
@@ -533,6 +534,7 @@ class n2lessc
             return true; // not having enough is handled above
         } else {
             $numMatched = $i + 1;
+
             // greater than becuase default values always match
             return $numMatched >= $numCalling;
         }
@@ -583,6 +585,7 @@ class n2lessc
         }
 
         if ($searchIn->parent === $searchIn) return null;
+
         return $this->findBlocks($searchIn->parent, $path, $args, $seen);
     }
 
@@ -762,6 +765,7 @@ class n2lessc
                 if (!empty($this->formatter->compressColors)) {
                     return $this->compileValue($this->coerceColor($value));
                 }
+
                 return $value[1];
             case 'keyword':
                 // [1] - the keyword
@@ -773,6 +777,7 @@ class n2lessc
                 if ($this->numberPrecision !== null) {
                     $num = round($num, $this->numberPrecision);
                 }
+
                 return $num . $unit;
             case 'string':
                 // [1] - contents of string (includes quotes)
@@ -782,6 +787,7 @@ class n2lessc
                         $part = $this->compileValue($part);
                     }
                 }
+
                 return $delim . implode($content) . $delim;
             case 'color':
                 // [1] - red component (either number or a %)
@@ -810,6 +816,7 @@ class n2lessc
 
             case 'function':
                 list(, $name, $args) = $value;
+
                 return $name . '(' . $this->compileValue($args) . ')';
             default: // assumed to be unit
                 $this->throwError("unknown value type: $value[0]");
@@ -867,9 +874,11 @@ class n2lessc
                 if (isset($items[0])) {
                     return $this->lib_e($items[0]);
                 }
+
                 return self::$defaultValue;
             case "string":
                 $arg[1] = "";
+
                 return $arg;
             case "keyword":
                 return $arg;
@@ -907,6 +916,7 @@ class n2lessc
         }
 
         $d = $string[0] == "string" ? $string[1] : '"';
+
         return array(
             "string",
             $d,
@@ -916,6 +926,7 @@ class n2lessc
 
     protected function lib_floor($arg) {
         $value = $this->assertNumber($arg);
+
         return array(
             "number",
             floor($value),
@@ -925,6 +936,7 @@ class n2lessc
 
     protected function lib_ceil($arg) {
         $value = $this->assertNumber($arg);
+
         return array(
             "number",
             ceil($value),
@@ -934,6 +946,7 @@ class n2lessc
 
     protected function lib_round($arg) {
         $value = $this->assertNumber($arg);
+
         return array(
             "number",
             round($value),
@@ -944,6 +957,7 @@ class n2lessc
     protected function lib_unit($arg) {
         if ($arg[0] == "list") {
             list($number, $newUnit) = $arg[2];
+
             return array(
                 "number",
                 $this->assertNumber($number),
@@ -989,6 +1003,7 @@ class n2lessc
 
         $hsl    = $this->toHSL($color);
         $hsl[3] = $this->clamp($hsl[3] - $delta, 100);
+
         return $this->toRGB($hsl);
     }
 
@@ -997,6 +1012,7 @@ class n2lessc
 
         $hsl    = $this->toHSL($color);
         $hsl[3] = $this->clamp($hsl[3] + $delta, 100);
+
         return $this->toRGB($hsl);
     }
 
@@ -1005,6 +1021,7 @@ class n2lessc
 
         $hsl    = $this->toHSL($color);
         $hsl[2] = $this->clamp($hsl[2] + $delta, 100);
+
         return $this->toRGB($hsl);
     }
 
@@ -1013,6 +1030,7 @@ class n2lessc
 
         $hsl    = $this->toHSL($color);
         $hsl[2] = $this->clamp($hsl[2] - $delta, 100);
+
         return $this->toRGB($hsl);
     }
 
@@ -1030,27 +1048,32 @@ class n2lessc
     protected function lib_fadeout($args) {
         list($color, $delta) = $this->colorArgs($args);
         $color[4] = $this->clamp((isset($color[4]) ? $color[4] : 1) - $delta / 100);
+
         return $color;
     }
 
     protected function lib_fadein($args) {
         list($color, $delta) = $this->colorArgs($args);
         $color[4] = $this->clamp((isset($color[4]) ? $color[4] : 1) + $delta / 100);
+
         return $color;
     }
 
     protected function lib_hue($color) {
         $hsl = $this->toHSL($this->assertColor($color));
+
         return round($hsl[1]);
     }
 
     protected function lib_saturation($color) {
         $hsl = $this->toHSL($this->assertColor($color));
+
         return round($hsl[2]);
     }
 
     protected function lib_lightness($color) {
         $hsl = $this->toHSL($this->assertColor($color));
+
         return round($hsl[3]);
     }
 
@@ -1066,11 +1089,13 @@ class n2lessc
     protected function lib_fade($args) {
         list($color, $alpha) = $this->colorArgs($args);
         $color[4] = $this->clamp($alpha / 100.0);
+
         return $color;
     }
 
     protected function lib_percentage($arg) {
         $num = $this->assertNumber($arg);
+
         return array(
             "number",
             $num * 100,
@@ -1142,6 +1167,7 @@ class n2lessc
     protected function assertColor($value, $error = "expected color value") {
         $color = $this->coerceColor($value);
         if (is_null($color)) $this->throwError($error);
+
         return $color;
     }
 
@@ -1180,6 +1206,7 @@ class n2lessc
         );
 
         if (count($color) > 4) $out[] = $color[4]; // copy alpha
+
         return $out;
     }
 
@@ -1224,6 +1251,7 @@ class n2lessc
             $b * 255
         );
         if (count($color) > 4) $out[] = $color[4]; // copy alpha
+
         return $out;
     }
 
@@ -1255,6 +1283,7 @@ class n2lessc
             }
 
             while (count($hsl) < 4) $hsl[] = 0;
+
             return $this->toRGB($hsl);
 
         } elseif ($fname == 'rgb' || $fname == 'rgba') {
@@ -1280,6 +1309,7 @@ class n2lessc
             }
             while (count($components) < 3) $components[] = 0;
             array_unshift($components, 'color');
+
             return $this->fixColor($components);
         }
 
@@ -1315,11 +1345,13 @@ class n2lessc
                 $seen[$key] = true;
                 $out        = $this->reduce($this->get($key, self::$defaultValue));
                 $seen[$key] = false;
+
                 return $out;
             case "list":
                 foreach ($value[2] as &$item) {
                     $item = $this->reduce($item, $forExpression);
                 }
+
                 return $value;
             case "expression":
                 return $this->evaluate($value);
@@ -1331,9 +1363,11 @@ class n2lessc
                         if ($strip) $part = $this->lib_e($part);
                     }
                 }
+
                 return $value;
             case "escape":
                 list(, $inner) = $value;
+
                 return $this->lib_e($this->reduce($inner));
             case "function":
                 $color = $this->funcToColor($value);
@@ -1379,6 +1413,7 @@ class n2lessc
 
                 // plain function, reduce args
                 $value[2] = $this->reduce($value[2]);
+
                 return $value;
             case "unary":
                 list(, $op, $exp) = $value;
@@ -1390,9 +1425,11 @@ class n2lessc
                             return $exp;
                         case "-":
                             $exp[1] *= -1;
+
                             return $exp;
                     }
                 }
+
                 return array(
                     "string",
                     "",
@@ -1436,7 +1473,7 @@ class n2lessc
                 $width    = strlen($colorStr) == 3 ? 16 : 256;
 
                 for ($i = 3; $i > 0; $i--) { // 3 2 1
-                    $t = $num % $width;
+                    $t   = $num % $width;
                     $num /= $width;
 
                     $c[$i] = $t * (256 / $width) + $t * floor(16 / $width);
@@ -1463,6 +1500,7 @@ class n2lessc
                         $rgba[2]
                     );
                 }
+
                 return null;
         }
     }
@@ -1479,6 +1517,7 @@ class n2lessc
                     array($value[1])
                 );
         }
+
         return null;
     }
 
@@ -1487,6 +1526,7 @@ class n2lessc
         if ($value[0] == "list" && count($value[2]) == 1) {
             return $this->flattenList($value[2][0]);
         }
+
         return $value;
     }
 
@@ -1557,11 +1597,13 @@ class n2lessc
                 $right[1] = "";
             }
             $strLeft[2][] = $right;
+
             return $strLeft;
         }
 
         if ($strRight = $this->coerceString($right)) {
             array_unshift($strRight[2], $left);
+
             return $strRight;
         }
     }
@@ -1616,6 +1658,7 @@ class n2lessc
                     $this->throwError('evaluate error: color op number failed on op ' . $op);
             }
         }
+
         return $this->fixColor($out);
     }
 
@@ -1698,6 +1741,7 @@ class n2lessc
         $b->selectors = $selectors;
         $b->type      = $type;
         $b->parent    = $this->scope;
+
         return $b;
     }
 
@@ -1709,6 +1753,7 @@ class n2lessc
         $e->block  = $block;
 
         $this->env = $e;
+
         return $e;
     }
 
@@ -1716,6 +1761,7 @@ class n2lessc
     protected function popEnv() {
         $old       = $this->env;
         $this->env = $this->env->parent;
+
         return $old;
     }
 
@@ -1756,8 +1802,7 @@ class n2lessc
             $parser->count  = 0;
             $parser->buffer = (string)$strValue;
             if (!$parser->propertyValue($value)) {
-                N2SystemHelper::getDebugTrace("failed to parse passed in variable $name: $strValue", 15);
-                //                throw new Exception("failed to parse passed in variable $name: $strValue");
+                throw new Exception("failed to parse passed in variable $name: $strValue");
             }
 
             $this->set($name, $value);
@@ -1794,10 +1839,10 @@ class n2lessc
         $this->sourceParser = $this->parser; // used for error messages
         $this->compileBlock($root);
 
-        ob_start();
-        $this->formatter->block($this->scope);
-        $out = ob_get_clean();
+        $out = $this->formatter->block($this->scope);
+
         setlocale(LC_NUMERIC, $locale);
+
         return $out;
     }
 
@@ -1831,8 +1876,10 @@ class n2lessc
     public function checkedCompile($in, $out) {
         if (!is_file($out) || filemtime($in) > filemtime($out)) {
             $this->compileFile($in, $out);
+
             return true;
         }
+
         return false;
     }
 
@@ -1892,6 +1939,7 @@ class n2lessc
             $out['compiled'] = $this->compileFile($root);
             $out['files']    = $this->allParsedFiles();
             $out['updated']  = time();
+
             return $out;
         } else {
             // No changes, pass back the structure
@@ -1925,6 +1973,7 @@ class n2lessc
         }
 
         $this->registeredVars = $oldVars;
+
         return $out;
     }
 
@@ -1939,12 +1988,11 @@ class n2lessc
         $this->formatterName = $name;
     }
 
+    /**
+     * @return n2lessc_formatter_classic
+     */
     protected function newFormatter() {
-        $className = "n2lessc_formatter_lessjs";
-        if (!empty($this->formatterName)) {
-            if (!is_string($this->formatterName)) return $this->formatterName;
-            $className = "nlessc_formatter_$this->formatterName";
-        }
+        $className = "n2lessc_formatter_compressed";
 
         return new $className;
     }
@@ -2009,6 +2057,7 @@ class n2lessc
         if ($less === null) {
             $less = new self;
         }
+
         return $less->checkedCompile($in, $out);
     }
 
@@ -2016,6 +2065,7 @@ class n2lessc
         if ($less === null) {
             $less = new self;
         }
+
         return $less->cachedCompile($in, $force);
     }
 
@@ -2173,8 +2223,7 @@ class n2lessc
 
 // responsible for taking a string of LESS code and converting it into a
 // syntax tree
-class n2lessc_parser
-{
+class n2lessc_parser {
 
     static protected $nextBlockId = 0; // used to uniquely identify blocks
 
@@ -2185,11 +2234,11 @@ class n2lessc_parser
         '<'  => 0,
         '>'  => 0,
 
-        '+'  => 1,
-        '-'  => 1,
-        '*'  => 2,
-        '/'  => 2,
-        '%'  => 2,
+        '+' => 1,
+        '-' => 1,
+        '*' => 2,
+        '/' => 2,
+        '%' => 2,
     );
 
     static protected $whitePattern;
@@ -2330,6 +2379,7 @@ class n2lessc_parser
                 $key,
                 $value
             ), $s);
+
             return true;
         } else {
             $this->seek($s);
@@ -2345,9 +2395,11 @@ class n2lessc_parser
                 if (($this->mediaQueryList($mediaQueries) || true) && $this->literal('{')) {
                     $media          = $this->pushSpecialBlock("media");
                     $media->queries = is_null($mediaQueries) ? array() : $mediaQueries;
+
                     return true;
                 } else {
                     $this->seek($s);
+
                     return false;
                 }
             }
@@ -2358,6 +2410,7 @@ class n2lessc_parser
                         $dir       = $this->pushSpecialBlock("directive");
                         $dir->name = $dirName;
                         if (isset($dirValue)) $dir->value = $dirValue;
+
                         return true;
                     }
                 } elseif ($this->isDirective($dirName, $this->lineDirectives)) {
@@ -2367,6 +2420,7 @@ class n2lessc_parser
                             $dirName,
                             $dirValue
                         ));
+
                         return true;
                     }
                 }
@@ -2382,6 +2436,7 @@ class n2lessc_parser
                 $var,
                 $value
             ), $s);
+
             return true;
         } else {
             $this->seek($s);
@@ -2389,6 +2444,7 @@ class n2lessc_parser
 
         if ($this->import($importValue)) {
             $this->append($importValue, $s);
+
             return true;
         }
 
@@ -2398,6 +2454,7 @@ class n2lessc_parser
             $block->args     = $args;
             $block->isVararg = $isVararg;
             if (!empty($guards)) $block->guards = $guards;
+
             return true;
         } else {
             $this->seek($s);
@@ -2407,6 +2464,7 @@ class n2lessc_parser
         if ($this->tags($tags) && $this->literal('{')) {
             $tags = $this->fixTags($tags);
             $this->pushBlock($tags);
+
             return true;
         } else {
             $this->seek($s);
@@ -2450,6 +2508,7 @@ class n2lessc_parser
             // this is done here so comments aren't bundled into he block that
             // was just closed
             $this->whitespace();
+
             return true;
         }
 
@@ -2462,6 +2521,7 @@ class n2lessc_parser
                 $argv,
                 $suffix
             ), $s);
+
             return true;
         } else {
             $this->seek($s);
@@ -2489,6 +2549,7 @@ class n2lessc_parser
         foreach ($tags as &$tag) {
             if ($tag{0} == $this->lessc->vPrefix) $tag[0] = $this->lessc->mPrefix;
         }
+
         return $tags;
     }
 
@@ -2503,6 +2564,7 @@ class n2lessc_parser
         if (count($values) == 0) return false;
 
         $exps = n2lessc::compressList($values, ' ');
+
         return true;
     }
 
@@ -2539,6 +2601,7 @@ class n2lessc_parser
 
             return true;
         }
+
         return false;
     }
 
@@ -2617,6 +2680,7 @@ class n2lessc_parser
         if (count($values) == 0) return false;
 
         $value = n2lessc::compressList($values, ', ');
+
         return true;
     }
 
@@ -2632,6 +2696,7 @@ class n2lessc_parser
         if ($this->literal("(") && ($this->inParens = true) && $this->expression($exp) && $this->literal(")")) {
             $out            = $exp;
             $this->inParens = $inParens;
+
             return true;
         } else {
             $this->inParens = $inParens;
@@ -2651,13 +2716,13 @@ class n2lessc_parser
             if ($this->literal("-", false) && (($this->variable($inner) && $inner = array(
                             "variable",
                             $inner
-                        )) || $this->unit($inner) || $this->parenValue($inner))
-            ) {
+                        )) || $this->unit($inner) || $this->parenValue($inner))) {
                 $value = array(
                     "unary",
                     "-",
                     $inner
                 );
+
                 return true;
             } else {
                 $this->seek($s);
@@ -2675,6 +2740,7 @@ class n2lessc_parser
                 'keyword',
                 $word
             );
+
             return true;
         }
 
@@ -2684,6 +2750,7 @@ class n2lessc_parser
                 'variable',
                 $var
             );
+
             return true;
         }
 
@@ -2693,6 +2760,7 @@ class n2lessc_parser
                 "escape",
                 $str
             );
+
             return true;
         } else {
             $this->seek($s);
@@ -2704,6 +2772,7 @@ class n2lessc_parser
                 'keyword',
                 '\\' . $m[1]
             );
+
             return true;
         } else {
             $this->seek($s);
@@ -2726,6 +2795,7 @@ class n2lessc_parser
                 "import",
                 $value
             );
+
             return true;
         }
     }
@@ -2733,8 +2803,10 @@ class n2lessc_parser
     protected function mediaQueryList(&$out) {
         if ($this->genericList($list, "mediaQuery", ",", false)) {
             $out = $list[2];
+
             return true;
         }
+
         return false;
     }
 
@@ -2764,10 +2836,12 @@ class n2lessc_parser
 
         if (count($parts) == 0) {
             $this->seek($s);
+
             return false;
         }
 
         $out = $parts;
+
         return true;
     }
 
@@ -2780,16 +2854,19 @@ class n2lessc_parser
                 $feature
             );
             if ($value) $out[] = $value;
+
             return true;
         } elseif ($this->variable($variable)) {
             $out = array(
                 'variable',
                 $variable
             );
+
             return true;
         }
 
         $this->seek($s);
+
         return false;
     }
 
@@ -2853,7 +2930,7 @@ class n2lessc_parser
                 break;
             }
 
-            $content[] = $tok;
+            $content[]   = $tok;
             $this->count += strlen($tok);
         }
 
@@ -2871,6 +2948,7 @@ class n2lessc_parser
             "",
             $content
         );
+
         return true;
     }
 
@@ -2896,11 +2974,11 @@ class n2lessc_parser
             $content[] = $m[1];
             if ($m[2] == "@{") {
                 $this->count -= strlen($m[2]);
-                if ($this->interpolation($inter, false)) {
+                if ($this->interpolation($inter)) {
                     $content[] = $inter;
                 } else {
                     $this->count += strlen($m[2]);
-                    $content[] = "@{"; // ignore it
+                    $content[]   = "@{"; // ignore it
                 }
             } elseif ($m[2] == '\\') {
                 $content[] = $m[2];
@@ -2921,10 +2999,12 @@ class n2lessc_parser
                 $delim,
                 $content
             );
+
             return true;
         }
 
         $this->seek($s);
+
         return false;
     }
 
@@ -2937,19 +3017,20 @@ class n2lessc_parser
                 "'",
                 '"',
                 ";"
-            )) && $this->literal("}", false)
-        ) {
+            )) && $this->literal("}", false)) {
             $out                   = array(
                 "interpolate",
                 $interp
             );
             $this->eatWhiteDefault = $oldWhite;
             if ($this->eatWhiteDefault) $this->whitespace();
+
             return true;
         }
 
         $this->eatWhiteDefault = $oldWhite;
         $this->seek($s);
+
         return false;
     }
 
@@ -2966,8 +3047,10 @@ class n2lessc_parser
                 $m[1],
                 empty($m[2]) ? "" : $m[2]
             );
+
             return true;
         }
+
         return false;
     }
 
@@ -2986,6 +3069,7 @@ class n2lessc_parser
                     $m[1]
                 );
             }
+
             return true;
         }
 
@@ -3008,10 +3092,12 @@ class n2lessc_parser
 
         if (!$this->literal(')')) {
             $this->seek($s);
+
             return false;
         }
 
         $args = $values;
+
         return true;
     }
 
@@ -3063,6 +3149,7 @@ class n2lessc_parser
 
         if (!$this->literal(')')) {
             $this->seek($s);
+
             return false;
         }
 
@@ -3114,10 +3201,12 @@ class n2lessc_parser
 
             // escape parent selector, (yuck)
             $value = str_replace($this->lessc->parentSelector, "$&$", $value);
+
             return true;
         }
 
         $this->seek($s);
+
         return false;
     }
 
@@ -3128,10 +3217,12 @@ class n2lessc_parser
                 'exp',
                 $exp
             );
+
             return true;
         }
 
         $this->seek($s);
+
         return false;
     }
 
@@ -3190,6 +3281,7 @@ class n2lessc_parser
         $this->eatWhiteDefault = $oldWhite;
         if (!$parts) {
             $this->seek($s);
+
             return false;
         }
 
@@ -3207,6 +3299,7 @@ class n2lessc_parser
         }
 
         $this->whitespace();
+
         return true;
     }
 
@@ -3254,6 +3347,7 @@ class n2lessc_parser
                     $fname,
                     $args
                 );
+
                 return true;
             } elseif ($fname == 'url') {
                 // couldn't parse and in url? treat as string
@@ -3264,12 +3358,14 @@ class n2lessc_parser
                         $fname,
                         $string
                     );
+
                     return true;
                 }
             }
         }
 
         $this->seek($s);
+
         return false;
     }
 
@@ -3285,11 +3381,13 @@ class n2lessc_parser
             } else {
                 $name = $this->lessc->vPrefix . $name;
             }
+
             return true;
         }
 
         $name = null;
         $this->seek($s);
+
         return false;
     }
 
@@ -3299,6 +3397,7 @@ class n2lessc_parser
      */
     protected function assign($name = null) {
         if ($name) $this->currentProperty = $name;
+
         return $this->literal(':') || $this->literal('=');
     }
 
@@ -3306,8 +3405,10 @@ class n2lessc_parser
     protected function keyword(&$word) {
         if ($this->match('([\w_\-\*!"][\w\-_"]*)', $m)) {
             $word = $m[1];
+
             return true;
         }
+
         return false;
     }
 
@@ -3319,6 +3420,7 @@ class n2lessc_parser
             // if there is end of file or a closing block next then we don't need a ;
             return true;
         }
+
         return false;
     }
 
@@ -3327,6 +3429,7 @@ class n2lessc_parser
 
         if (!$this->literal("when")) {
             $this->seek($s);
+
             return false;
         }
 
@@ -3340,6 +3443,7 @@ class n2lessc_parser
         if (count($guards) == 0) {
             $guards = null;
             $this->seek($s);
+
             return false;
         }
 
@@ -3359,6 +3463,7 @@ class n2lessc_parser
         if (count($guardGroup) == 0) {
             $guardGroup = null;
             $this->seek($s);
+
             return false;
         }
 
@@ -3375,10 +3480,12 @@ class n2lessc_parser
                 "negate",
                 $guard
             );
+
             return true;
         }
 
         $this->seek($s);
+
         return false;
     }
 
@@ -3392,6 +3499,7 @@ class n2lessc_parser
             if ($this->buffer[$this->count] == $what) {
                 if (!$eatWhitespace) {
                     $this->count++;
+
                     return true;
                 }
                 // goes below...
@@ -3419,6 +3527,7 @@ class n2lessc_parser
 
         if (count($items) == 0) {
             $this->seek($s);
+
             return false;
         }
 
@@ -3448,6 +3557,7 @@ class n2lessc_parser
         if (!$this->match('(' . $validChars . '*?)' . n2lessc::preg_quote($what), $m, !$until)) return false;
         if ($until) $this->count -= strlen($what); // give back $what
         $out = $m[1];
+
         return true;
     }
 
@@ -3459,8 +3569,10 @@ class n2lessc_parser
         if (preg_match($r, $this->buffer, $out, null, $this->count)) {
             $this->count += strlen($out[0]);
             if ($eatWhitespace && $this->writeComments) $this->whitespace();
+
             return true;
         }
+
         return false;
     }
 
@@ -3477,11 +3589,13 @@ class n2lessc_parser
                     $this->commentsSeen[$this->count] = true;
                 }
                 $this->count += strlen($m[0]);
-                $gotWhite = true;
+                $gotWhite    = true;
             }
+
             return $gotWhite;
         } else {
             $this->match("", $m);
+
             return strlen($m[0]) > 0;
         }
     }
@@ -3498,6 +3612,7 @@ class n2lessc_parser
     // seek to a spot in the buffer or return where we are on no argument
     protected function seek($where = null) {
         if ($where === null) return $this->count; else $this->count = $where;
+
         return true;
     }
 
@@ -3536,6 +3651,7 @@ class n2lessc_parser
         $b->children = array();
 
         $this->env = $b;
+
         return $b;
     }
 
@@ -3554,6 +3670,7 @@ class n2lessc_parser
     protected function pop() {
         $old       = $this->env;
         $this->env = $this->env->parent;
+
         return $old;
     }
 
@@ -3609,7 +3726,7 @@ class n2lessc_parser
 
             if ($skip == 0) $count += strlen($min[0]);
 
-            $out .= substr($text, 0, $count) . str_repeat("\n", $newlines);
+            $out  .= substr($text, 0, $count) . str_repeat("\n", $newlines);
             $text = substr($text, $count + $skip);
 
             $min = null;
@@ -3620,8 +3737,7 @@ class n2lessc_parser
 
 }
 
-class n2lessc_formatter_classic
-{
+class n2lessc_formatter_classic {
 
     public $indentChar = "  ";
 
@@ -3659,11 +3775,13 @@ class n2lessc_formatter_classic
 
             return true;
         }
+
         return false;
     }
 
     public function block($block) {
-        if ($this->isEmpty($block)) return;
+        $ret = '';
+        if ($this->isEmpty($block)) return $ret;
 
         $inner = $pre = $this->indentStr();
 
@@ -3678,12 +3796,12 @@ class n2lessc_formatter_classic
                 $selectorSeparator = $this->selectorSeparator;
             }
 
-            echo $pre . implode($selectorSeparator, $block->selectors);
+            $ret .= $pre . implode($selectorSeparator, $block->selectors);
             if ($isSingle) {
-                echo $this->openSingle;
+                $ret   .= $this->openSingle;
                 $inner = "";
             } else {
-                echo $this->open . $this->break;
+                $ret   .= $this->open . $this->break;
                 $inner = $this->indentStr();
             }
 
@@ -3691,32 +3809,33 @@ class n2lessc_formatter_classic
 
         if (!empty($block->lines)) {
             $glue = $this->break . $inner;
-            echo $inner . implode($glue, $block->lines);
+            $ret  .= $inner . implode($glue, $block->lines);
             if (!$isSingle && !empty($block->children)) {
-                echo $this->break;
+                $ret .= $this->break;
             }
         }
 
         foreach ($block->children as $child) {
-            $this->block($child);
+            $ret .= $this->block($child);
         }
 
         if (!empty($block->selectors)) {
-            if (!$isSingle && empty($block->children)) echo $this->break;
+            if (!$isSingle && empty($block->children)) $ret .= $this->break;
 
             if ($isSingle) {
-                echo $this->closeSingle . $this->break;
+                $ret .= $this->closeSingle . $this->break;
             } else {
-                echo $pre . $this->close . $this->break;
+                $ret .= $pre . $this->close . $this->break;
             }
 
             $this->indentLevel--;
         }
+
+        return $ret;
     }
 }
 
-class n2lessc_formatter_compressed extends n2lessc_formatter_classic
-{
+class n2lessc_formatter_compressed extends n2lessc_formatter_classic {
 
     public $disableSingle = true;
     public $open = "{";
@@ -3730,8 +3849,7 @@ class n2lessc_formatter_compressed extends n2lessc_formatter_classic
     }
 }
 
-class n2lessc_formatter_lessjs extends n2lessc_formatter_classic
-{
+class n2lessc_formatter_lessjs extends n2lessc_formatter_classic {
 
     public $disableSingle = true;
     public $breakSelectors = true;

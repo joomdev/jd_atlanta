@@ -107,9 +107,9 @@ $productModel->addImages($products);
 if (!class_exists('shopFunctionsF'))
 	require(JPATH_VM_SITE . DS . 'helpers' . DS . 'shopfunctionsf.php');
 shopFunctionsF::sortLoadProductCustomsStockInd($products,$productModel);
+if(empty($products)) return false;
 
 $totalProd = 		count( $products);
-if(empty($products)) return false;
 
 if (!class_exists('CurrencyDisplay'))
 	require(VMPATH_ADMIN . DS . 'helpers' . DS . 'currencydisplay.php');

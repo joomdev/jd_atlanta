@@ -2,23 +2,40 @@
 
 class N2SmartSliderManager {
 
+	private $hasError = false;
+
     protected $usage = 'Unknown';
 
     public $slider;
 
     public $nextCacheRefresh;
 
-    public function __construct($sliderId, $backend = false, $parameters = array()) {
+    public function __construct($sliderIDorAlias, $backend = false, $parameters = array()) {
+	    $sliderID = false;
 
-        if ($backend) {
-            N2Loader::import("libraries.slider.backend", "smartslider");
-            $this->slider = new N2SmartSliderBackend($sliderId, $parameters);
-        } else {
-            N2Loader::import("libraries.slider.abstract", "smartslider");
-            $this->slider = new N2SmartSlider($sliderId, $parameters);
-        }
+    	if(!is_numeric($sliderIDorAlias)){
+    		$model = new N2SmartsliderSlidersModel();
+    		$slider = $model->getByAlias($sliderIDorAlias);
+    		if($slider){
+			    $sliderID = intval($slider['id']);
+		    }
+	    } else {
+		    $sliderID = intval($sliderIDorAlias);
+	    }
 
-        N2AssetsManager::addCachedGroup($this->slider->cacheId);
+	    if($sliderID) {
+		    if ( $backend ) {
+			    N2Loader::import( "libraries.slider.backend", "smartslider" );
+			    $this->slider = new N2SmartSliderBackend( $sliderID, $parameters );
+		    } else {
+			    N2Loader::import( "libraries.slider.abstract", "smartslider" );
+			    $this->slider = new N2SmartSlider( $sliderID, $parameters );
+		    }
+
+		    N2AssetsManager::addCachedGroup( $this->slider->cacheId );
+	    } else{
+    		$this->hasError = true;
+	    }
     }
 
     public function setUsage($usage) {
@@ -30,6 +47,9 @@ class N2SmartSliderManager {
     }
 
     public function render($cache = false) {
+    	if($this->hasError){
+    		return '';
+	    }
 
         if (!N2Platform::$isAdmin && N2SmartSliderSettings::get('serversidemobiledetect', '0') == '1') {
             if (!$this->slider->canDisplayOnCurrentDevice()) {
@@ -41,7 +61,7 @@ class N2SmartSliderManager {
         }
         N2Loader::import("libraries.slider.cache.slider", "smartslider");
 
-        return $this->slider->addCMSFunctions($this->cacheSlider());
+        return N2SmartSlider::addCMSFunctions($this->cacheSlider());
     }
 
     private function cacheSlider() {

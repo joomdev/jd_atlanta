@@ -5,7 +5,7 @@ defined ('_JEXEC') or die('Restricted access');
 /**
  * Shipment plugin for weight_countries shipments, like regular postal services
  *
- * @version $Id: weight_countries.php 9560 2017-05-30 14:13:21Z Milbo $
+ * @version $Id: weight_countries.php 9742 2018-01-26 11:32:44Z alatak $
  * @package VirtueMart
  * @subpackage Plugins - shipment
  * @copyright Copyright (C) 2004-2012 VirtueMart Team - All rights reserved.
@@ -140,7 +140,6 @@ class plgVmShipmentWeight_countries extends vmPSPlugin {
 	 *
 	 * @param integer $virtuemart_order_id The order ID
 	 * @param integer $virtuemart_shipmentmethod_id The order shipment method ID
-	 * @param object  $_shipInfo Object with the properties 'shipment' and 'name'
 	 * @return mixed Null for shipments that aren't active, text (HTML) otherwise
 	 * @author Valerie Isaksen
 	 */
@@ -164,7 +163,9 @@ class plgVmShipmentWeight_countries extends vmPSPlugin {
 			. 'WHERE `virtuemart_order_id` = ' . $virtuemart_order_id;
 		$db->setQuery ($q);
 		if (!($shipinfo = $db->loadObject ())) {
-			vmWarn (500, $q . " " . $db->getErrorMsg ());
+			$msg=vmText::sprintf('VMSHIPMENT_WEIGHT_COUNTRIES_NO_ENTRY_FOUND', $virtuemart_order_id);
+			vmWarn ($msg);
+			vmDebug($msg, $q . " " . $db->getErrorMsg ());
 			return '';
 		}
 
@@ -200,6 +201,8 @@ class plgVmShipmentWeight_countries extends vmPSPlugin {
 		if ($method->free_shipment && $cart_prices['salesPrice'] >= $method->free_shipment) {
 			return 0.0;
 		} else {
+			if(empty($method->shipment_cost)) $method->shipment_cost = 0.0;
+			if(empty($method->package_fee)) $method->package_fee = 0.0;
 			return $method->shipment_cost + $method->package_fee;
 		}
 	}
@@ -428,7 +431,7 @@ class plgVmShipmentWeight_countries extends vmPSPlugin {
 		if (!class_exists('VirtueMartCart'))
 			require(VMPATH_SITE . DS . 'helpers' . DS . 'cart.php');
 
-		$html = '';
+		$html = array();
 		if (!class_exists('CurrencyDisplay'))
 			require(JPATH_VM_ADMINISTRATOR . DS . 'helpers' . DS . 'currencydisplay.php');
 		$currency = CurrencyDisplay::getInstance();

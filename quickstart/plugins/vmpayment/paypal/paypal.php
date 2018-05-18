@@ -8,7 +8,7 @@
  * @version $Id: paypal.php 7217 2013-09-18 13:42:54Z alatak $
  * @package VirtueMart
  * @subpackage payment
- * Copyright (C) 2004 - 2017 Virtuemart Team. All rights reserved.
+ * Copyright (C) 2004 - 2018 Virtuemart Team. All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL, see LICENSE.php
  * VirtueMart is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -94,6 +94,7 @@ class plgVmPaymentPaypal extends vmPSPlugin {
 			'payment_currency' => array('', 'int'),
 			'email_currency' => array('', 'char'),
 			'log_ipn' => array('', 'int'),
+			'check_ips' => array('', 'int'),
 			'payment_logos' => array('', 'char'),
 			'debug' => array(0, 'int'),
 			'log' => array(0, 'int'),
@@ -1273,7 +1274,7 @@ class plgVmPaymentPaypal extends vmPSPlugin {
 				$this->_storePaypalInternalData(  $paypalInterface->getResponse(false), $order->virtuemart_order_id, $payment->virtuemart_paymentmethod_id, $order->order_number);
 			}
 
-		} elseif ($order->order_status == $this->_currentMethod->status_refunded OR $order->order_status == $this->_currentMethod->status_canceled) {
+		} elseif ($order->order_status == $this->_currentMethod->status_refunded /*OR $order->order_status == $this->_currentMethod->status_canceled*/) {
 			$paypalInterface = $this->_loadPayPalInterface();
 			$paypalInterface->setOrder($order);
 			$paypalInterface->setTotal($order->order_total);
@@ -1331,8 +1332,8 @@ class plgVmPaymentPaypal extends vmPSPlugin {
 			}
 		}
 		$method_name = $this->_psType . '_name';
+		$idN = 'virtuemart_'.$this->_psType.'method_id';
 
-		$htmla = array();
 		foreach ($this->methods as $this->_currentMethod) {
 			if ($this->checkConditions($cart, $this->_currentMethod, $cart->cartPrices)) {
 
@@ -1378,10 +1379,10 @@ class plgVmPaymentPaypal extends vmPSPlugin {
 					$html .= '<br/><span class="vmpayment_cardinfo">' . $paypalInterface->getPaymentPlanDesc() . '</span>';
 				}
 
-				$htmla[] = $html;
+				$htmlIn[$this->_psType][$this->_currentMethod->$idN] =$html;
 			}
 		}
-		$htmlIn[] = $htmla;
+
 		return true;
 
 	}

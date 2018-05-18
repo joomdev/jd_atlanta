@@ -1,6 +1,6 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.itemFactory', 'smartslider');
+N2Loader::import('libraries.renderable.layers.itemFactory', 'smartslider');
 
 class N2SSItemImage extends N2SSItemAbstract {
 
@@ -15,24 +15,28 @@ class N2SSItemImage extends N2SSItemAbstract {
     }
 
     private function getHtml() {
-        $slide  = $this->layer->getSlide();
-        $slider = $slide->getSlider();
-
+        $owner = $this->layer->getOwner();
 
         $size = (array)N2Parse::parse($this->data->get('size', ''));
         if (empty($size[0])) $size[0] = 'auto';
         if (empty($size[1])) $size[1] = 'auto';
 
-
-        $html = N2Html::tag('img', $this->optimizeImage($slide->fill($this->data->get('image', ''))) + array(
+        $imageAttributes = $owner->optimizeImage($this->data->get('image', '')) + array(
                 "id"    => $this->id,
-                "alt"   => htmlspecialchars($slide->fill($this->data->get('alt', ''))),
+                "alt"   => htmlspecialchars($owner->fill($this->data->get('alt', ''))),
                 "style" => "display: inline-block; max-width: 100%; width: {$size[0]};height: {$size[1]};",
-                "class" => $this->data->get('cssclass', '') . ' n2-ow',
-                "title" => htmlspecialchars($slide->fill($this->data->get('title', '')))
-            ), false);
+                "class" => $this->data->get('cssclass', '') . ' n2-ow'
+            );
 
-        $style = N2StyleRenderer::render($this->data->get('style'), 'heading', $slider->elementId, 'div#' . $slider->elementId . ' ');
+        $title = htmlspecialchars($owner->fill($this->data->get('title', '')));
+        if (!empty($title)) {
+            $imageAttributes['title'] = $title;
+        }
+
+        $html = N2Html::tag('img', $imageAttributes, false);
+
+
+        $style = $owner->addStyle($this->data->get('style'), 'heading');
 
         return N2Html::tag("div", array(
             "class" => $style . ' n2-ss-img-wrapper n2-ow',

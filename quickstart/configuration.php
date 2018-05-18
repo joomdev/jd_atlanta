@@ -13,7 +13,7 @@ class JConfig {
 	public $captcha = '0';
 	public $cookie_domain = '';
 	public $cookie_path = '';
-	public $db = 'jdatlanta20';
+	public $db = 'atlanta22';
 	public $dbprefix = 'vw1eh_';
 	public $dbtype = 'mysqli';
 	public $debug = '0';
@@ -37,7 +37,7 @@ class JConfig {
 	public $lifetime = '15';
 	public $list_limit = '20';
 	public $live_site = '';
-	public $log_path = 'F:/xampp-5/htdocs/JD Atlanta update/administrator/logs';
+	public $log_path = 'E:/xampp717/htdocs/jd_atlanta_2_0/administrator/logs';
 	public $mailer = 'mail';
 	public $mailfrom = 'admin@admin.com';
 	public $memcache_compress = '0';
@@ -51,7 +51,7 @@ class JConfig {
 	public $offset_user = 'UTC';
 	public $password = '';
 	public $robots = '';
-	public $secret = 'woc1RlL1s63MP0dhtVzfOqzvxy3ZN93k';
+	public $secret = 'uKkjCfDO4jOkTM0V0JbSYsbu9VS7O3ha';
 	public $sef = '1';
 	public $sef_rewrite = '0';
 	public $sef_suffix = '0';
@@ -65,7 +65,7 @@ class JConfig {
 	public $smtpport = '25';
 	public $smtpsecure = 'none';
 	public $smtpuser = '';
-	public $tmp_path = 'F:/xampp-5/htdocs/JD Atlanta update/tmp';
+	public $tmp_path = 'E:/xampp717/htdocs/jd_atlanta_2_0/tmp';
 	public $unicodeslugs = '0';
 	public $user = 'root';
 	public $mailonline = '1';

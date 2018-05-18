@@ -1,10 +1,10 @@
 <?php
 
-N2Loader::import('libraries.slider.slides.slide.item.itemFactoryAbstract', 'smartslider');
+N2Loader::import('libraries.renderable.layers.item.itemFactoryAbstract', 'smartslider');
 
 class N2SSPluginItemFactoryYouTube extends N2SSPluginItemFactoryAbstract {
 
-    var $type = 'youtube';
+    protected $type = 'youtube';
 
     protected $priority = 20;
 
@@ -13,12 +13,11 @@ class N2SSPluginItemFactoryYouTube extends N2SSPluginItemFactoryAbstract {
         "desktopportraitheight" => 180
     );
 
-    protected $group = 'Media';
-
     protected $class = 'N2SSItemYouTube';
 
     public function __construct() {
-        $this->_title = n2_x('YouTube', 'Slide item');
+        $this->title = 'YouTube';
+        $this->group = n2_('Media');
     }
 
     function getValues() {
@@ -68,6 +67,81 @@ class N2SSPluginItemFactoryYouTube extends N2SSPluginItemFactoryAbstract {
         return $data;
     }
 
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'item-youtube');
+
+        new N2ElementText($settings, 'youtubeurl', n2_('YouTube url or Video ID'), '', array(
+            'style' => 'width:290px;'
+        ));
+
+        new N2ElementImage($settings, 'image', n2_('Cover image'), '', array(
+            'fixed' => true,
+            'style' => 'width:236px;'
+        ));
+
+        $misc = new N2ElementGroup($settings, 'item-vimeo-misc');
+
+        new N2ElementNumber($misc, 'start', n2_('Start time'), 0, array(
+            'min'  => 0,
+            'unit' => 'sec',
+            'wide' => 5
+        ));
+        new N2ElementList($misc, 'volume', n2_('Volume'), 1, array(
+            'options' => array(
+                '0'    => n2_('Mute'),
+                '0.25' => '25%',
+                '0.5'  => '50%',
+                '0.75' => '75%',
+                '1'    => '100%',
+                '-1'   => n2_('Default')
+            )
+        ));
+
+        new N2ElementList($misc, 'theme', n2_('Theme'), '', array(
+            'options' => array(
+                'light' => n2_('Light'),
+                'dark'  => n2_('Dark')
+            )
+        ));
+
+        new N2ElementList($misc, 'vq', n2_('Quality'), 'default', array(
+            'options' => array(
+                'small'   => '240p',
+                'medium'  => '360p',
+                'large'   => '480p',
+                'hd720'   => '720p',
+                'hd1080'  => '1080p',
+                'highres' => 'High res',
+                'default' => 'Default'
+            )
+        ));
+
+        new N2ElementOnOff($misc, 'autoplay', n2_('Autoplay'), 0);
+        new N2ElementOnOff($misc, 'controls', n2_('Controls'), 1);
+        new N2ElementOnOff($misc, 'center', n2_('Centered'), 0);
+        new N2ElementOnOff($misc, 'loop', n2_('Loop'), 0);
+        new N2ElementOnOff($misc, 'related', n2_('Related'), 0);
+
+
+        $playButton = new N2ElementGroup($settings, 'item-vimeo-playbutton', '', array(
+            'rowClass' => 'n2-expert'
+        ));
+        new N2ElementOnOff($playButton, 'playbutton', n2_('Play button'), 1);
+        new N2ElementNumber($playButton, 'playbuttonwidth', n2_('Width'), 48, array(
+            'unit' => 'px',
+            'wide' => 4
+        ));
+        new N2ElementNumber($playButton, 'playbuttonheight', n2_('Height'), 48, array(
+            'unit' => 'px',
+            'wide' => 4
+        ));
+
+        new N2ElementImage($playButton, 'playbuttonimage', n2_('Image'), '', array(
+            'fixed' => true,
+            'style' => 'width:236px;'
+        ));
+    }
+
 }
 
-N2Plugin::addPlugin('ssitem', 'N2SSPluginItemFactoryYouTube');
+N2SmartSliderItemsFactory::addItem(new N2SSPluginItemFactoryYouTube);

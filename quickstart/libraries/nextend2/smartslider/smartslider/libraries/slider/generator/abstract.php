@@ -2,13 +2,41 @@
 
 abstract class N2GeneratorAbstract {
 
-    /** @var  N2GeneratorInfo */
-    protected $info;
+    protected $name = '';
 
+    protected $label = '';
+
+
+    protected $layout = '';
+
+    /** @var  N2SliderGeneratorPluginAbstract */
+    protected $group;
     protected $data;
 
-    public function __construct($info, $data) {
-        $this->info = $info;
+    /**
+     * N2GeneratorAbstract constructor.
+     *
+     * @param N2SliderGeneratorPluginAbstract $group
+     * @param string                          $name
+     * @param string                          $label
+     */
+    public function __construct($group, $name, $label) {
+        $this->group = $group;
+        $this->name  = $name;
+        $this->label = $label;
+
+        $this->group->addSource($name, $this);
+    }
+
+    /**
+     *
+     * @param N2Form $form
+     */
+    public function renderFields($form) {
+        $this->group->loadElements();
+    }
+
+    public function setData($data) {
         $this->data = $data;
     }
 
@@ -39,6 +67,7 @@ abstract class N2GeneratorAbstract {
                 array_pop($data);
             }
         }
+
         return $data;
     }
 
@@ -48,12 +77,12 @@ abstract class N2GeneratorAbstract {
         return preg_replace('@(https?://([-\w\.]+[-\w])+(:\d+)?(/([\w/_\.#-]*(\?\S+)?[^\.\s])?)?)@', '<a href="$1" target="_blank">$1</a>', $s);
     }
 
-    protected function getIDs() {
+    protected function getIDs($field = 'ids') {
         return array_map('intval', explode("\n", str_replace(array(
             "\r\n",
             "\n\r",
             "\r"
-        ), "\n", $this->data->get('ids'))));
+        ), "\n", $this->data->get($field))));
     }
 
     public function filterName($name) {
@@ -67,4 +96,33 @@ abstract class N2GeneratorAbstract {
     public static function cacheKey($params) {
         return '';
     }
+
+    /**
+     * @return string
+     */
+    public function getLabel() {
+        return $this->label;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLayout() {
+        return $this->layout;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName() {
+        return $this->name;
+    }
+
+    /**
+     * @return N2SliderGeneratorPluginAbstract
+     */
+    public function getGroup() {
+        return $this->group;
+    }
+
 }

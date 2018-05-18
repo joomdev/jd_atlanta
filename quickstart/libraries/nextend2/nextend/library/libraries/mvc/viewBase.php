@@ -1,16 +1,17 @@
 <?php
 
 
-class N2ViewBase
-{
+class N2ViewBase {
 
     /** @var  N2ApplicationType */
     public $appType;
-    /** @var  N2EmbedWidget */
-    public $widget;
 
-    public function __construct($appType, $widget) {
+    /**
+     * N2ViewBase constructor.
+     *
+     * @param N2ApplicationType $appType
+     */
+    public function __construct($appType) {
         $this->appType = $appType;
-        $this->widget  = $widget;
     }
 }

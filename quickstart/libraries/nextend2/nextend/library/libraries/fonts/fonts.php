@@ -1,8 +1,48 @@
 <?php
 
+N2Loader::import('libraries.fonts.service');
+
 class N2Fonts {
 
     private static $config;
+
+    /** @var N2FontServiceAbstract[] */
+    private static $fontServices = array();
+
+    /**
+     * @param N2FontServiceAbstract $widget
+     */
+    public static function addFontService($widget) {
+        self::$fontServices[$widget->getName()] = $widget;
+    }
+
+    /**
+     * @return N2FontServiceAbstract[]
+     */
+    public static function getFontServices() {
+        return self::$fontServices;
+    }
+
+    /**
+     * @param $name
+     *
+     * @return N2FontServiceAbstract
+     */
+    public static function getFontService($name) {
+        return self::$fontServices[$name];
+    }
+
+    public static function onFontManagerLoad($force = false) {
+        foreach (self::$fontServices AS $service) {
+            $service->onFontManagerLoad($force);
+        }
+    }
+
+    public static function onFontManagerLoadBackend() {
+        foreach (self::$fontServices AS $service) {
+            $service->onFontManagerLoadBackend();
+        }
+    }
 
     public static function loadSettings() {
         static $inited;
@@ -65,6 +105,7 @@ class N2Fonts {
             }
             self::$config['plugins'] = new N2Data(self::$config['plugins'], true);
         }
+
         return self::$config;
     }
 
@@ -82,14 +123,16 @@ class N2Fonts {
                 N2StorageSectionAdmin::set('system', 'fonts', 'plugins', self::$config['plugins']->toJSON(), 1, 1);
 
             }
+
             return true;
         }
+
         return false;
     }
 
 }
 
-if (class_exists('N2FontRenderer', false)) {
+if (class_exists('N2FontRenderer', false) && !defined('NEXTEND_INSTALL')) {
     $fontSettings                = N2Fonts::loadSettings();
     N2FontRenderer::$defaultFont = $fontSettings['default-family'];
 }

@@ -1,11 +1,12 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.8.1
+ * @version	5.9.6
  * @author	acyba.com
- * @copyright	(C) 2009-2017 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2018 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
+
 defined('_JEXEC') or die('Restricted access');
 ?><?php
 
@@ -109,10 +110,8 @@ class plgAcymailingTagsubscriber extends JPlugin{
 			if(strpos($mytag->juser, '@') !== false){
 				$userTmp = $subClass->get($mytag->juser);
 			}else{
-				$db = JFactory::getDBO();
-				$query = "SELECT * FROM #__users WHERE username= ".$db->quote($mytag->juser);
-				$db->setQuery($query);
-				$JuserTmp = $db->loadObject();
+				$query = "SELECT * FROM #__users WHERE username= ".acymailing_escapeDB($mytag->juser);
+				$JuserTmp = acymailing_loadObject($query);
 				if(!empty($JuserTmp->email)) $userTmp = $subClass->get($JuserTmp->email);
 			}
 			if(!empty($userTmp)){
@@ -165,8 +164,8 @@ class plgAcymailingTagsubscriber extends JPlugin{
 	function onAcyTriggerFct_displaySubscriberValues(){
 		$num = acymailing_getVar('int', 'num');
 		$map = acymailing_getVar('cmd', 'map');
-		$cond = acymailing_getVar('string', 'cond', '', '', JREQUEST_ALLOWHTML);
-		$value = acymailing_getVar('string', 'value', '', '', JREQUEST_ALLOWHTML);
+		$cond = acymailing_getVar('string', 'cond', '', '', ACY_ALLOWHTML);
+		$value = acymailing_getVar('string', 'value', '', '', ACY_ALLOWHTML);
 
 		$emptyInputReturn = '<input onchange="countresults('.$num.')" class="inputbox" type="text" name="filter['.$num.'][acymailingfield][value]" id="filter'.$num.'acymailingfieldvalue" style="width:200px" value="'.$value.'">';
 		$dateInput = '<input onClick="displayDatePicker(this,event)" onchange="countresults('.$num.')" class="inputbox" type="text" name="filter['.$num.'][acymailingfield][value]" id="filter'.$num.'acymailingfieldvalue" style="width:200px" value="'.$value.'">';
@@ -175,10 +174,8 @@ class plgAcymailingTagsubscriber extends JPlugin{
 
 		if(empty($map) || $map == 'key' || !in_array($cond, array('=', '!='))) return $emptyInputReturn;
 
-		$db = JFactory::getDBO();
 		$query = 'SELECT DISTINCT `'.acymailing_secureField($map).'` AS value FROM #__acymailing_subscriber LIMIT 100';
-		$db->setQuery($query);
-		$prop = $db->loadObjectList();
+		$prop = acymailing_loadObjectList($query);
 
 		if(empty($prop) || count($prop) >= 100 || (count($prop) == 1 && (empty($prop[0]->value) || $prop[0]->value == '-'))) return $emptyInputReturn;
 
@@ -309,7 +306,7 @@ class plgAcymailingTagsubscriber extends JPlugin{
 				$value = 'sub.`'.acymailing_secureField($tags[1][0]).'`';
 			}
 		}else{
-			$value = $cquery->db->Quote($value);
+			$value = acymailing_escapeDB($value);
 			if(!empty($tags)){
 				foreach($tags[1] as $i => $oneField){
 					if(!in_array($oneField, $fields)) return 'Unexisting field: '.$oneField.' | The available fields are: '.implode(', ', $fields);
@@ -338,9 +335,7 @@ class plgAcymailingTagsubscriber extends JPlugin{
 		$query .= " SET sub.`".acymailing_secureField($action['map'])."` = ".$newValue;
 		if(!empty($cquery->where)) $query .= ' WHERE ('.implode(') AND (', $cquery->where).')';
 
-		$cquery->db->setQuery($query);
-		$cquery->db->query();
-		$nbAffected = $cquery->db->getAffectedRows();
+		$nbAffected = acymailing_query($query);
 		return acymailing_translation_sprintf('NB_MODIFIED', $nbAffected);
 	}
 
@@ -351,8 +346,7 @@ class plgAcymailingTagsubscriber extends JPlugin{
 
 		if($action['action'] == 'confirm'){
 			$cquery->where['confirmed'] = 'sub.confirmed = 0';
-			$cquery->db->setQuery($cquery->getQuery(array('sub.subid')));
-			$allSubids = acymailing_loadResultArray($cquery->db);
+			$allSubids = acymailing_loadResultArray($cquery->getQuery(array('sub.subid')));
 			if(!empty($allSubids)){
 				$subClass->sendConf = false;
 				$subClass->sendWelcome = false;
@@ -386,8 +380,7 @@ class plgAcymailingTagsubscriber extends JPlugin{
 		if($action['action'] == 'delete'){
 			if(!acymailing_isAllowed($config->get('acl_subscriber_delete', 'all'))) return 'Not allowed to delete users';
 			$query = $cquery->getQuery(array('sub.subid'));
-			$cquery->db->setQuery($query);
-			$allSubids = acymailing_loadResultArray($cquery->db);
+			$allSubids = acymailing_loadResultArray($query);
 			$nbAffected = $subClass->delete($allSubids);
 			return acymailing_translation_sprintf('IMPORT_DELETE', $nbAffected);
 		}

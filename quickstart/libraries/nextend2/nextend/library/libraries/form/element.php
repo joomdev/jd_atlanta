@@ -1,79 +1,190 @@
 <?php
 
-class N2Element {
+abstract class N2Element {
+
+    /** @var N2FormAbstract */
+    protected $form;
+
+    /** @var  N2FormElementContainer */
+    protected $parent;
+
+    protected $defaultValue;
+
+    protected $name;
+
+    protected $label = '';
+
+    protected $fieldID;
+
+    protected $fieldName;
+
+    public $control_name = '';
+
+    private $exposeName = true;
+
+    protected $tip = '';
+
+    protected $rowClass = '';
+
+    protected $rowAttributes = array();
+
+    protected $class = '';
+
+    protected $style = '';
+
+    protected $post = '';
+
+    protected $relatedFields = array();
 
     /**
-     * @var N2Form
+     * N2Element constructor.
+     *
+     * @param N2FormElementContainer $parent
+     * @param string                 $name
+     * @param string                 $label
+     * @param string                 $default
+     * @param array                  $parameters
      */
-    public $_form;
+    public function __construct($parent, $name = '', $label = '', $default = '', $parameters = array()) {
 
-    var $_tab;
-    var $_xml;
-    var $_default;
-    var $_name;
-    public $_label = '';
-    var $_description;
-    var $_id;
-    var $_inputname;
-    var $_editableName = false;
+        $this->parent       = $parent;
+        $this->name         = $name;
+        $this->label        = $label;
+        $this->defaultValue = $default;
 
-    public $hasLabel = true;
+        foreach ($parameters AS $option => $value) {
+            $option = 'set' . $option;
+            $this->{$option}($value);
+        }
 
-    function __construct(&$form, &$tab, &$xml) {
-
-        $this->_form = $form;
-        $this->_tab  = $tab;
-        $this->_xml  = $xml;
-        $this->_name = N2XmlHelper::getAttribute($xml, 'name');
+        $parent->addElement($this);
     }
 
-    function render($control_name = 'params', $tooltip = true) {
+    /**
+     * @param N2FormElementContainer $parent
+     */
+    public function setParent($parent) {
+        $this->parent = $parent;
+    }
+
+    /**
+     * @return N2Form
+     */
+    public function getForm() {
+        return $this->parent->getForm();
+    }
+
+    public function getName() {
+        return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getID() {
+        return $this->fieldID;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasLabel() {
+        return !empty($this->label);
+    }
+
+    public function setDefaultValue($defaultValue) {
+        $this->defaultValue = $defaultValue;
+    }
+
+    public function setExposeName($exposeName) {
+        $this->exposeName = $exposeName;
+    }
+
+    public function getPost() {
+        return $this->post;
+    }
+
+    public function setPost($post) {
+        $this->post = $post;
+    }
+
+    /**
+     * @param string $tip
+     */
+    public function setTip($tip) {
+        $this->tip = $tip;
+    }
+
+    public function setRowClass($rowClass) {
+        $this->rowClass .= $rowClass;
+    }
+
+    public function getRowClass() {
+        return $this->rowClass;
+    }
+
+    public function getClass() {
+        return $this->class;
+    }
+
+    public function setClass($class) {
+        $this->class = $class;
+    }
+
+    protected function getFieldName() {
+        if ($this->exposeName) {
+            return $this->control_name . '[' . $this->name . ']';
+        }
+
+        return '';
+    }
+
+    public function render($control_name = 'params') {
         $this->control_name = $control_name;
-        $this->_default     = N2XmlHelper::getAttribute($this->_xml, 'default');
-        $this->_id          = $this->generateId($control_name . $this->_name);
-        $this->_inputname   = (N2XmlHelper::getAttribute($this->_xml, 'hidename') ? '' : $control_name . '[' . $this->_name . ']');
-        $this->_label       = N2XmlHelper::getAttribute($this->_xml, 'label');
-        if (empty($this->_label)) $this->hasLabel = false;
+        $this->fieldID      = $this->generateId($control_name . $this->name);
+
         return array(
-            $tooltip ? $this->fetchTooltip() : '',
+            $this->fetchTooltip(),
             $this->fetchElement()
         );
     }
 
-    function fetchTooltip() {
-        if ($this->_label == '-') {
-            $this->_label = '';
-        } else {
-            $this->_label = n2_($this->_label);
+    protected function fetchTooltip() {
+        if ($this->label === false) return '';
+
+        if ($this->label == '-') {
+            $this->label = '';
         }
-        $attrs = array(
-            'for' => $this->_id
+        $attributes = array(
+            'for' => $this->fieldID
         );
-        $tip   = N2XmlHelper::getAttribute($this->_xml, 'tip');
-        if (!empty($tip)) {
-            $attrs['data-n2tip'] = n2_($tip);
+        if (!empty($this->tip)) {
+            $attributes['data-n2tip'] = $this->tip;
         }
-        $html = N2Html::tag('label', $attrs, $this->_label);
-        return $html;
+
+        return N2Html::tag('label', $attributes, $this->label);
     }
 
-    function fetchNoTooltip() {
+    protected function fetchNoTooltip() {
         return "";
     }
 
-    function fetchElement() {
+    /**
+     * @return string
+     */
+    abstract protected function fetchElement();
 
+    public function getValue() {
+        return $this->getForm()
+                    ->get($this->name, $this->defaultValue);
     }
 
-    function getValue() {
-        return $this->_form->get($this->_name, $this->_default);
+    public function setValue($value) {
+        $this->parent->getForm()
+                     ->set($this->name, $value);
     }
 
-    function setValue($value) {
-        return $this->_form->set($this->_name, $value);
-    }
-
-    function generateId($name) {
+    protected function generateId($name) {
 
         return str_replace(array(
             '[',
@@ -86,4 +197,38 @@ class N2Element {
         ), $name);
     }
 
+    /**
+     * @param array $rowAttributes
+     */
+    public function setRowAttributes($rowAttributes) {
+        $this->rowAttributes = $rowAttributes;
+    }
+
+    /**
+     * @return array
+     */
+    public function getRowAttributes() {
+        return $this->rowAttributes;
+    }
+
+    public function setStyle($style) {
+        $this->style = $style;
+    }
+
+    protected function getStyle() {
+        return $this->style;
+    }
+
+    /**
+     * @param string $relatedFields
+     */
+    public function setRelatedFields($relatedFields) {
+        $this->relatedFields = $relatedFields;
+    }
+
+    protected function renderRelatedFields() {
+        if (!empty($this->relatedFields)) {
+            N2JS::addInline('new N2Classes.FormRelatedFields("' . $this->fieldID . '", ' . json_encode($this->relatedFields) . ');');
+        }
+    }
 }

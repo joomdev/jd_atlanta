@@ -217,6 +217,7 @@ defined('_JEXEC') or die;
 		</div>
 		<?php endif; ?>
 
+		<!-- Link items -->	
 		<?php if(isset($this->links) && count($this->links)) { ?>
 		<?php
 		$i 		= 0;

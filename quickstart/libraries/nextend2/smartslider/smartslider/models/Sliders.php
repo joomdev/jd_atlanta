@@ -23,6 +23,12 @@ class N2SmartsliderSlidersModel extends N2Model {
         ));
     }
 
+    public function getByAlias($alias) {
+        return $this->db->queryRow("SELECT id FROM " . $this->getTable() . " WHERE alias = :alias", array(
+            ":alias" => $alias
+        ));
+    }
+
     public function getWithThumbnail($id) {
         $slidesModel = new N2SmartsliderSlidesModel();
 
@@ -96,13 +102,12 @@ class N2SmartsliderSlidersModel extends N2Model {
         $data['title']     = $slider['title'];
         $data['type']      = $slider['type'];
         $data['thumbnail'] = $slider['thumbnail'];
+        $data['alias']     = isset($slider['alias']) ? $slider['alias'] : '';
 
         return self::editForm($data);
     }
 
     private static function editForm($data = array()) {
-
-        $configurationXmlFile = dirname(__FILE__) . '/forms/slider.xml';
 
         N2Loader::import('libraries.form.form');
         $form = new N2Form(N2Base::getApplication('smartslider')
@@ -111,11 +116,280 @@ class N2SmartsliderSlidersModel extends N2Model {
 
         $form->loadArray($data);
 
-        $form->loadXMLFile($configurationXmlFile);
+        $sliderSettings = new N2TabTabbed($form, 'slider-settings', false, array(
+            'active'     => 1,
+            'underlined' => true
+        ));
+
+        $publishTab = new N2TabGroupped($sliderSettings, 'publish', n2_('Publish'));
+
+        $publishTab2 = new N2Tab($publishTab, 'publish', false);
+
+        new N2ElementPublishSlider($publishTab2);
+
+
+        $generalTab  = new N2TabGroupped($sliderSettings, 'general', n2_('General'));
+        $generalTab2 = new N2Tab($generalTab, 'slider', false);
+        new N2ElementText($generalTab2, 'title', n2_('Name'), n2_('Slider'), array(
+            'style' => 'width:400px;'
+        ));
+        new N2ElementText($generalTab2, 'alias', n2_('Alias'), '', array(
+            'style' => 'width:200px;'
+        ));
+
+        $controls = new N2ElementGroup($generalTab2, 'controls', n2_('Controls'));
+        new N2ElementOnOff($controls, 'controlsScroll', n2_('Mouse scroll'), 0);
+        new N2ElementOnOff($controls, 'controlsDrag', n2_('Mouse drag'), 1);
+        new N2ElementRadio($controls, 'controlsTouch', n2_('Touch'), 'horizontal', array(
+            'options' => array(
+                '0'          => n2_('Disabled'),
+                'horizontal' => n2_('Horizontal'),
+                'vertical'   => n2_('Vertical')
+            )
+        ));
+        new N2ElementOnOff($controls, 'controlsKeyboard', n2_('Keyboard'), 1);
+
+
+        new N2ElementImage($generalTab2, 'thumbnail', n2_('Thumbnail'), '');
+        new N2ElementRadio($generalTab2, 'align', n2_('Align'), 'normal', array(
+            'options' => array(
+                'normal' => n2_('Normal'),
+                'left'   => n2_('Left'),
+                'center' => n2_('Center'),
+                'right'  => n2_('Right')
+            )
+        ));
+
+        $backgroundModeOptions = array(
+            'fill'    => array(
+                'image' => '$ss$/admin/images/fillmode/fill.png',
+                'label' => n2_('Fill')
+            ),
+            'blurfit' => array(
+                'image' => '$ss$/admin/images/fillmode/fit.png',
+                'label' => n2_('Blur fit')
+            ),
+            'fit'     => array(
+                'image' => '$ss$/admin/images/fillmode/fit.png',
+                'label' => n2_('Fit')
+            ),
+            'stretch' => array(
+                'image' => '$ss$/admin/images/fillmode/stretch.png',
+                'label' => n2_('Stretch')
+            ),
+            'center'  => array(
+                'image' => '$ss$/admin/images/fillmode/center.png',
+                'label' => n2_('Center')
+            ),
+            'tile'    => array(
+                'image' => '$ss$/admin/images/fillmode/tile.png',
+                'label' => n2_('Tile')
+            )
+        );
+        new N2ElementImageListLabel($generalTab2, 'backgroundMode', n2_('Slide background image fill'), 'fill', array(
+            'tip'     => n2_('If the size of your image is not the same as your slide\'s, you can improve the result with the filling modes.'),
+            'options' => $backgroundModeOptions
+        ));
+
+        $sliderTypeTab = new N2Tab($generalTab, 'slidertype', n2_('Slider Type'), array(
+            'class' => 'n2-expert'
+        ));
+
+        new N2ElementSliderType($sliderTypeTab, 'type', false, 'simple', N2Base::getApplication('smartslider')
+                                                                               ->getApplicationType('backend')->router->createAjaxUrl(array("slider/renderslidertype")));
+
+        new N2TabPlaceholder($generalTab, 'slidertypeplaceholder', 'Slider Type placeholder', array(
+            'id' => 'nextend-type-panel'
+        ));
+
+
+        $sizeTab  = new N2TabGroupped($sliderSettings, 'size', n2_('Size'));
+        $sizeTab2 = new N2Tab($sizeTab, 'slider-responsive', false);
+
+        $size = new N2ElementGroup($sizeTab2, 'slider-size', n2_('Slider size'));
+        new N2ElementNumberAutocomplete($size, 'width', n2_('Width'), 900, array(
+            'style'  => 'width:35px',
+            'values' => array(
+                1920,
+                1400,
+                1000,
+                800,
+                600,
+                400
+            ),
+            'unit'   => 'px'
+        ));
+        new N2ElementNumberAutocomplete($size, 'height', n2_('Height'), 500, array(
+            'style'  => 'width:35px',
+            'values' => array(
+                800,
+                600,
+                500,
+                400,
+                300,
+                200
+            ),
+            'unit'   => 'px'
+        ));
+
+        $margin = new N2ElementMixed($sizeTab2, 'margin', n2_('Margin'), '0|*|0|*|0|*|0');
+        new N2ElementNumber($margin, 'margin-top', n2_('Top'), '', array(
+            'style' => 'width:22px;',
+            'unit'  => 'px'
+        ));
+        new N2ElementNumber($margin, 'margin-right', n2_('Right'), '', array(
+            'style' => 'width:22px;',
+            'unit'  => 'px'
+        ));
+        new N2ElementNumber($margin, 'margin-bottom', n2_('Bottom'), '', array(
+            'style' => 'width:22px;',
+            'unit'  => 'px'
+        ));
+        new N2ElementNumber($margin, 'margin-left', n2_('Left'), '', array(
+            'style' => 'width:22px;',
+            'unit'  => 'px'
+        ));
+
+
+        $responsiveMode = new N2Tab($sizeTab, 'slider-responsive-types', n2_('Responsive mode'));
+        new N2ElementSliderResponsive($responsiveMode, 'responsive-mode', false, 'auto', N2Base::getApplication('smartslider')
+                                                                                               ->getApplicationType('backend')->router->createAjaxUrl(array("slider/renderresponsivetype")));
+
+        new N2TabPlaceholder($sizeTab, 'slider-responsive-placeholder', 'Slider Type placeholder', array(
+            'id' => 'nextend-responsive-mode-panel'
+        ));
+
+
+        $autoplayTab  = new N2TabGroupped($sliderSettings, 'autoplay', n2_('Autoplay'));
+        $autoplayTab2 = new N2Tab($autoplayTab, 'autoplay', false);
+
+        $autoplayGroup = new N2ElementGroup($autoplayTab2, 'autoplay', n2_('Autoplay'));
+        new N2ElementOnOff($autoplayGroup, 'autoplay', n2_('Enable'), 0, array(
+            'relatedAttribute' => 'autoplay',
+            'relatedFields'    => array(
+                'autoplayDuration',
+                'autoplayStart',
+                'autoplayfinish',
+                'autoplayAllowReStart',
+                'autoplay-stop-on',
+                'autoplay-resume-on'
+            )
+        ));
+        new N2ElementNumber($autoplayGroup, 'autoplayDuration', n2_('Interval'), 8000, array(
+            'style' => 'width:35px;',
+            'unit'  => 'ms'
+        ));
+
+        $stopAutoplayOn = new N2ElementGroup($autoplayTab2, 'autoplay-stop-on', n2_('Stop autoplay on'));
+        new N2ElementOnOff($stopAutoplayOn, 'autoplayStopClick', n2_('Click'), 1);
+        new N2ElementList($stopAutoplayOn, 'autoplayStopMouse', n2_('Mouse'), 0, array(
+            'options' => array(
+                '0'     => n2_('Off'),
+                'enter' => n2_('Enter'),
+                'leave' => n2_('Leave')
+            )
+        ));
+        new N2ElementOnOff($stopAutoplayOn, 'autoplayStopMedia', n2_('Media started'), 1);
+
+        $optimize  = new N2TabGroupped($sliderSettings, 'optimize', n2_('Optimize'));
+        $optimize2 = new N2Tab($optimize, 'optimize-images', false);
+
+        $optimizeImages = new N2ElementGroup($optimize2, 'optimize-images', n2_('Optimize images'));
+        new N2ElementOnOff($optimizeImages, 'optimize', n2_('Enable'), 0, array(
+            'relatedFields' => array(
+                'optimize-quality'
+            )
+        ));
+        new N2ElementNumber($optimizeImages, 'optimize-quality', n2_('Quality'), 70, array(
+            'min'   => 0,
+            'max'   => 100,
+            'unit'  => '%',
+            'style' => 'width:40px;'
+        ));
+
+        $backgroundImage = new N2ElementGroup($optimize2, 'background-image-resize', n2_('Background image resize'), array('tip' => n2_('Only works if the \'Optimize images\' option is turned on too!')));
+        new N2ElementOnOff($backgroundImage, 'optimize-background-image-custom', n2_('Enable'), '0', array(
+            'relatedFields' => array(
+                'optimize-background-image-width',
+                'optimize-background-image-height'
+            )
+        ));
+        new N2ElementNumber($backgroundImage, 'optimize-background-image-width', n2_('Width'), 800, array(
+            'min'   => 0,
+            'unit'  => 'px',
+            'style' => 'width:40px;'
+        ));
+        new N2ElementNumber($backgroundImage, 'optimize-background-image-height', n2_('Height'), 600, array(
+            'min'   => 0,
+            'unit'  => 'px',
+            'style' => 'width:40px;'
+        ));
+
+        $thumbnailImage = new N2ElementGroup($optimize2, 'thumbnail-image-size', n2_('Thumbnail image resize'));
+        new N2ElementNumber($thumbnailImage, 'optimizeThumbnailWidth', n2_('Width'), 100, array(
+            'min'   => 0,
+            'unit'  => 'px',
+            'style' => 'width:40px;'
+        ));
+        new N2ElementNumber($thumbnailImage, 'optimizeThumbnailHeight', n2_('Height'), 60, array(
+            'min'   => 0,
+            'unit'  => 'px',
+            'style' => 'width:40px;'
+        ));
+
+
+        $loading     = new N2TabGroupped($sliderSettings, 'loading', n2_('Loading'));
+        $loadingCore = new N2Tab($loading, 'loading-core', false);
+
+        $playWhenVisible = new N2ElementGroup($loadingCore, 'play-when-visible', n2_('Play when visible'));
+        new N2ElementOnOff($playWhenVisible, 'playWhenVisible', n2_('Enable'), 1, array(
+            'relatedFields' => array(
+                'playWhenVisibleAt'
+            )
+        ));
+        new N2ElementNumber($playWhenVisible, 'playWhenVisibleAt', n2_('At'), 50, array(
+            'unit'  => '%',
+            'style' => 'width:30px;'
+        ));
+
+        new N2ElementNumber($loadingCore, 'dependency', n2_('Load this slider after'), '', array(
+            'style'    => 'width:40px;',
+            'sublabel' => n2_('Slider ID'),
+            'tip'      => n2_('The current slider will not start loading until the set slider is loaded completely.')
+        ));
+
+        new N2ElementNumber($loadingCore, 'delay', n2_('Delay'), 0, array(
+            'style' => 'width:30px;',
+            'unit'  => 'ms'
+        ));
+        new N2ElementOnOff($loadingCore, 'is-delayed', n2_('Delayed (for lightbox/tabs)'), 0);
+
+
+        $developer        = new N2TabGroupped($sliderSettings, 'developer', n2_('Developer'));
+        $developerOptions = new N2Tab($developer, 'developer-options', false);
+
+        new N2ElementOnOff($developerOptions, 'overflow-hidden-page', n2_('Hide website\'s scrollbar'), 0, array(
+            'tip' => n2_('You won\'t be able to scroll your website anymore.')
+        ));
+
+        new N2ElementOnOff($developerOptions, 'clear-both', n2_('Clear both before slider'), 0, array(
+            'tip' => n2_('If your slider does not resize correctly, turn this option on.')
+        ));
+
+        new N2ElementTextarea($developerOptions, 'custom-css-codes', 'CSS', '', array(
+            'fieldStyle' => 'width:600px;height:300px;'
+        ));
+        new N2ElementTextarea($developerOptions, 'callbacks', 'JavaScript callbacks', '', array(
+            'fieldStyle' => 'width:600px;height:300px;'
+        ));
+
+
+        $widgets = new N2TabRaw($form, 'widgets', false);
+        new N2ElementWidgetGroupMatrix($widgets, 'widgets', '', 'arrow');
 
         echo $form->render('slider');
 
-        N2Loader::import('libraries.form.element.url');
+        N2Loader::import('libraries.form.elements.url');
         N2JS::addFirstCode('nextend.NextendElementUrlParams=' . N2ElementUrl::getNextendElementUrlParameters() . ';');
 
         return $data;
@@ -123,13 +397,24 @@ class N2SmartsliderSlidersModel extends N2Model {
 
     public static function renderImportByUploadForm() {
 
-        $configurationXmlFile = dirname(__FILE__) . '/forms/import/upload.xml';
 
         N2Loader::import('libraries.form.form');
         $form = new N2Form(N2Base::getApplication('smartslider')
                                  ->getApplicationType('backend'));
 
-        $form->loadXMLFile($configurationXmlFile);
+        $settings = new N2Tab($form, 'import-slider');
+        new N2ElementToken($settings);
+
+        new N2ElementUpload($settings, 'import-file', n2_('Import file upload'));
+
+        $localImport = new N2ElementGroup($settings, 'local-import', n2_('Local import'));
+        new N2ElementTmpList($localImport, 'local-import-file', n2_('File'), '', 'ss3');
+        new N2ElementOnOff($localImport, 'delete', n2_('Delete file after import'), 0);
+
+        new N2ElementOnOff($settings, 'restore', n2_('Restore slider'), 0, array(
+            'tip' => n2_('Delete the slider with the same ID')
+        ));
+
 
         echo $form->render('slider');
     }
@@ -145,6 +430,10 @@ class N2SmartsliderSlidersModel extends N2Model {
             ));
 
             $sliderID = $this->db->insertId();
+
+            if (isset($slider['alias'])) {
+                $this->updateAlias($sliderID, $slider['alias']);
+            }
 
             $this->xref->add($groupID, $sliderID);
 
@@ -173,6 +462,10 @@ class N2SmartsliderSlidersModel extends N2Model {
                 ));
 
                 $sliderID = $this->db->insertId();
+
+                if (isset($slider['alias'])) {
+                    $this->updateAlias($sliderID, $slider['alias']);
+                }
 
                 if ($groupID) {
                     $this->xref->add($groupID, $sliderID);
@@ -243,10 +536,15 @@ class N2SmartsliderSlidersModel extends N2Model {
 
     function save($id, $slider) {
         if (!isset($slider['title']) || $id <= 0) return false;
+        $response = array(
+            'changedFields' => array()
+        );
         if ($slider['title'] == '') $slider['title'] = n2_('New slider');
 
         $title = $slider['title'];
         unset($slider['title']);
+        $alias = $slider['alias'];
+        unset($slider['alias']);
         $type = $slider['type'];
         unset($slider['type']);
 
@@ -265,9 +563,95 @@ class N2SmartsliderSlidersModel extends N2Model {
             "id" => $id
         ));
 
+        $aliasResult = $this->updateAlias($id, $alias);
+        if ($aliasResult !== false) {
+            if ($aliasResult['oldAlias'] !== $aliasResult['newAlias']) {
+                if ($aliasResult['newAlias'] === null) {
+                    N2Message::notice(n2_('Alias removed'));
+                    $response['changedFields']['slideralias'] = '';
+                } else if ($aliasResult['newAlias'] === '') {
+                    N2Message::error(n2_('Alias must contain one or more letters'));
+                    $response['changedFields']['slideralias'] = '';
+                } else {
+                    N2Message::notice(sprintf(n2_('Alias updated to: %s'), $aliasResult['newAlias']));
+                    $response['changedFields']['slideralias'] = $aliasResult['newAlias'];
+                }
+            }
+        }
+
         self::markChanged($id);
 
-        return $id;
+        return $response;
+    }
+
+    function updateAlias($sliderID, $alias) {
+        $isNull = false;
+        if (empty($alias)) {
+            $isNull = true;
+        } else {
+
+            $alias = strtolower($alias);
+            $alias = preg_replace('/&.+?;/', '', $alias); // kill entities
+            $alias = str_replace('.', '-', $alias);
+
+            $alias = preg_replace('/[^%a-z0-9 _-]/', '', $alias);
+            $alias = preg_replace('/\s+/', '-', $alias);
+            $alias = preg_replace('|-+|', '-', $alias);
+            $alias = preg_replace('|^-*|', '', $alias);
+
+            if (empty($alias)) {
+                $isNull = true;
+            }
+        }
+
+        $slider = $this->get($sliderID);
+        if ($isNull) {
+            if ($slider['alias'] == 'null') {
+            } else {
+                $this->db->query('UPDATE ' . $this->db->tableName . ' SET `alias` = NULL WHERE id = ' . intval($sliderID));
+
+                return array(
+                    'oldAlias' => $slider['alias'],
+                    'newAlias' => null
+                );
+            }
+        } else {
+            if (!is_numeric($alias)) {
+                if ($slider['alias'] == $alias) {
+                    return array(
+                        'oldAlias' => $slider['alias'],
+                        'newAlias' => $alias
+                    );
+                } else {
+                    $_alias = $alias;
+                    for ($i = 2; $i < 12; $i++) {
+                        $sliderWithAlias = $this->getByAlias($_alias);
+                        if (!$sliderWithAlias) {
+                            $this->db->update(array(
+                                'alias' => $_alias
+                            ), array(
+                                "id" => $sliderID
+                            ));
+
+                            return array(
+                                'oldAlias' => $slider['alias'],
+                                'newAlias' => $_alias
+                            );
+                            break;
+                        } else {
+                            $_alias = $alias . $i;
+                        }
+                    }
+                }
+            }
+
+            return array(
+                'oldAlias' => $slider['alias'],
+                'newAlias' => ''
+            );
+        }
+
+        return false;
     }
 
     function setThumbnail($id, $thumbnail) {
@@ -311,7 +695,7 @@ class N2SmartsliderSlidersModel extends N2Model {
         unset($slider['id']);
 
         $slider['title'] .= n2_(' - copy');
-        $slider['time'] = date('Y-m-d H:i:s', N2Platform::getTime());
+        $slider['time']  = date('Y-m-d H:i:s', N2Platform::getTime());
 
         try {
             $this->db->insert($slider);
@@ -351,10 +735,6 @@ class N2SmartsliderSlidersModel extends N2Model {
         return $newSliderId;
     }
 
-    function redirectToCreate() {
-        N2Request::redirect($this->appType->router->createUrl(array("sliders/create")), 302, true);
-    }
-
     function exportSlider($id) {
 
     }
@@ -368,7 +748,7 @@ class N2SmartsliderSlidersModel extends N2Model {
                            ->setSliderChanged($sliderid, 1);
     }
 
-    public static function box($slider, $widget, $appType) {
+    public static function box($slider, $appType) {
         $lt   = array();
         $lt[] = N2Html::tag('div', array(
             'class' => 'n2-ss-box-select',
@@ -399,6 +779,12 @@ class N2SmartsliderSlidersModel extends N2Model {
                 'class' => 'n2-button n2-button-normal n2-button-xs n2-radius-s n2-button-grey n2-h5',
             ), '#' . $slider['id'])
         );
+        if (!empty($slider['alias'])) {
+            $lb[] = N2Html::tag('div', array(
+                'class' => 'n2-button n2-button-normal n2-button-xs n2-radius-s n2-button-grey n2-h5',
+                'style' => 'margin: 0 5px;'
+            ), $slider['alias']);
+        }
 
 
         $attributes = array(
@@ -408,7 +794,7 @@ class N2SmartsliderSlidersModel extends N2Model {
             'data-editUrl'  => $editUrl,
             'data-sliderid' => $slider['id']
         );
-        $widget->init("box", array(
+        N2Html::box(array(
             'attributes'         => $attributes,
             'lt'                 => implode('', $lt),
             'lb'                 => implode('', $lb),
@@ -416,8 +802,8 @@ class N2SmartsliderSlidersModel extends N2Model {
             'rtAttributes'       => array('class' => 'n2-on-hover'),
             'rb'                 => implode('', $rb),
             'overlay'            => N2Html::tag('div', array(
-                'class' => 'n2-box-overlay n2-on-hover'
-            ), N2Html::tag('div', array('class' => 'n2-button n2-button-normal n2-button-s n2-button-green n2-radius-s n2-uc n2-h5'), n2_('Edit'))),
+                'class' => 'n2-box-overlay n2-on-hover-flex'
+            ), N2Html::link(n2_('Edit'), $editUrl, array('class' => 'n2-button n2-button-normal n2-button-s n2-button-green n2-radius-s n2-uc n2-h5'))),
             'placeholderContent' => N2Html::tag('div', array(
                     'class' => 'n2-box-placeholder-title'
                 ), N2Html::link($slider['title'], $editUrl, array('class' => 'n2-h4'))) . N2Html::tag('div', array(
@@ -428,7 +814,7 @@ class N2SmartsliderSlidersModel extends N2Model {
         ));
     }
 
-    public static function embedBox($mode, $slider, $widget, $appType) {
+    public static function embedBox($mode, $slider, $appType) {
         $lt = array();
 
         $rt = array();
@@ -449,6 +835,12 @@ class N2SmartsliderSlidersModel extends N2Model {
                 'class' => 'n2-button n2-button-normal n2-button-xs n2-radius-s n2-button-grey n2-h5',
             ), '#' . $slider['id'])
         );
+        if (!empty($slider['alias'])) {
+            $lb[] = N2Html::tag('div', array(
+                'class' => 'n2-button n2-button-normal n2-button-xs n2-radius-s n2-button-grey n2-h5',
+                'style' => 'margin: 0 5px;'
+            ), $slider['alias']);
+        }
 
 
         $attributes = array(
@@ -464,10 +856,14 @@ class N2SmartsliderSlidersModel extends N2Model {
                     )
                 )) . '";';
         } else {
-            $attributes['onclick'] = 'window.parent.postMessage("' . $slider['id'] . '", "*");';
+            if (empty($slider['alias'])) {
+                $attributes['onclick'] = 'selectSlider(this, "id", "' . $slider['id'] . '", "' . $slider['id'] . '");';
+            } else {
+                $attributes['onclick'] = 'selectSlider(this, "alias", "' . $slider['alias'] . '", "' . $slider['id'] . '");';
+            }
         }
 
-        $widget->init("box", array(
+        N2Html::box(array(
             'attributes'         => $attributes,
             'lt'                 => implode('', $lt),
             'lb'                 => implode('', $lb),
@@ -539,13 +935,12 @@ class N2SmartsliderSlidersModel extends N2Model {
         $data['title']     = $slider['title'];
         $data['type']      = $slider['type'];
         $data['thumbnail'] = $slider['thumbnail'];
+        $data['alias']     = isset($slider['alias']) ? $slider['alias'] : '';
 
         return self::editGroupForm($data);
     }
 
     private static function editGroupForm($data = array()) {
-
-        $configurationXmlFile = dirname(__FILE__) . '/forms/slidergroup.xml';
 
         N2Loader::import('libraries.form.form');
         $form = new N2Form(N2Base::getApplication('smartslider')
@@ -554,11 +949,39 @@ class N2SmartsliderSlidersModel extends N2Model {
 
         $form->loadArray($data);
 
-        $form->loadXMLFile($configurationXmlFile);
+        $groupSettings = new N2TabTabbed($form, 'slidergroup-settings', '', array(
+            'active'     => 1,
+            'underlined' => true
+        ));
+
+        $publishTab = new N2TabGroupped($groupSettings, 'publish', n2_('Publish'));
+
+        $publishTab2 = new N2Tab($publishTab, 'publish', false);
+
+        new N2ElementPublishSlider($publishTab2);
+
+
+        $generalTab  = new N2TabGroupped($groupSettings, 'general', n2_('General'));
+        $generalTab2 = new N2Tab($generalTab, 'slider-group');
+
+        new N2ElementText($generalTab2, 'title', n2_('Name'), n2_('Group'), array(
+            'style' => 'width:400px;'
+        ));
+
+        new N2ElementText($generalTab2, 'alias', n2_('Alias'), '', array(
+            'style' => 'width:200px;'
+        ));
+
+        new N2ElementImage($generalTab2, 'thumbnail', n2_('Thumbnail'));
+
+        new N2ElementHidden($generalTab2, 'type', '', 'group', array(
+            'rowClass' => 'n2-hidden'
+        ));
+
 
         echo $form->render('slider');
 
-        N2Loader::import('libraries.form.element.url');
+        N2Loader::import('libraries.form.elements.url');
         N2JS::addFirstCode('nextend.NextendElementUrlParams=' . N2ElementUrl::getNextendElementUrlParameters() . ';');
 
         return $data;

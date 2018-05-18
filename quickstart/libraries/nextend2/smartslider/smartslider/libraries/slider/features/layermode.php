@@ -47,16 +47,5 @@ class N2SmartSliderFeatureLayerMode {
             'mode'           => $this->mode,
             'inAnimation'    => $this->inAnimation
         );
-
-        $properties['parallax'] = array(
-            'enabled'    => intval($params->get('parallax-enabled', 1)),
-            'mobile'     => intval($params->get('parallax-enabled-mobile', 0)),
-            'is3D'       => intval($params->get('parallax-3d', 0)),
-            'animate'    => intval($params->get('parallax-animate', 1)),
-            'horizontal' => $params->get('parallax-horizontal', 'mouse'),
-            'vertical'   => $params->get('parallax-vertical', 'mouse'),
-            'origin'     => $params->get('parallax-mouse-origin', 'slider'),
-            'scrollmove' => $params->get('parallax-scroll-move', 'both')
-        );
     }
 }

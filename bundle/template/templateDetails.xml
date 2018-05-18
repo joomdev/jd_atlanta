@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3.4" type="template" client="site" method="upgrade">
     <name>jd_atlanta</name>
-    <creationDate>7th March 2018</creationDate>
+    <creationDate>31 January 2018</creationDate>
     <author>JoomDev.com</author>
     <authorEmail>support@joomdev.com</authorEmail>
     <authorUrl>https://www.joomdev.com</authorUrl>
@@ -140,7 +140,6 @@
         <folder>js/</folder>
         <folder>layout/</folder>
         <folder>less/</folder>
-        <folder>sppagebuilder/</folder>
     </files>
     <config>
         <fields name="params">
@@ -288,7 +287,7 @@
                 </field>
                 <field name="contact_position" type="modpos" default="top-a" label="HELIX_MODULE_POSITIONS" description="HELIX_MODULE_POSITIONS_DESC" class="child contactinfo contactinfo_1" />
                 <field name="contact_phone" type="text" hint="+228 872 4444" label="HELIX_CONTACT_PHONE" description="HELIX_CONTACT_PHONE_DESC" class="child contactinfo contactinfo_1" />
-                <field name="contact_mobile" default="(888) 888-1234" type="text" hint="+775 872 4444" label="HELIX_CONTACT_MOBILE" description="HELIX_CONTACT_MOBILE_DESC" class="child contactinfo contactinfo_1" />
+                <field name="contact_mobile" type="text" hint="+775 872 4444" label="HELIX_CONTACT_MOBILE" description="HELIX_CONTACT_MOBILE_DESC" class="child contactinfo contactinfo_1" />
                 <field name="contact_email" type="email" hint="contact@email.com" label="HELIX_CONTACT_EMAIL" description="HELIX_CONTACT_EMAIL_DESC" class="child contactinfo contactinfo_1" />
                 <field name="contact_time" type="text" hint="Mon - Fri 8:00 - 17:30" label="HELIX_CONTACT_OPEN_HOURS" description="HELIX_CONTACT_OPEN_HOURS_DESC" class="child contactinfo contactinfo_1" />
 

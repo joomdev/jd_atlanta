@@ -30,7 +30,7 @@ class N2DBConnector extends N2DBConnectorAbstract
             }
         }
         $this->db->setQuery($query);
-        return $this->db->query();
+        return $this->db->execute();
     }
 
     /**
@@ -210,7 +210,7 @@ class N2DBConnector extends N2DBConnectorAbstract
 
         $this->db->setQuery($query);
 
-        return $this->db->query();
+        return $this->db->execute();
     }
 
     /**
@@ -236,7 +236,7 @@ class N2DBConnector extends N2DBConnectorAbstract
 
         $this->db->setQuery($query);
 
-        return $this->db->query();
+        return $this->db->execute();
     }
 
     /**
@@ -256,7 +256,7 @@ class N2DBConnector extends N2DBConnectorAbstract
 
         $this->db->setQuery($query);
 
-        return $this->db->query();
+        return $this->db->execute();
     }
 
     /**
@@ -279,7 +279,7 @@ class N2DBConnector extends N2DBConnectorAbstract
 
         $this->db->setQuery($query);
 
-        return $this->db->query();
+        return $this->db->execute();
     }
 
     /**

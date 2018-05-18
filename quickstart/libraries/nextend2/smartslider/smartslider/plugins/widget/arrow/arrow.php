@@ -1,21 +1,34 @@
 <?php
 
-class N2SSPluginWidgetArrow extends N2PluginBase
-{
+class N2SSPluginWidgetArrow extends N2SSPluginSliderWidget {
 
-    private static $group = 'arrow';
+    protected $name = 'arrow';
 
-    function onWidgetList(&$list) {
-        $list[self::$group] = array(
-            n2_('Arrows'),
-            $this->getPath(),
-            1
-        );
+    public function getLabel() {
+        return n2_('Arrows');
     }
 
-    function getPath() {
-        return dirname(__FILE__) . DIRECTORY_SEPARATOR . self::$group . DIRECTORY_SEPARATOR;
+    public function getPath() {
+        return dirname(__FILE__) . DIRECTORY_SEPARATOR . $this->name . DIRECTORY_SEPARATOR;
+    }
+
+    public function renderFields($form) {
+        $settings = new N2Tab($form, 'widgetsarrow');
+
+        $url = N2Base::getApplication('smartslider')
+                     ->getApplicationType('backend')->router->createAjaxUrl(array("slider/renderwidgetarrow"));
+
+        new N2ElementWidgetPluginMatrix($settings, 'widgetarrow', false, 'imageEmpty', $url, array(
+            'widget' => $this
+        ));
+
+        new N2ElementOnOff($settings, 'widget-arrow-display-hover', n2_('Shows on hover'), 0);
+
+
+        new N2TabPlaceholder($form, 'widget-arrow-placeholder', false, array(
+            'id' => 'nextend-widgetarrow-panel'
+        ));
     }
 }
 
-N2Plugin::addPlugin('sswidget', 'N2SSPluginWidgetArrow');
+N2SmartSliderWidgets::addGroup(new N2SSPluginWidgetArrow);

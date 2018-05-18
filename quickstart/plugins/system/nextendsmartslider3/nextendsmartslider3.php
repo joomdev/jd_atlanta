@@ -11,17 +11,12 @@ class plgSystemNextendSmartslider3 extends JPlugin {
         $application = JFactory::getApplication();
         if ($application->isSite()) {
             $request = $application->input->request;
-            if (method_exists($application, 'frontediting') && $application->get('frontediting', 1) && !JFactory::getUser()->guest && $request->get('option') == 'com_content' && $request->get('view') == 'form' && $request->get('layout') == 'edit') {
+            if ($application->get('frontediting', 1) && !JFactory::getUser()->guest && $request->get('option') == 'com_content' && $request->get('view') == 'form' && $request->get('layout') == 'edit') {
                 return;
             }
 
-            if (class_exists('JApplicationWeb') && method_exists($application, 'getBody')) {
-                $body = $application->getBody();
-                $mode = 'JApplicationWeb';
-            } else {
-                $body = JResponse::getBody();
-                $mode = 'JResponse';
-            }
+            $body = $application->getBody();
+
             // Simple performance check to determine whether bot should process further
             if (strpos($body, 'smartslider3[') !== false) {
                 if (class_exists('EshopHelper', false) && EshopHelper::getConfigValue('rich_snippets') == '1') {
@@ -30,18 +25,13 @@ class plgSystemNextendSmartslider3 extends JPlugin {
 
                 $bodyParts = explode('</head>', $body);
 
-                if (isset($bodyParts[0]) && isset($bodyParts[1])) {
+                if (isset($bodyParts[0])) {
                     $bodyParts[1] = preg_replace_callback('/smartslider3\[([0-9]+)\]/', 'plgSystemNextendSmartslider3::prepare', $bodyParts[1]);
                 } else {
                     $bodyParts[0] = preg_replace_callback('/smartslider3\[([0-9]+)\]/', 'plgSystemNextendSmartslider3::prepare', $bodyParts[0]);
                 }
-                switch ($mode) {
-                    case 'JResponse':
-                        JResponse::setBody(implode('</head>', $bodyParts));
-                        break;
-                    default:
-                        $application->setBody(implode('</head>', $bodyParts));
-                }
+
+                $application->setBody(implode('</head>', $bodyParts));
             }
         }
     }
@@ -50,7 +40,14 @@ class plgSystemNextendSmartslider3 extends JPlugin {
         ob_start();
         nextend_smartslider3($matches[1]);
 
-        return ob_get_clean();
+        $sliderHTML = ob_get_clean();
+
+        if (plgSystemNextend2::$isCDNForJoomla) {
+            $url        = preg_replace('/^(https?:)?\/\//', '//', rtrim(JUri::base(false), '/') . '/');
+            $sliderHTML = preg_replace('/(https?:)?' . preg_quote($url, '/') . '/', rtrim(JUri::base(true), '/') . '/', $sliderHTML);
+        }
+
+        return $sliderHTML;
     }
 
     public static function cleanEshop($matches) {

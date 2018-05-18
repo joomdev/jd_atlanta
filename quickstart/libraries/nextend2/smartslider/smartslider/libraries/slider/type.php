@@ -7,6 +7,11 @@ abstract class N2SmartSliderType {
      */
     protected $slider;
 
+    protected $jsDependency = array(
+        'nextend-frontend',
+        'smartslider-frontend'
+    );
+
     protected $javaScriptProperties;
 
     /** @var  N2SmartSliderWidgets */
@@ -14,28 +19,49 @@ abstract class N2SmartSliderType {
 
     protected $shapeDividerAdded = false;
 
+    protected $style = '';
+
     public function __construct($slider) {
-        $this->slider     = $slider;
-        $slider->fontSize = intval($slider->params->get('fontsize', '16'));
+        $this->slider = $slider;
+        $this->jsDependency[] = 'nextend-gsap';
+    
+
+        if (class_exists('N2AssetsGoogleFonts', false) && N2AssetsGoogleFonts::$hasWebFontLoader) {
+            $this->jsDependency[] = 'nextend-webfontloader';
+        }
+
+        if ($slider->isAdmin) {
+            $this->jsDependency[] = 'documentReady';
+        }
     }
 
     public static function getItemDefaults() {
         return array();
     }
 
-    public function render() {
+    /**
+     * @param N2SmartSliderCSSAbstract $css
+     *
+     * @return string
+     */
+    public function render($css) {
 
         $this->javaScriptProperties = $this->slider->features->generateJSProperties();
 
         $this->widgets = new N2SmartSliderWidgets($this->slider);
 
         ob_start();
-        $this->renderType();
+        $this->renderType($css);
 
         return ob_get_clean();
     }
 
-    protected abstract function renderType();
+    /**
+     * @param N2SmartSliderCSSAbstract $css
+     *
+     * @return string
+     */
+    protected abstract function renderType($css);
 
     protected function getSliderClasses() {
         return $this->slider->features->fadeOnLoad->getSliderClass();
@@ -76,5 +102,20 @@ abstract class N2SmartSliderType {
     }
 
     private function renderShapeDivider($side, $params) {
+    }
+
+    /**
+     * @return string
+     */
+    public function getScript() {
+        return '';
+    }
+
+    public function getStyle() {
+        return $this->style;
+    }
+
+    public function setJavaScriptProperty($key, $value) {
+        $this->javaScriptProperties[$key] = $value;
     }
 }

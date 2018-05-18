@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <extension version="2.5" type="plugin" group="vmpayment" method="upgrade">
     <name>AMAZON</name>
-    <creationDate>December 06 2017</creationDate>
+    <creationDate>April 05 2018</creationDate>
     <author>The VirtueMart Development Team</author>
     <authorUrl>https://virtuemart.net</authorUrl>
-    <copyright>Copyright (C) 2004 - 2017 Virtuemart Team. All rights reserved.</copyright>
+    <copyright>Copyright (C) 2004 - 2018 Virtuemart Team. All rights reserved.</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
-    <version>3.2.8</version>
+    <version>3.2.14</version>
     <description>AMAZON PAY plugin</description>
     <languages>
         <language tag="en-GB">en-GB.plg_vmpayment_amazon.ini</language>
@@ -197,13 +197,13 @@
                 <field class="erp_mode erp_mode_disabled level2" type="vmtitle"
                        default="VMPAYMENT_AMAZON_CONF_ADVANCED_SECTION"/>
 
-                <field name="soft_decline" class="soft_decline" type="list"
+                <!--field name="soft_decline" class="soft_decline" type="list"
                        label="VMPAYMENT_AMAZON_CONF_SOFT_DECLINE" default="soft_decline_enabled"
                        description="VMPAYMENT_AMAZON_CONF_SOFT_DECLINE_TIP">
                     <option value="soft_decline_enabled">VMPAYMENT_AMAZON_CONF_SOFT_DECLINE_ENABLED</option>
                     <option value="soft_decline_disabled">VMPAYMENT_AMAZON_CONF_SOFT_DECLINE_DISABLED</option>
 
-                </field>
+                </field-->
                 <field class="sandbox_error_simulation" name="sandbox_error_simulation_auth" type="list"
                        default="0"
                        label="VMPAYMENT_AMAZON_CONF_SANDBOX_SIMULATION_AUTH">

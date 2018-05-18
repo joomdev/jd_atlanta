@@ -1,5 +1,5 @@
 <?php
-if (function_exists('zip_open') && strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+if (function_exists('zip_open') && function_exists('zip_read') && strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
     class N2ZipReader {
 
         public static function read($path) {
@@ -8,9 +8,6 @@ if (function_exists('zip_open') && strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
                 return array();
             }
             $data = array();
-            if (!function_exists('zip_read')) {
-                return N2Message::error(n2_('The zip_read() function is not available in the server. Contact your host and ask them to enable it.'));
-            }
             while ($entry = zip_read($zip)) {
 
                 zip_entry_open($zip, $entry, "r");

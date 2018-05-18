@@ -1,17 +1,22 @@
 <?php
 
-class N2Uri extends N2UriAbstract
-{
+class N2Uri extends N2UriAbstract {
+
+    private $fullUri;
 
     function __construct() {
-        $this->_baseuri = rtrim(JURI::root(), '/');
+        $this->fullUri  = rtrim(JURI::root(), '/');
+        $this->_baseuri = rtrim(JURI::root(true), '/');
 
-        $this->_currentbase = JURI::base();
+        $this->_currentbase = $this->fullUri;
 
-        if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off') {
-            $this->_baseuri = str_replace('http://', 'https://', $this->_baseuri);
-        }
-        self::$scheme = parse_url($this->_baseuri, PHP_URL_SCHEME);
+        self::$scheme = parse_url($this->fullUri, PHP_URL_SCHEME);
+    }
+
+    static function getFullUri() {
+        $i = N2Uri::getInstance();
+
+        return $i->fullUri;
     }
 
     static function ajaxUri($query = '', $magento = 'nextendlibrary') {
