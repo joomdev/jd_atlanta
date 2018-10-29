@@ -1,2 +1,11 @@
+# JD Alanta
+![Github All Releases](https://img.shields.io/github/downloads/joomdev/jd_atlanta/total.svg)
+![AUR](https://img.shields.io/aur/license/yaourt.svg)
+![GitHub release](https://img.shields.io/github/release/joomdev/jd_atlanta.svg)
 
-<h1><a id="JD_jdatlanta_for_Joomla_0"></a>JD Atlanta - Free Joomla Multipurpose Template</h1>
+JD Chicago template for Joomla
+![JD Atlanta mockup](https://www.joomdev.com/images/templatemanager/desktop/jd-atlanta-desktop-thumb.jpg)
+
+# Requirements
+* Joomla: 3.8 +
+* PHP : 5.6+
